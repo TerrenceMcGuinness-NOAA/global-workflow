@@ -57,7 +57,7 @@ if __name__ == '__main__':
     print(f'config.base: {cfg.find_config("config.base")}')
 
     print( '' )
-    print(f'EXPDIR: {cfg.config_dir}')
+    print( 'EXPDIR:\t\t', cfg.config_dir)
     print( 'DATAROOT:\t', base['DATAROOT'] )
     print( 'COMROOT:\t', base['COMROOT'] )
     print( '')
@@ -68,20 +68,28 @@ if __name__ == '__main__':
 
 
     if 'config.anal' in '\n'.join(cfg.config_files):
-       print('config.anal...')
+       print('\nconfig.anal...configured: ',end='')
        #cfg.print_config(['config.base', 'config.anal'])
+       anal = cfg.parse_config(['config.base', 'config.anal'])
+       print("DO_ATM",anal['DO_ATM'])
+       print('')
 
-
-    for val,env in base.items():
-        os.environ[val] = str(env)
 
     if 'config.coupled_ic' in '\n'.join(cfg.config_files):
-        coupled_ic  = cfg.parse_config('config.coupled_ic')
-        cfg.print_config(['config.base', 'config.coupled_ic'])
+        coupled_ic  = cfg.parse_config(['config.base','config.coupled_ic'])
+        print('coupled ic configured:')
         IC = path.join(str(base['BASE_CPLIC']),str(coupled_ic['CPL_ATMIC']),sdate,str(base['RUN']),str(base['CASE']),'INPUT')
-        print()
-        print(IC)
-        print()
+        print('\t',IC,end='')
+        if os.path.exists(IC):
+             print(' IC path exists',end='')
+        else:
+             print(' Warning: IC PATH not on file system',end='')
+        if sdate in IC:
+             print(' and sdate is in path of ICs')
+        else:
+             print(' Warning: sdate is not in path of ICs')
+
+    print()
 
     #staged_files_path = os.path.join(_here,'forecast_test.yaml')
     #staged_files_list = parse_yamltmpl(staged_files_path)
