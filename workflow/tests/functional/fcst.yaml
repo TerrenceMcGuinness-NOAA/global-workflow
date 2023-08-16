@@ -1,0 +1,26 @@
+testname: fcst.sh
+
+FUNCTESTS_DATA_ROOT=
+
+EXPDIR: /work2/noaa/global/mterry/RUNTESTS/EXPDIR/C48_ATM
+
+mkdir:
+- /work2/noaa/global/mterry/TESTFILES
+
+copy:
+- [/work/noaa/global/glopara/data/ICSDIR/prototype_ICs/workflowtest/2021032312/gfs/C48/INPUT/gfs_ctrl.nc, /work2/noaa/global/mterry/TESTFILES]
+
+copy:
+- [/work/noaa/global/glopara/data/ICSDIR/prototype_ICs/workflowtest/2021032312/gfs/C48/INPUT/gfs_ctrl.nc
+- [/work/noaa/global/glopara/data/ICSDIR/prototype_ICs/workflowtest/2021032312/gfs/C48/INPUT/gfs_data.tile1.nc
+- [/work/noaa/global/glopara/data/ICSDIR/prototype_ICs/workflowtest/2021032312/gfs/C48/INPUT/gfs_data.tile2.nc
+- [/work/noaa/global/glopara/data/ICSDIR/prototype_ICs/workflowtest/2021032312/gfs/C48/INPUT/gfs_data.tile3.nc
+- [/work/noaa/global/glopara/data/ICSDIR/prototype_ICs/workflowtest/2021032312/gfs/C48/INPUT/gfs_data.tile4.nc
+- [/work/noaa/global/glopara/data/ICSDIR/prototype_ICs/workflowtest/2021032312/gfs/C48/INPUT/gfs_data.tile5.nc
+- [/work/noaa/global/glopara/data/ICSDIR/prototype_ICs/workflowtest/2021032312/gfs/C48/INPUT/gfs_data.tile6.nc
+- [/work/noaa/global/glopara/data/ICSDIR/prototype_ICs/workflowtest/2021032312/gfs/C48/INPUT/sfc_data.tile1.nc
+- [/work/noaa/global/glopara/data/ICSDIR/prototype_ICs/workflowtest/2021032312/gfs/C48/INPUT/sfc_data.tile2.nc
+- [/work/noaa/global/glopara/data/ICSDIR/prototype_ICs/workflowtest/2021032312/gfs/C48/INPUT/sfc_data.tile3.nc
+- [/work/noaa/global/glopara/data/ICSDIR/prototype_ICs/workflowtest/2021032312/gfs/C48/INPUT/sfc_data.tile4.nc
+- [/work/noaa/global/glopara/data/ICSDIR/prototype_ICs/workflowtest/2021032312/gfs/C48/INPUT/sfc_data.tile5.nc
+- [/work/noaa/global/glopara/data/ICSDIR/prototype_ICs/workflowtest/2021032312/gfs/C48/INPUT/sfc_data.tile6.nc

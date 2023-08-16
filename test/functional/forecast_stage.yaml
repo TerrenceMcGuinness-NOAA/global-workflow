@@ -1,5 +1,0 @@
-mkdir:
-- /work2/noaa/global/mterry/TESTFILES
-
-copy:
-- [/work/noaa/global/glopara/data/ICSDIR/prototype_ICs/workflowtest/2021032312/gfs/C48/INPUT/gfs_ctrl.nc, /work2/noaa/global/mterry/TESTFILES]
