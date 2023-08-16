@@ -1,0 +1,44 @@
+Task: gfsfcst
+  account: nems
+  command: /work2/noaa/global/mterry/global-workflow_forked/jobs/rocoto/fcst.sh
+  cores: 40
+  cycledefs: gfs
+  final: false
+  jobname: C48_ATM_gfsfcst_12
+  join: /work2/noaa/global/mterry/RUNTESTS/COMROT/C48_ATM/logs/2021032312/gfsfcst.log
+  maxtries: 2
+  name: gfsfcst
+  nodes: 1:ppn=40:tpp=1
+  partition: orion
+  queue: batch
+  throttle: 9999999
+  walltime: 03:00:00
+  environment
+    CDATE ==> 2021032312
+    CDUMP ==> gfs
+    COMROOT ==> /work/noaa/global/glopara/com
+    DATAROOT ==> /work/noaa/stmp/mterry/RUNDIRS/C48_ATM
+    EXPDIR ==> /work2/noaa/global/mterry/RUNTESTS/EXPDIR/C48_ATM
+    HOMEgfs ==> /work2/noaa/global/mterry/global-workflow_forked
+    NET ==> gfs
+    PDY ==> 20210323
+    RUN ==> gfs
+    RUN_ENVIR ==> emc
+    cyc ==> 12
+  dependencies
+    AND is satisfied
+      gfscoupled_ic of cycle 202103231200 is SUCCEEDED
+
+Cycle: 202103231200
+  Valid for this task: YES
+  State: active
+  Activated: 2023-08-14 17:10:33 UTC
+  Completed: -
+  Expired: -
+
+Job: 14549952
+  State:  QUEUED (queued)
+  Exit Status:  -
+  Tries:  1
+  Unknown count:  0
+  Duration:  0.0
