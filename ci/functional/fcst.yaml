@@ -1,8 +1,8 @@
-testname: fcst.sh
+functional_test_name: fcst.sh
 
-FUNCTESTS_DATA_ROOT=
+FUNCTESTS_DATA_ROOT: {{ FUNCTESTS_DATA_ROOT }}
 
-EXPDIR: /work2/noaa/global/mterry/RUNTESTS/EXPDIR/C48_ATM
+case: C48_ATM
 
 mkdir:
 - /work2/noaa/global/mterry/TESTFILES
