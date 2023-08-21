@@ -21,7 +21,7 @@ source "${HOMEgfs}/ush/detect_machine.sh"
 case ${MACHINE_ID} in
   hera | orion)
     echo "Setting up environment for running Fuctional Based Automated Testing on ${MACHINE_ID}"
-    #source "${HOMEgfs}/workflow/gw_setup.sh"
+    source "${HOMEgfs}/workflow/gw_setup.sh"
     source "${HOMEgfs}/ci/platforms/${MACHINE_ID}.sh"
     ;;
   *)
@@ -38,5 +38,40 @@ done
 # TODO Hard code a specific PR number for now and 
 # develop the rest of the functional test infrastructure
 PR="${PR_FUNCTIONAL_TEST}"
+HOMEgfs_PR="${FUNCTESTS_DATA_ROOT}/global-workflow"
 
-"${HOMEgfs}/ci/scripts/clone-build_ci.sh -p ${PR} -d ${FUNCTESTS_DATA_ROOT}"
+cd "${HOMEgfs_PR}"
+pr_sha=$(git rev-parse --short HEAD)
+
+#${HOMEgfs}/ci/scripts/clone-build_ci.sh -p "${PR}" -d "${FUNCTESTS_DATA_ROOT}" -o "${FUNCTESTS_DATA_ROOT}/output_${PR}.log"
+echo "SKIPPING: ${HOMEgfs}/ci/scripts/clone-build_ci.sh -p "${PR}" -d "${FUNCTESTS_DATA_ROOT}" -o ${FUNCTESTS_DATA_ROOT}/output_${PR}.log"
+export RUNTESTS="${FUNCTESTS_DATA_ROOT}/RUNTESTS"
+mkdir -p "${RUNTESTS}"
+
+
+    for yaml_config in "${HOMEgfs_PR}/ci/cases/"*.yaml; do
+      case=$(basename "${yaml_config}" .yaml) || true
+      pslot="${case}_${pr_sha}"
+      export pslot
+      set +e
+      "${HOMEgfs_PR}/ci/scripts/create_experiment.py" --yaml "${HOMEgfs_PR}/ci/cases/${case}.yaml" --dir foobar
+      ci_status=$?
+      set -e
+      if [[ ${ci_status} -eq 0 ]]; then
+        {
+          echo "Created experiment:            *SUCCESS*"
+          echo "Case setup: Completed at $(date) for experiment ${pslot}" || true
+        } >> "${FUNCTESTS_DATA_ROOT}/output_${PR}.log"
+        #"${GH}" pr edit --repo "${REPO_URL}" "${pr}" --remove-label "CI-${MACHINE_ID^}-Building" --add-label "CI-${MACHINE_ID^}-Running"
+        #"${HOMEgfs}/ci/scripts/pr_list_database.py" --dbfile "${pr_list_dbfile}" --update_pr "${pr}" Open Running
+      else 
+        {
+          echo "Failed to create experiment:  *FAIL* ${pslot}"
+          echo "Experiment setup: failed at $(date) for experiment ${pslot}" || true
+          echo ""
+          cat "${HOMEgfs_PR}/ci/scripts/"setup_*.std*
+        } >> "${FUNCTESTS_DATA_ROOT}/output_${PR}.log"
+        #"${GH}" pr edit "${pr}" --repo "${REPO_URL}" --remove-label "CI-${MACHINE_ID^}-Building" --add-label "CI-${MACHINE_ID^}-Failed"
+        #"${HOMEgfs}/ci/scripts/pr_list_database.py" --remove_pr "${pr}" --dbfile "${pr_list_dbfile}"
+      fi
+    done
