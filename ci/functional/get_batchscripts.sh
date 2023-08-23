@@ -1,4 +1,4 @@
-#!/usr/env bash
+#!/usr/bin/env bash
 
 EXPDIR=$1
 SDATE=$2
@@ -14,9 +14,9 @@ list_jobs="gfsfcst gfsvrfy gfsarch"
 echo "Createing batch scripts for: ${list_jobs}"
 
 for job in ${list_jobs}; do
-  echo $job
+  echo "${job}"
   rm -f /tmp/temp.txt
-  rocotoboot -v 10 -d "${EXPDIR}/${PSLOT}.db" -w "${EXPDIR}/${PSLOT}.xml" -c "${SDATE}00" -t $job >& /tmp/temp.txt || true
+  rocotoboot -v 10 -d "${EXPDIR}/${PSLOT}.db" -w "${EXPDIR}/${PSLOT}.xml" -c "${SDATE}00" -t "${job}" >& /tmp/temp.txt || true
   sub_script=$(cat /tmp/temp.txt)
   echo "'rocotorewind -d ${EXPDIR}/${PSLOT}.db -w ${EXPDIR}/${PSLOT}.xml -c ${SDATE}00 -t ${job}"
   rocotorewind -d "${EXPDIR}/${PSLOT}.db" -w "${EXPDIR}/${PSLOT}.xml" -c "${SDATE}00" -t "${job}"
