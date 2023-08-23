@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
-import os, sys
+import os
+import sys
 from os import path
 from columnar import columnar
 from math import ceil
@@ -9,13 +10,13 @@ from wxflow import Task
 import logging
 
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
-
 from wxflow import Configuration, Task
 
 _here = path.dirname(__file__)
 _top = path.abspath(path.join(path.abspath(_here), '../..'))
 
 logger = logging.getLogger(__name__.split('.')[-1])
+
 
 def input_args():
     """
