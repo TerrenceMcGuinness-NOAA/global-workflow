@@ -46,7 +46,7 @@ if __name__ == '__main__':
     list_files = list(map(path.basename, cfg.config_files))
     col = 5
     length = len(list_files)
-    list_files.extend([' ']*(col*ceil(length/col) - length))
+    list_files.extend([' '] * (col * ceil(length / col) - length))
     config_files = [list_files[i:i + col] for i in range(0, length, col)]
     table = columnar(config_files, headers=None, no_borders=True)
 
@@ -76,9 +76,8 @@ if __name__ == '__main__':
         print("DO_ATM", anal['DO_ATM'])
         print('')
 
-
     if 'config.coupled_ic' in '\n'.join(cfg.config_files):
-        coupled_ic = cfg.parse_config(['config.base','config.coupled_ic'])
+        coupled_ic = cfg.parse_config(['config.base', 'config.coupled_ic'])
         print('coupled ic configured:')
         IC = path.join(str(base['BASE_CPLIC']), str(coupled_ic['CPL_ATMIC']), sdate, str(base['RUN']), str(base['CASE']), 'INPUT')
         print('\t', IC, end='')
