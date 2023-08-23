@@ -71,7 +71,7 @@ if __name__ == '__main__':
 
     if 'config.anal' in '\n'.join(cfg.config_files):
         print('\nconfig.anal...configured: ', end='')
-    #cfg.print_config(['config.base', 'config.anal'])
+        # cfg.print_config(['config.base', 'config.anal'])
         anal = cfg.parse_config(['config.base', 'config.anal'])
         print("DO_ATM", anal['DO_ATM'])
         print('')
@@ -92,6 +92,6 @@ if __name__ == '__main__':
 
     print()
 
-#staged_files_path = os.path.join(_here,'forecast_test.yaml')
-#staged_files_list = parse_yamltmpl(staged_files_path)
-#FileHandler(staged_files_list).sync()
+# staged_files_path = os.path.join(_here,'forecast_test.yaml')
+# staged_files_list = parse_yamltmpl(staged_files_path)
+# FileHandler(staged_files_list).sync()
