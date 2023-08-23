@@ -45,8 +45,8 @@ export HOMEgfs_PR
 cd "${HOMEgfs_PR}"
 pr_sha=$(git rev-parse --short HEAD)
 
-#${HOMEgfs}/ci/scripts/clone-build_ci.sh -p "${PR}" -d "${FUNCTESTS_DATA_ROOT}" -o "${FUNCTESTS_DATA_ROOT}/output_${PR}.log"
-echo "SKIPPING: ${HOMEgfs}/ci/scripts/clone-build_ci.sh -p "${PR}" -d "${FUNCTESTS_DATA_ROOT}" -o ${FUNCTESTS_DATA_ROOT}/output_${PR}.log"
+${HOMEgfs}/ci/scripts/clone-build_ci.sh -p "${PR}" -d "${FUNCTESTS_DATA_ROOT}" -o "${FUNCTESTS_DATA_ROOT}/output_${PR}.log"
+#echo "SKIPPING: ${HOMEgfs}/ci/scripts/clone-build_ci.sh -p ${PR} -d ${FUNCTESTS_DATA_ROOT} -o ${FUNCTESTS_DATA_ROOT}/output_${PR}.log"
 export RUNTESTS="${FUNCTESTS_DATA_ROOT}/RUNTESTS"
 mkdir -p "${RUNTESTS}"
 
