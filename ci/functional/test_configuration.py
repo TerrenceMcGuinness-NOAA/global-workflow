@@ -46,8 +46,8 @@ if __name__ == '__main__':
     list_files = list(map(path.basename, cfg.config_files))
     col = 5
     length = len(list_files)
-    list_files.extend([' ']*(col*ceil(length/col)-length))
-    config_files = [list_files[i:i+col] for i in range(0, length, col)]
+    list_files.extend([' ']*(col*ceil(length/col) - length))
+    config_files = [list_files[i:i + col] for i in range(0, length, col)]
     table = columnar(config_files, headers=None, no_borders=True)
 
     print(f'\nUsing EXPDIR: {user_inputs.expdir}\n')
@@ -70,29 +70,29 @@ if __name__ == '__main__':
     print('RUN:\t\t', base['RUN'])
 
     if 'config.anal' in '\n'.join(cfg.config_files):
-          print('\nconfig.anal...configured: ',end = '')
+        print('\nconfig.anal...configured: ', end='')
     #cfg.print_config(['config.base', 'config.anal'])
-          anal = cfg.parse_config(['config.base', 'config.anal'])
-          print("DO_ATM", anal['DO_ATM'])
-          print('')
+        anal = cfg.parse_config(['config.base', 'config.anal'])
+        print("DO_ATM", anal['DO_ATM'])
+        print('')
 
 
     if 'config.coupled_ic' in '\n'.join(cfg.config_files):
-         coupled_ic = cfg.parse_config(['config.base','config.coupled_ic'])
-         print('coupled ic configured:')
-         IC = path.join(str(base['BASE_CPLIC']), str(coupled_ic['CPL_ATMIC']), sdate, str(base['RUN']), str(base['CASE']), 'INPUT')
-         print('\t', IC, end='')
-         if os.path.exists(IC):
-             print(' IC path exists', end='')
-         else:
-             print(' Warning: IC PATH not on file system', end='')
-         if sdate in IC:
-             print(' and sdate is in path of ICs')
-         else:
-             print(' Warning: sdate is not in path of ICs')
+        coupled_ic = cfg.parse_config(['config.base','config.coupled_ic'])
+        print('coupled ic configured:')
+        IC = path.join(str(base['BASE_CPLIC']), str(coupled_ic['CPL_ATMIC']), sdate, str(base['RUN']), str(base['CASE']), 'INPUT')
+        print('\t', IC, end='')
+        if os.path.exists(IC):
+            print(' IC path exists', end='')
+        else:
+            print(' Warning: IC PATH not on file system', end='')
+        if sdate in IC:
+            print(' and sdate is in path of ICs')
+        else:
+            print(' Warning: sdate is not in path of ICs')
 
     print()
 
-    #staged_files_path = os.path.join(_here,'forecast_test.yaml')
-    #staged_files_list = parse_yamltmpl(staged_files_path)
-    #FileHandler(staged_files_list).sync()
+#staged_files_path = os.path.join(_here,'forecast_test.yaml')
+#staged_files_list = parse_yamltmpl(staged_files_path)
+#FileHandler(staged_files_list).sync()
