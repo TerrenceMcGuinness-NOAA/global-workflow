@@ -24,7 +24,7 @@ def input_args():
     """
 
     description = """
-        foo         
+        foo
         """
 
     parser = ArgumentParser(description=description,
@@ -42,10 +42,10 @@ if __name__ == '__main__':
     user_inputs = input_args()
     cfg = Configuration(user_inputs.expdir)
 
-    list_files=list(map(path.basename, cfg.config_files))
-    col=5;l=len(list_files)
+    list_files=list( map( path.basename, cfg.config_files ) )
+    col=5;l=len( list_files )
     list_files.extend([' ']*(col*ceil(l/col)-l))
-    config_files=[list_files[i:i+col] for i in range(0,l,col)]
+    config_files=[list_files[i:i+col] for i in range(0, l, col)]
     table=columnar(config_files, headers=None, no_borders=True)
 
     print(f'\nUsing EXPDIR: {user_inputs.expdir}\n')
@@ -53,19 +53,19 @@ if __name__ == '__main__':
     print(table)
 
     base = cfg.parse_config('config.base')
-    sdate = base['SDATE'].strftime("%Y%m%d%H") 
+    sdate = base['SDATE'].strftime("%Y%m%d%H")
 
     print(f'config.base: {cfg.find_config("config.base")}')
 
     print( '' )
-    print( 'EXPDIR:\t\t', cfg.config_dir)
+    print( 'EXPDIR:\t\t', cfg.config_dir )
     print( 'DATAROOT:\t', base['DATAROOT'] )
     print( 'COMROOT:\t', base['COMROOT'] )
     print( '')
     print( 'SDATE:\t\t', sdate )
-    print( 'machine:\t', base['machine'] )   
-    print( 'CASE:\t\t', base['CASE'] )   
-    print( 'RUN:\t\t', base['RUN'] )   
+    print( 'machine:\t', base['machine'] )
+    print( 'CASE:\t\t', base['CASE'] )
+    print( 'RUN:\t\t', base['RUN'] )
 
 
     if 'config.anal' in '\n'.join(cfg.config_files):
