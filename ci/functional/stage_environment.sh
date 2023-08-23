@@ -5,7 +5,8 @@
 ################################################################
 
 export GH=${HOME}/bin/gh
-export REPO_URL=${REPO_URL:-"https://github.com/NOAA-EMC/global-workflow.git"}
+#export REPO_URL=${REPO_URL:-"https://github.com/NOAA-EMC/global-workflow.git"}
+export REPO_URL=https://github.com/TerrenceMcGuinness-NOAA/global-workflow.git
 
 HOMEgfs="$(cd "$(dirname  "${BASH_SOURCE[0]}")/../.." >/dev/null 2>&1 && pwd )"
 echo "HOMEgfs: ${HOMEgfs}"
