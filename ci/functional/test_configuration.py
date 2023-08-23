@@ -28,10 +28,10 @@ def input_args():
         """
 
     parser = ArgumentParser(description=description,
-                            formatter_class = ArgumentDefaultsHelpFormatter)
+                            formatter_class=ArgumentDefaultsHelpFormatter)
 
     parser.add_argument('expdir', help='full path to experiment directory containing config files',
-                        type=str, default = os.environ['PWD'])
+                        type=str, default=os.environ['PWD'])
 
     args = parser.parse_args()
 
@@ -39,7 +39,6 @@ def input_args():
 
 
 if __name__ == '__main__':
-
 
     user_inputs = input_args()
     cfg = Configuration(user_inputs.expdir)
@@ -49,7 +48,7 @@ if __name__ == '__main__':
     length = len(list_files)
     list_files.extend([' ']*(col*ceil(length/col)-length))
     config_files = [list_files[i:i+col] for i in range(0, length, col)]
-    table=columnar(config_files, headers = None, no_borders = True)
+    table = columnar(config_files, headers=None, no_borders=True)
 
     print(f'\nUsing EXPDIR: {user_inputs.expdir}\n')
     print('Containing the configfiles:')
@@ -71,26 +70,26 @@ if __name__ == '__main__':
     print('RUN:\t\t', base['RUN'])
 
     if 'config.anal' in '\n'.join(cfg.config_files):
-         print('\nconfig.anal...configured: ',end = '')
-         #cfg.print_config(['config.base', 'config.anal'])
-         anal = cfg.parse_config(['config.base', 'config.anal'])
-         print("DO_ATM", anal['DO_ATM'])
-         print('')
+          print('\nconfig.anal...configured: ',end = '')
+    #cfg.print_config(['config.base', 'config.anal'])
+          anal = cfg.parse_config(['config.base', 'config.anal'])
+          print("DO_ATM", anal['DO_ATM'])
+          print('')
 
 
     if 'config.coupled_ic' in '\n'.join(cfg.config_files):
-        coupled_ic  = cfg.parse_config(['config.base','config.coupled_ic'])
-        print('coupled ic configured:')
-        IC = path.join(str(base['BASE_CPLIC']), str(coupled_ic['CPL_ATMIC']), sdate, str(base['RUN']), str(base['CASE']), 'INPUT')
-        print('\t', IC, end = '')
-        if os.path.exists(IC):
-            print(' IC path exists', end='')
-        else:
-            print(' Warning: IC PATH not on file system', end = '')
-        if sdate in IC:
-            print(' and sdate is in path of ICs')
-        else:
-            print(' Warning: sdate is not in path of ICs')
+         coupled_ic = cfg.parse_config(['config.base','config.coupled_ic'])
+         print('coupled ic configured:')
+         IC = path.join(str(base['BASE_CPLIC']), str(coupled_ic['CPL_ATMIC']), sdate, str(base['RUN']), str(base['CASE']), 'INPUT')
+         print('\t', IC, end='')
+         if os.path.exists(IC):
+             print(' IC path exists', end='')
+         else:
+             print(' Warning: IC PATH not on file system', end='')
+         if sdate in IC:
+             print(' and sdate is in path of ICs')
+         else:
+             print(' Warning: sdate is not in path of ICs')
 
     print()
 
