@@ -20,7 +20,7 @@ for job in ${list_jobs}; do
   sub_script=$(cat /tmp/temp.txt)
   echo "'rocotorewind -d ${EXPDIR}/${PSLOT}.db -w ${EXPDIR}/${PSLOT}.xml -c ${SDATE}00 -t ${job}"
   rocotorewind -d "${EXPDIR}/${PSLOT}.db" -w "${EXPDIR}/${PSLOT}.xml" -c "${SDATE}00" -t "${job}"
-  if [[ "${sub_script}" =~ "${regex}" ]]; then
-     echo "${BASH_REMATCH[1]}" | tr -s '\n' > "${job}"_"${PSLOT}.sub"
+  if [[ "${sub_script}" =~ ${regex} ]]; then
+     echo "${BASH_REMATCH[1]}" | tr -s '\n' > "${job}"_"${PSLOT}".sub
   fi
 done

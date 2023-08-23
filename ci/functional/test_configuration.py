@@ -42,11 +42,11 @@ if __name__ == '__main__':
     user_inputs = input_args()
     cfg = Configuration(user_inputs.expdir)
 
-    list_files=list( map( path.basename, cfg.config_files ) )
-    col=5;l=len( list_files )
+    list_files = list(map(path.basename, cfg.config_files))
+    col = 5; l = len(list_files)
     list_files.extend([' ']*(col*ceil(l/col)-l))
-    config_files=[list_files[i:i+col] for i in range(0, l, col)]
-    table=columnar(config_files, headers=None, no_borders=True)
+    config_files = [list_files[i:i+col] for i in range(0, l, col)]
+    table=columnar(config_files, headers = None, no_borders = True)
 
     print(f'\nUsing EXPDIR: {user_inputs.expdir}\n')
     print('Containing the configfiles:')
@@ -57,19 +57,19 @@ if __name__ == '__main__':
 
     print(f'config.base: {cfg.find_config("config.base")}')
 
-    print( '' )
-    print( 'EXPDIR:\t\t', cfg.config_dir )
-    print( 'DATAROOT:\t', base['DATAROOT'] )
-    print( 'COMROOT:\t', base['COMROOT'] )
-    print( '')
-    print( 'SDATE:\t\t', sdate )
-    print( 'machine:\t', base['machine'] )
-    print( 'CASE:\t\t', base['CASE'] )
-    print( 'RUN:\t\t', base['RUN'] )
+    print('')
+    print('EXPDIR:\t\t', cfg.config_dir)
+    print('DATAROOT:\t', base['DATAROOT'])
+    print('COMROOT:\t', base['COMROOT'])
+    print('')
+    print('SDATE:\t\t', sdate)
+    print('machine:\t', base['machine'])
+    print('CASE:\t\t', base['CASE'])
+    print('RUN:\t\t', base['RUN'])
 
 
     if 'config.anal' in '\n'.join(cfg.config_files):
-       print('\nconfig.anal...configured: ',end='')
+       print('\nconfig.anal...configured: ',end = '')
        #cfg.print_config(['config.base', 'config.anal'])
        anal = cfg.parse_config(['config.base', 'config.anal'])
        print("DO_ATM",anal['DO_ATM'])
@@ -79,12 +79,12 @@ if __name__ == '__main__':
     if 'config.coupled_ic' in '\n'.join(cfg.config_files):
         coupled_ic  = cfg.parse_config(['config.base','config.coupled_ic'])
         print('coupled ic configured:')
-        IC = path.join(str(base['BASE_CPLIC']),str(coupled_ic['CPL_ATMIC']),sdate,str(base['RUN']),str(base['CASE']),'INPUT')
-        print('\t',IC,end='')
+        IC = path.join(str(base['BASE_CPLIC']), str(coupled_ic['CPL_ATMIC']), sdate, str(base['RUN']), str(base['CASE']), 'INPUT')
+        print('\t',IC,end = '')
         if os.path.exists(IC):
              print(' IC path exists',end='')
         else:
-             print(' Warning: IC PATH not on file system',end='')
+             print(' Warning: IC PATH not on file system',end = '')
         if sdate in IC:
              print(' and sdate is in path of ICs')
         else:
