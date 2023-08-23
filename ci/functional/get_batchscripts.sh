@@ -1,4 +1,4 @@
-#/usr/env bash
+#!/usr/env bash
 
 EXPDIR=$1
 SDATE=$2
