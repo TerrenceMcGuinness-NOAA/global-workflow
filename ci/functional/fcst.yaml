@@ -2,25 +2,16 @@ functional_test_name: fcst.sh
 
 FUNCTESTS_DATA_ROOT: {{ FUNCTESTS_DATA_ROOT }}
 
-case: C48_ATM
+pslot: C48_ATM
 
 mkdir:
-- /work2/noaa/global/mterry/TESTFILES
+- ${FUNCTESTS_DATA_ROOT}/RUNTESTS/COMROT/${PSLOT}/gfs.${SDATE}/module_data/asmos/input
 
 copy:
-- [/work/noaa/global/glopara/data/ICSDIR/prototype_ICs/workflowtest/2021032312/gfs/C48/INPUT/gfs_ctrl.nc, /work2/noaa/global/mterry/TESTFILES]
-
-copy:
-- [/work/noaa/global/glopara/data/ICSDIR/prototype_ICs/workflowtest/2021032312/gfs/C48/INPUT/gfs_ctrl.nc
-- [/work/noaa/global/glopara/data/ICSDIR/prototype_ICs/workflowtest/2021032312/gfs/C48/INPUT/gfs_data.tile1.nc
-- [/work/noaa/global/glopara/data/ICSDIR/prototype_ICs/workflowtest/2021032312/gfs/C48/INPUT/gfs_data.tile2.nc
-- [/work/noaa/global/glopara/data/ICSDIR/prototype_ICs/workflowtest/2021032312/gfs/C48/INPUT/gfs_data.tile3.nc
-- [/work/noaa/global/glopara/data/ICSDIR/prototype_ICs/workflowtest/2021032312/gfs/C48/INPUT/gfs_data.tile4.nc
-- [/work/noaa/global/glopara/data/ICSDIR/prototype_ICs/workflowtest/2021032312/gfs/C48/INPUT/gfs_data.tile5.nc
-- [/work/noaa/global/glopara/data/ICSDIR/prototype_ICs/workflowtest/2021032312/gfs/C48/INPUT/gfs_data.tile6.nc
-- [/work/noaa/global/glopara/data/ICSDIR/prototype_ICs/workflowtest/2021032312/gfs/C48/INPUT/sfc_data.tile1.nc
-- [/work/noaa/global/glopara/data/ICSDIR/prototype_ICs/workflowtest/2021032312/gfs/C48/INPUT/sfc_data.tile2.nc
-- [/work/noaa/global/glopara/data/ICSDIR/prototype_ICs/workflowtest/2021032312/gfs/C48/INPUT/sfc_data.tile3.nc
-- [/work/noaa/global/glopara/data/ICSDIR/prototype_ICs/workflowtest/2021032312/gfs/C48/INPUT/sfc_data.tile4.nc
-- [/work/noaa/global/glopara/data/ICSDIR/prototype_ICs/workflowtest/2021032312/gfs/C48/INPUT/sfc_data.tile5.nc
-- [/work/noaa/global/glopara/data/ICSDIR/prototype_ICs/workflowtest/2021032312/gfs/C48/INPUT/sfc_data.tile6.nc
+- [/work/noaa/global/glopara/data/ICSDIR/prototype_ICs/workflowtest/${SDATE}/gfs/C48/INPUT/gfs_ctrl.nc, ${FUNCTESTS_DATA_ROOT}/RUNTESTS/COMROT/${PSLOT}/gfs.${SDATE}/module_data/asmos/input/gfs_ctl.nc ]
+- [/work/noaa/global/glopara/data/ICSDIR/prototype_ICs/workflowtest/${SDATE}/gfs/C48/INPUT/gfs_data.tile1.nc, ${FUNCTESTS_DATA_ROOT}/RUNTESTS/COMROT/${PSLOT}/gfs.${SDATE}/module_data/asmos/input/gfs_data.tile1.nc ]
+- [/work/noaa/global/glopara/data/ICSDIR/prototype_ICs/workflowtest/${SDATE}/gfs/C48/INPUT/gfs_data.tile2.nc, ${FUNCTESTS_DATA_ROOT}/RUNTESTS/COMROT/${PSLOT}/gfs.${SDATE}/module_data/asmos/input/gfs_data.tile1.nc ]
+- [/work/noaa/global/glopara/data/ICSDIR/prototype_ICs/workflowtest/${SDATE}/gfs/C48/INPUT/gfs_data.tile3.nc, ${FUNCTESTS_DATA_ROOT}/RUNTESTS/COMROT/${PSLOT}/gfs.${SDATE}/module_data/asmos/input/gfs_data.tile1.nc ]
+- [/work/noaa/global/glopara/data/ICSDIR/prototype_ICs/workflowtest/${SDATE}/gfs/C48/INPUT/gfs_data.tile4.nc, ${FUNCTESTS_DATA_ROOT}/RUNTESTS/COMROT/${PSLOT}/gfs.${SDATE}/module_data/asmos/input/gfs_data.tile1.nc ]
+- [/work/noaa/global/glopara/data/ICSDIR/prototype_ICs/workflowtest/${SDATE}/gfs/C48/INPUT/gfs_data.tile5.nc, ${FUNCTESTS_DATA_ROOT}/RUNTESTS/COMROT/${PSLOT}/gfs.${SDATE}/module_data/asmos/input/gfs_data.tile1.nc ]
+- [/work/noaa/global/glopara/data/ICSDIR/prototype_ICs/workflowtest/${SDATE}/gfs/C48/INPUT/gfs_data.tile6.nc, ${FUNCTESTS_DATA_ROOT}/RUNTESTS/COMROT/${PSLOT}/gfs.${SDATE}/module_data/asmos/input/gfs_data.tile1.nc ]

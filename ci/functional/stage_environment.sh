@@ -43,17 +43,16 @@ HOMEgfs_PR="${FUNCTESTS_DATA_ROOT}/global-workflow"
 export HOMEgfs_PR
 
 cd "${HOMEgfs_PR}"
-pr_sha=$(git rev-parse --short HEAD)
+#pr_sha=$(git rev-parse --short HEAD)
 
 "${HOMEgfs}"/ci/scripts/clone-build_ci.sh -p "${PR}" -d "${FUNCTESTS_DATA_ROOT}" -o "${FUNCTESTS_DATA_ROOT}"/output_"${PR}".log
 #echo "SKIPPING: ${HOMEgfs}/ci/scripts/clone-build_ci.sh -p ${PR} -d ${FUNCTESTS_DATA_ROOT} -o ${FUNCTESTS_DATA_ROOT}/output_${PR}.log"
 export RUNTESTS="${FUNCTESTS_DATA_ROOT}/RUNTESTS"
 mkdir -p "${RUNTESTS}"
 
-
     for yaml_config in "${HOMEgfs_PR}/ci/cases/"*.yaml; do
       case=$(basename "${yaml_config}" .yaml) || true
-      pslot="${case}_${pr_sha}"
+      pslot="${case}"
       export pslot
       set +e
       "${HOMEgfs_PR}/ci/scripts/create_experiment.py" --yaml "${HOMEgfs_PR}/ci/cases/${case}.yaml" --dir foobar
@@ -66,7 +65,7 @@ mkdir -p "${RUNTESTS}"
         } >> "${FUNCTESTS_DATA_ROOT}/output_${PR}.log"
         #"${GH}" pr edit --repo "${REPO_URL}" "${pr}" --remove-label "CI-${MACHINE_ID^}-Building" --add-label "CI-${MACHINE_ID^}-Running"
         #"${HOMEgfs}/ci/scripts/pr_list_database.py" --dbfile "${pr_list_dbfile}" --update_pr "${pr}" Open Running
-       cd "${RUNTESTS}"/"${EXPDIR}"/"${pslot}"
+       cd "${RUNTESTS}"/EXPDIR/"${pslot}"
        SDATE=$("${HOMEgfs}"/ci/functional/test_configuration.py "${PWD}" | grep SDATE | cut -d ":" -f 2 | tr -d " \t\n\r") || true
        "${HOMEgfs}"/ci/functional/get_batchscripts.sh "${PWD}" "${SDATE}" || true
       else 

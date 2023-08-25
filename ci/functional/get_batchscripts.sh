@@ -4,18 +4,20 @@ EXPDIR=$1
 SDATE=$2
 PSLOT=$(basename "${EXPDIR}")
 
-rocotorun -v 10 -d "${EXPDIR}/${PSLOT}.db" -w "${EXPDIR}${PSLOT}.xml" -c "${SDATE}00" -t gfsfcst 2>/dev/null
-list_jobs=$(rocotostat -v 10 -d "${EXPDIR}/${PSLOT}.db" -w "${EXPDIR}/${PSLOT}.xml" | grep -Ev 'CYCLE|===' | awk '{print $2}' || true)
+# rocotorun -v 10 -d "${EXPDIR}/${PSLOT}.db" -w "${EXPDIR}${PSLOT}.xml" -c "${SDATE}00" -t gfsfcst 2>/dev/null
+#list_jobs=$(rocotostat -v 10 -d "${EXPDIR}/${PSLOT}.db" -w "${EXPDIR}/${PSLOT}.xml" | grep -Ev 'CYCLE|===' | awk '{print $2}' || true)
 
 regex="\{\{(.*)\}\}"
 
-echo "Full job list: ${list_jobs}"
-list_jobs="gfsfcst gfsvrfy gfsarch"
+#echo "Full job list: ${list_jobs}"
+#list_jobs="gfscoupled_ic gfsfcs"
+list_jobs="gfsfcst"
 echo "Createing batch scripts for: ${list_jobs}"
 
 for job in ${list_jobs}; do
   echo "${job}"
   rm -f /tmp/temp.txt
+  echo "rocotoboot -v 10 -d ${EXPDIR}/${PSLOT}.db -w ${EXPDIR}/${PSLOT}.xml -c ${SDATE}00 -t ${job}"
   rocotoboot -v 10 -d "${EXPDIR}/${PSLOT}.db" -w "${EXPDIR}/${PSLOT}.xml" -c "${SDATE}00" -t "${job}" >& /tmp/temp.txt || true
   sub_script=$(cat /tmp/temp.txt)
   echo "'rocotorewind -d ${EXPDIR}/${PSLOT}.db -w ${EXPDIR}/${PSLOT}.xml -c ${SDATE}00 -t ${job}"

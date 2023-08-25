@@ -58,16 +58,16 @@ if __name__ == '__main__':
     sdate = base['SDATE'].strftime("%Y%m%d%H")
 
     print(f'config.base: {cfg.find_config("config.base")}')
-
     print('')
-    print('EXPDIR:\t\t', cfg.config_dir)
-    print('DATAROOT:\t', base['DATAROOT'])
-    print('COMROOT:\t', base['COMROOT'])
+    print('machine:', base['machine'])
+    print('SDATE:\t', sdate)
+    print('CASE:\t', base['CASE'])
+    print('RUN:\t', base['RUN'])
     print('')
-    print('SDATE:\t\t', sdate)
-    print('machine:\t', base['machine'])
-    print('CASE:\t\t', base['CASE'])
-    print('RUN:\t\t', base['RUN'])
+    print('EXPDIR:\t', cfg.config_dir)
+    print('COMROOT:', base['COMROOT'])
+    print('ROTDIR:\t', base['ROTDIR'])
+    print('DATAROOT:', base['DATAROOT'])
 
     if 'config.anal' in '\n'.join(cfg.config_files):
         print('\nconfig.anal...configured: ', end='')
