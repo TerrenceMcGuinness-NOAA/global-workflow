@@ -63,6 +63,7 @@ if __name__ == '__main__':
     print('SDATE:\t', sdate)
     print('CASE:\t', base['CASE'])
     print('RUN:\t', base['RUN'])
+    print('MODE:\t', base['MODE'])
     print('')
     print('EXPDIR:\t', cfg.config_dir)
     print('COMROOT:', base['COMROOT'])
@@ -76,7 +77,7 @@ if __name__ == '__main__':
         print("DO_ATM", anal['DO_ATM'])
         print('')
 
-    if 'config.coupled_ic' in '\n'.join(cfg.config_files):
+    if 'config.coupled_ic' in '\n'.join(cfg.config_files) and base['MODE']=='forecast-only':
         coupled_ic = cfg.parse_config(['config.base', 'config.coupled_ic'])
         print('coupled ic configured:')
         IC = path.join(str(base['BASE_CPLIC']), str(coupled_ic['CPL_ATMIC']), sdate, str(base['RUN']), str(base['CASE']), 'INPUT')

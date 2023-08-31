@@ -1,28 +1,31 @@
 #!/usr/bin/env bash
 
+#set -eux
+
 EXPDIR=$1
-SDATE=$2
+job=$2
+SDATE=$3
 PSLOT=$(basename "${EXPDIR}")
 
-# rocotorun -v 10 -d "${EXPDIR}/${PSLOT}.db" -w "${EXPDIR}${PSLOT}.xml" -c "${SDATE}00" -t gfsfcst 2>/dev/null
-#list_jobs=$(rocotostat -v 10 -d "${EXPDIR}/${PSLOT}.db" -w "${EXPDIR}/${PSLOT}.xml" | grep -Ev 'CYCLE|===' | awk '{print $2}' || true)
+rocotorun -d "${EXPDIR}/${PSLOT}.db" -w "${EXPDIR}/${PSLOT}.xml" -c "${SDATE}00" -t $job
+list_jobs=$(rocotostat -d "${EXPDIR}/${PSLOT}.db" -w "${EXPDIR}/${PSLOT}.xml" | grep -Ev 'CYCLE|===' | awk '{print $2}' || true)
 
 regex="\{\{(.*)\}\}"
 
-#echo "Full job list: ${list_jobs}"
-#list_jobs="gfscoupled_ic gfsfcs"
-list_jobs="gfsfcst"
-echo "Createing batch scripts for: ${list_jobs}"
+if [[ "${list_jobs}}" == *"${job}"* ]]; then
+ echo "Createing batch scripts for: ${job}"
+else
+ echo "ERROR: ${job} is not in Task List for ${PSLOT}"
+ echo "/nFull job list: ${list_jobs}/n"
+ exit 1
+fi
 
-for job in ${list_jobs}; do
-  echo "${job}"
-  rm -f /tmp/temp.txt
-  echo "rocotoboot -v 10 -d ${EXPDIR}/${PSLOT}.db -w ${EXPDIR}/${PSLOT}.xml -c ${SDATE}00 -t ${job}"
-  rocotoboot -v 10 -d "${EXPDIR}/${PSLOT}.db" -w "${EXPDIR}/${PSLOT}.xml" -c "${SDATE}00" -t "${job}" >& /tmp/temp.txt || true
-  sub_script=$(cat /tmp/temp.txt)
-  echo "'rocotorewind -d ${EXPDIR}/${PSLOT}.db -w ${EXPDIR}/${PSLOT}.xml -c ${SDATE}00 -t ${job}"
-  rocotorewind -d "${EXPDIR}/${PSLOT}.db" -w "${EXPDIR}/${PSLOT}.xml" -c "${SDATE}00" -t "${job}"
-  if [[ "${sub_script}" =~ ${regex} ]]; then
-     echo "${BASH_REMATCH[1]}" | tr -s '\n' > "${job}"_"${PSLOT}".sub
-  fi
-done
+rm -f /tmp/temp.txt
+echo "rocotoboot -v 10 -d ${EXPDIR}/${PSLOT}.db -w ${EXPDIR}/${PSLOT}.xml -c ${SDATE}00 -t ${job}"
+rocotoboot -v 10 -d "${EXPDIR}/${PSLOT}.db" -w "${EXPDIR}/${PSLOT}.xml" -c "${SDATE}00" -t "${job}" >& /tmp/temp.txt || true
+sub_script=$(cat /tmp/temp.txt)
+echo "'rocotorewind -d ${EXPDIR}/${PSLOT}.db -w ${EXPDIR}/${PSLOT}.xml -c ${SDATE}00 -t ${job}"
+rocotorewind -d "${EXPDIR}/${PSLOT}.db" -w "${EXPDIR}/${PSLOT}.xml" -c "${SDATE}00" -t "${job}"
+if [[ "${sub_script}" =~ ${regex} ]]; then
+   echo "${BASH_REMATCH[1]}" | tr -s '\n' > "${job}"_"${PSLOT}".sub
+fi

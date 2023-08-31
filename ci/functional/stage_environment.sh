@@ -66,8 +66,16 @@ mkdir -p "${RUNTESTS}"
         #"${GH}" pr edit --repo "${REPO_URL}" "${pr}" --remove-label "CI-${MACHINE_ID^}-Building" --add-label "CI-${MACHINE_ID^}-Running"
         #"${HOMEgfs}/ci/scripts/pr_list_database.py" --dbfile "${pr_list_dbfile}" --update_pr "${pr}" Open Running
        cd "${RUNTESTS}"/EXPDIR/"${pslot}"
+       #TODO fix this to run test_configuration once!!
        SDATE=$("${HOMEgfs}"/ci/functional/test_configuration.py "${PWD}" | grep SDATE | cut -d ":" -f 2 | tr -d " \t\n\r") || true
-       "${HOMEgfs}"/ci/functional/get_batchscripts.sh "${PWD}" "${SDATE}" || true
+       MODE=$("${HOMEgfs}"/ci/functional/test_configuration.py "${PWD}" | grep MODE | cut -d ":" -f 2 | tr -d " \t\n\r") || true
+       # TODO get a list of jobs tested by yamls in config dir similar to the cases dir
+       if [[ "${MODE}" == "cycled" ]]; then
+	  job=gdasfcst
+       else
+	  job=gfsfcst
+       fi
+       "${HOMEgfs}"/ci/functional/get_batchscripts.sh "${PWD}" "${job}" "${SDATE}" || true
       else 
         {
           echo "Failed to create experiment:  *FAIL* ${pslot}"
