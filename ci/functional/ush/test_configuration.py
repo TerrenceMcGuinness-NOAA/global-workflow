@@ -6,11 +6,10 @@ from os import path
 from columnar import columnar
 from math import ceil
 
-from wxflow import Task
 import logging
+from wxflow import Configuration
 
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
-from wxflow import Configuration, Task
 
 _here = path.dirname(__file__)
 _top = path.abspath(path.join(path.abspath(_here), '../..'))
