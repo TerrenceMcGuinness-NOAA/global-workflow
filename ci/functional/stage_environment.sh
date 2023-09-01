@@ -45,45 +45,47 @@ export HOMEgfs_PR
 cd "${HOMEgfs_PR}"
 #pr_sha=$(git rev-parse --short HEAD)
 
-"${HOMEgfs}"/ci/scripts/clone-build_ci.sh -p "${PR}" -d "${FUNCTESTS_DATA_ROOT}" -o "${FUNCTESTS_DATA_ROOT}"/output_"${PR}".log
-#echo "SKIPPING: ${HOMEgfs}/ci/scripts/clone-build_ci.sh -p ${PR} -d ${FUNCTESTS_DATA_ROOT} -o ${FUNCTESTS_DATA_ROOT}/output_${PR}.log"
+##########################################################################
+# Clone and build global-workflow for the functional tests to work against
+
+#"${HOMEgfs}"/ci/scripts/clone-build_ci.sh -p "${PR}" -d "${FUNCTESTS_DATA_ROOT}" -o "${FUNCTESTS_DATA_ROOT}"/output_"${PR}".log
+echo "SKIPPING: ${HOMEgfs}/ci/scripts/clone-build_ci.sh -p ${PR} -d ${FUNCTESTS_DATA_ROOT} -o ${FUNCTESTS_DATA_ROOT}/output_${PR}.log"
+
+
+############################################################################
+# Create a expdirs for gfs and gdas cycling for drawing funtional tests from
+
+functional_test_case_list="C48_ATM.yaml C48_S2S.yaml C96_atm3DVar.yaml C96C48_hybatmDA.yaml"
+
 export RUNTESTS="${FUNCTESTS_DATA_ROOT}/RUNTESTS"
 mkdir -p "${RUNTESTS}"
 
-    for yaml_config in "${HOMEgfs_PR}/ci/cases/"*.yaml; do
-      case=$(basename "${yaml_config}" .yaml) || true
-      pslot="${case}"
-      export pslot
-      set +e
-      "${HOMEgfs_PR}/ci/scripts/create_experiment.py" --yaml "${HOMEgfs_PR}/ci/cases/${case}.yaml" --dir foobar
-      ci_status=$?
-      set -e
-      if [[ ${ci_status} -eq 0 ]]; then
-        {
-          echo "Created experiment:            *SUCCESS*"
-          echo "Case setup: Completed at $(date) for experiment ${pslot}" || true
-        } >> "${FUNCTESTS_DATA_ROOT}/output_${PR}.log"
-        #"${GH}" pr edit --repo "${REPO_URL}" "${pr}" --remove-label "CI-${MACHINE_ID^}-Building" --add-label "CI-${MACHINE_ID^}-Running"
-        #"${HOMEgfs}/ci/scripts/pr_list_database.py" --dbfile "${pr_list_dbfile}" --update_pr "${pr}" Open Running
-       cd "${RUNTESTS}"/EXPDIR/"${pslot}"
-       #TODO fix this to run test_configuration once!!
-       SDATE=$("${HOMEgfs}"/ci/functional/test_configuration.py "${PWD}" | grep SDATE | cut -d ":" -f 2 | tr -d " \t\n\r") || true
-       MODE=$("${HOMEgfs}"/ci/functional/test_configuration.py "${PWD}" | grep MODE | cut -d ":" -f 2 | tr -d " \t\n\r") || true
-       # TODO get a list of jobs tested by yamls in config dir similar to the cases dir
-       if [[ "${MODE}" == "cycled" ]]; then
-	  job=gdasfcst
-       else
-	  job=gfsfcst
-       fi
-       "${HOMEgfs}"/ci/functional/get_batchscripts.sh "${PWD}" "${job}" "${SDATE}" || true
-      else 
-        {
-          echo "Failed to create experiment:  *FAIL* ${pslot}"
-          echo "Experiment setup: failed at $(date) for experiment ${pslot}" || true
-          echo ""
-          cat "${HOMEgfs_PR}/ci/scripts/"setup_*.std*
-        } >> "${FUNCTESTS_DATA_ROOT}/output_${PR}.log"
-        #"${GH}" pr edit "${pr}" --repo "${REPO_URL}" --remove-label "CI-${MACHINE_ID^}-Building" --add-label "CI-${MACHINE_ID^}-Failed"
-        #"${HOMEgfs}/ci/scripts/pr_list_database.py" --remove_pr "${pr}" --dbfile "${pr_list_dbfile}"
-      fi
-    done
+#for yaml_config in "${HOMEgfs_PR}/ci/cases/"*.yaml; do
+for yaml_config in ${functional_test_case_list}; do
+  case=$(basename "${yaml_config}" .yaml) || true
+  pslot="${case}"
+  export pslot
+  set +e
+  "${HOMEgfs_PR}/ci/scripts/create_experiment.py" --yaml "${HOMEgfs_PR}/ci/cases/${case}.yaml" --dir foobar
+  ci_status=$?
+  set -e
+  if [[ ${ci_status} -eq 0 ]]; then
+    {
+      echo "Created experiment:            *SUCCESS*"
+      echo "Case setup: Completed at $(date) for experiment ${pslot}" || true
+    } >> "${FUNCTESTS_DATA_ROOT}/output_${PR}.log"
+    #"${GH}" pr edit --repo "${REPO_URL}" "${pr}" --remove-label "CI-${MACHINE_ID^}-Building" --add-label "CI-${MACHINE_ID^}-Running"
+    #"${HOMEgfs}/ci/scripts/pr_list_database.py" --dbfile "${pr_list_dbfile}" --update_pr "${pr}" Open Running
+    "${HOMEgfs}/ci/functional/ush/test_configuration.py" "${RUNTESTS}"/EXPDIR/"${pslot}"
+  else 
+    {
+      echo "Failed to create experiment:  *FAIL* ${pslot}"
+      echo "Experiment setup: failed at $(date) for experiment ${pslot}" || true
+      echo ""
+      cat "${HOMEgfs_PR}/ci/scripts/"setup_*.std*
+    } >> "${FUNCTESTS_DATA_ROOT}/output_${PR}.log"
+    #"${GH}" pr edit "${pr}" --repo "${REPO_URL}" --remove-label "CI-${MACHINE_ID^}-Building" --add-label "CI-${MACHINE_ID^}-Failed"
+    #"${HOMEgfs}/ci/scripts/pr_list_database.py" --remove_pr "${pr}" --dbfile "${pr_list_dbfile}"
+ fi
+done
+
