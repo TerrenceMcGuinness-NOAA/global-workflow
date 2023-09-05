@@ -1,4 +1,3 @@
-
 #! /bin/sh
 #SBATCH --job-name=C48_ATM_gfsfcst_12
 #SBATCH --account=nems
