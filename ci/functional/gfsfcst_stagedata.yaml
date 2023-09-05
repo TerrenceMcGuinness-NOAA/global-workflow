@@ -1,0 +1,11 @@
+mkdir:
+- $(FUNCTESTS_DATA)/RUNTESTS/COMROT/$(PSLOT)/gfs.$(SDATE)/module_data/asmos/input
+
+copy:
+- [$(ICSDIR)/prototype_ICs/workflowtest/$(SDATE)/gfs/C48/INPUT/gfs_ctrl.nc, $(FUNCTESTS_DATA)/RUNTESTS/COMROT/$(PSLOT)/gfs.$(SDATE)/module_data/asmos/input/gfs_ctl.nc ]
+- [$(ICSDIR)/prototype_ICs/workflowtest/$(SDATE)/gfs/C48/INPUT/gfs_data.tile1.nc, $(FUNCTESTS_DATA)/RUNTESTS/COMROT/$(PSLOT)/gfs.$(SDATE)/module_data/asmos/input/gfs_data.tile1.nc ]
+- [$(ICSDIR)/prototype_ICs/workflowtest/$(SDATE)/gfs/C48/INPUT/gfs_data.tile2.nc, $(FUNCTESTS_DATA)/RUNTESTS/COMROT/$(PSLOT)/gfs.$(SDATE)/module_data/asmos/input/gfs_data.tile2.nc ]
+- [$(ICSDIR)/prototype_ICs/workflowtest/$(SDATE)/gfs/C48/INPUT/gfs_data.tile3.nc, $(FUNCTESTS_DATA)/RUNTESTS/COMROT/$(PSLOT)/gfs.$(SDATE)/module_data/asmos/input/gfs_data.tile3.nc ]
+- [$(ICSDIR)/prototype_ICs/workflowtest/$(SDATE)/gfs/C48/INPUT/gfs_data.tile4.nc, $(FUNCTESTS_DATA)/RUNTESTS/COMROT/$(PSLOT)/gfs.$(SDATE)/module_data/asmos/input/gfs_data.tile4.nc ]
+- [$(ICSDIR)/prototype_ICs/workflowtest/$(SDATE)/gfs/C48/INPUT/gfs_data.tile5.nc, $(FUNCTESTS_DATA)/RUNTESTS/COMROT/$(PSLOT)/gfs.$(SDATE)/module_data/asmos/input/gfs_data.tile5.nc ]
+- [$(ICSDIR)/prototype_ICs/workflowtest/$(SDATE)/gfs/C48/INPUT/gfs_data.tile6.nc, $(FUNCTESTS_DATA)/RUNTESTS/COMROT/$(PSLOT)/gfs.$(SDATE)/module_data/asmos/input/gfs_data.tile6.nc ]

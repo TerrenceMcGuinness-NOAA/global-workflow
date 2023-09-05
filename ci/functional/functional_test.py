@@ -47,7 +47,7 @@ def input_args():
 if __name__ == '__main__':
 
     user_inputs = input_args()
-    print( user_inputs.yaml )
     config = YAMLFile(path=user_inputs.yaml)
-    print(config.mkdir)
-    #FileHandler(config.mkdir).sync()
+    stage_files_path = path.abspath(path.join(_here,os.path.splitext(user_inputs.yaml)[0]+'_stagedata.yaml'))
+    stage_files = parse_j2yaml(stage_files_path,data=config)
+    FileHandler(stage_files).sync()
