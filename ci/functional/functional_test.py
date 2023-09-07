@@ -48,7 +48,7 @@ if __name__ == '__main__':
 
     user_inputs = input_args()
     config = YAMLFile(path=user_inputs.yaml)
+    config.current_cycle = str(config.SDATE)[0:8]
+    config.forecast_hour = str(config.SDATE)[8:10]
     config = parse_j2yaml(user_inputs.yaml,data=config)
-    print( config.stage_data )
-    sys.exit(0)
-    FileHandler(stage_files).sync()
+    FileHandler(config.stage_data).sync()

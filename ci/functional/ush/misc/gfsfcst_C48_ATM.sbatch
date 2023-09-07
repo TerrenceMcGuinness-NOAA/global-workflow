@@ -7,9 +7,8 @@
 #SBATCH --nodes=1-1
 #SBATCH --tasks-per-node=40
 #SBATCH --cpus-per-task=1
-#SBATCH -o /work2/noaa/global/mterry/FUNCTESTS_DATA_ROOT/RUNTESTS/COMROT/C48_ATM/logs/2021032312/gfsfcst.log
+#SBATCH -o gfsfcst.log
 #SBATCH --export=NONE
-#SBATCH --comment=647472f557f848b78168c829e7707d1f
 export RUN_ENVIR='emc'
 export HOMEgfs='/work2/noaa/global/mterry/FUNCTESTS_DATA_ROOT/global-workflow'
 export EXPDIR='/work2/noaa/global/mterry/FUNCTESTS_DATA_ROOT/RUNTESTS/EXPDIR/C48_ATM'
@@ -21,4 +20,5 @@ export PDY='20210323'
 export cyc='12'
 export COMROOT='/work/noaa/global/glopara/com'
 export DATAROOT='/work/noaa/stmp/mterry/RUNDIRS/C48_ATM'
+echo "NO FAIL"
 /work2/noaa/global/mterry/FUNCTESTS_DATA_ROOT/global-workflow/jobs/rocoto/fcst.sh
