@@ -51,4 +51,6 @@ if __name__ == '__main__':
     config.current_cycle = str(config.SDATE)[0:8]
     config.forecast_hour = str(config.SDATE)[8:10]
     config = parse_j2yaml(user_inputs.yaml,data=config)
+    
+    print('Staging files for running:', os.path.splitext(user_inputs.yaml)[0])
     FileHandler(config.stage_data).sync()
