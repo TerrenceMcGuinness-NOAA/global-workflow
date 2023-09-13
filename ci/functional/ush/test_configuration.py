@@ -76,8 +76,8 @@ if __name__ == '__main__':
         print("DO_ATM", anal['DO_ATM'])
         print('')
 
-    if 'config.coupled_ic' in '\n'.join(cfg.config_files) and base['MODE']=='forecast-only':
-        coupled_ic = cfg.parse_config(['config.base', 'config.coupled_ic'])
+    if 'config.stage_ic' in '\n'.join(cfg.config_files) and base['MODE']=='forecast-only':
+        coupled_ic = cfg.parse_config(['config.base', 'config.stage_ic'])
         print('coupled ic configured:')
         IC = path.join(str(base['BASE_CPLIC']), str(coupled_ic['CPL_ATMIC']), sdate, str(base['RUN']), str(base['CASE']), 'INPUT')
         print('\t', IC, end='')
