@@ -38,18 +38,15 @@ done
 
 # TODO Hard code a specific PR number for now and 
 # develop the rest of the functional test infrastructure
-PR="${PR_FUNCTIONAL_TEST}"
 HOMEgfs_PR="${FUNCTESTS_DATA_ROOT}/global-workflow"
 export HOMEgfs_PR
-
-cd "${HOMEgfs_PR}"
-#pr_sha=$(git rev-parse --short HEAD)
+DATE_STR=$(date +%m-%d-%y)
 
 ##########################################################################
 # Clone and build global-workflow for the functional tests to work against
 
-#"${HOMEgfs}"/ci/scripts/clone-build_ci.sh -p "${PR}" -d "${FUNCTESTS_DATA_ROOT}" -o "${FUNCTESTS_DATA_ROOT}"/output_"${PR}".log
-echo "SKIPPING: ${HOMEgfs}/ci/scripts/clone-build_ci.sh -p ${PR} -d ${FUNCTESTS_DATA_ROOT} -o ${FUNCTESTS_DATA_ROOT}/output_${PR}.log"
+"${HOMEgfs}"/ci/scripts/clone-build_ci.sh -b "functional_tests" -d "${FUNCTESTS_DATA_ROOT}" -o "${FUNCTESTS_DATA_ROOT}"/output_"${DATE_STR}".log
+#echo "SKIPPING: ${HOMEgfs}/ci/scripts/clone-build_ci.sh -p ${PR} -d ${FUNCTESTS_DATA_ROOT} -o ${FUNCTESTS_DATA_ROOT}/output_${DATE_STR}.log"
 
 
 ############################################################################
@@ -73,7 +70,7 @@ for yaml_config in ${functional_test_case_list}; do
     {
       echo "Created experiment:            *SUCCESS*"
       echo "Case setup: Completed at $(date) for experiment ${pslot}" || true
-    } >> "${FUNCTESTS_DATA_ROOT}/output_${PR}.log"
+    } >> "${FUNCTESTS_DATA_ROOT}/output_${DATE_STR}.log"
     #"${GH}" pr edit --repo "${REPO_URL}" "${pr}" --remove-label "CI-${MACHINE_ID^}-Building" --add-label "CI-${MACHINE_ID^}-Running"
     #"${HOMEgfs}/ci/scripts/pr_list_database.py" --dbfile "${pr_list_dbfile}" --update_pr "${pr}" Open Running
     "${HOMEgfs}/ci/functional/ush/test_configuration.py" "${RUNTESTS}"/EXPDIR/"${pslot}"
@@ -83,7 +80,7 @@ for yaml_config in ${functional_test_case_list}; do
       echo "Experiment setup: failed at $(date) for experiment ${pslot}" || true
       echo ""
       cat "${HOMEgfs_PR}/ci/scripts/"setup_*.std*
-    } >> "${FUNCTESTS_DATA_ROOT}/output_${PR}.log"
+    } >> "${FUNCTESTS_DATA_ROOT}/output_${DATE_STR}.log"
     #"${GH}" pr edit "${pr}" --repo "${REPO_URL}" --remove-label "CI-${MACHINE_ID^}-Building" --add-label "CI-${MACHINE_ID^}-Failed"
     #"${HOMEgfs}/ci/scripts/pr_list_database.py" --remove_pr "${pr}" --dbfile "${pr_list_dbfile}"
  fi

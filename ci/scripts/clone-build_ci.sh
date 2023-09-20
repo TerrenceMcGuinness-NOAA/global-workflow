@@ -72,7 +72,7 @@ if [[ -d global-workflow ]]; then
   rm -Rf global-workflow
 fi
 
-if [[ -z "${branch+x}" ]]; then
+if [[ -z "${PR+x}" ]]; then
   git clone "${REPO_URL}" -b "${branch}"
   cd global-workflow || exit 1
 else
