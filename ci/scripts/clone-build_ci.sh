@@ -7,9 +7,10 @@ set -eux
 usage() {
   set +x
   echo
-  echo "Usage: $0 -p <PR#> -d <directory> -o <output> -h"
+  echo "Usage: $0 [-p <PR#> | -b branch ] -d <directory> -o <output> -h"
   echo
   echo "  -p  PR nunber to clone and build"
+  echo "  -b  new branch to clone and build"
   echo "  -d  Full path of <directory> of were to clone and build PR"
   echo "  -o  Full path to output message file detailing results of CI tests"
   echo "  -h  display this message and quit"
@@ -18,16 +19,30 @@ usage() {
 }
 
 ################################################################
-while getopts "p:d:o:h" opt; do
+while getopts "d:o:hb:p" opt; do
   case ${opt} in
     p)
-      PR=${OPTARG}
+      eval nextopt=\${$OPTIND}
+      if [[ -n $nextopt && $nextopt != -* ]] ; then
+        OPTIND=$((OPTIND + 1))
+        offset=$nextopt
+      else
+        offset=0
+      fi
+      if [[ -n $offset && ! $offset =~ ^[0-9]+$ ]]; then
+        echo "-p for PR nuber parameter must be an integer."
+        exit
+      fi
+      PR=${offset}
       ;;
     d)
       repodir=${OPTARG}
       ;;
     o)
       outfile=${OPTARG}
+      ;;
+    b)  
+      branch=${OPTARG}
       ;;
     h|\?|:)
       usage
@@ -39,24 +54,41 @@ while getopts "p:d:o:h" opt; do
   esac
 done
 
+if [ -z "${PR+x}" ] && [ -z "${branch+x}" ]; then
+  echo "ERROR: either PR number had to be specified or a branch name (both can not be empty)"
+  usage
+fi
+if [ -z "${repodir+x}" ] || [ -z "${outfile+x}" ]; then
+  echo "ERROR: directory to clone and outfile need to be specified"
+  usage
+fi
+
+if [[ ! -d "${repodir}" ]]; then
+  echo "ERROR: directory ${repodir} does not exists"
+  exit 1
+fi
 cd "${repodir}" || exit 1
-# clone copy of repo
 if [[ -d global-workflow ]]; then
   rm -Rf global-workflow
 fi
 
-git clone "${REPO_URL}"
-cd global-workflow || exit 1
+if [[ -z "${branch+x}" ]]; then
+  git clone "${REPO_URL}" -b "${branch}"
+  cd global-workflow || exit 1
+else
+  git clone "${REPO_URL}"
+  cd global-workflow || exit 1
 
-pr_state=$("${GH}" pr view "${PR}" --json state --jq '.state')
-if [[ "${pr_state}" != "OPEN" ]]; then
-  title=$("${GH}" pr view "${PR}" --json title --jq '.title')
-  echo "PR ${title} is no longer open, state is ${pr_state} ... quitting"
-  exit 1
-fi
+  pr_state=$("${GH}" pr view "${PR}" --json state --jq '.state')
+  if [[ "${pr_state}" != "OPEN" ]]; then
+    title=$("${GH}" pr view "${PR}" --json title --jq '.title')
+    echo "PR ${title} is no longer open, state is ${pr_state} ... quitting"
+    exit 1
+  fi
+  # checkout pull request
+  "${GH}" pr checkout "${PR}" --repo "${REPO_URL}"
+fi  
 
-# checkout pull request
-"${GH}" pr checkout "${PR}" --repo "${REPO_URL}"
 HOMEgfs="${PWD}"
 source "${HOMEgfs}/ush/detect_machine.sh"
 
