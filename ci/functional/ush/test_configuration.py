@@ -32,6 +32,9 @@ def input_args():
     parser.add_argument('expdir', help='full path to experiment directory containing config files',
                         type=str, default=os.environ['PWD'])
 
+    parser.add_argument('-v', action='store_true')
+    #parser.add_argument('base', help='print to stdout just the config.base values', type=str)
+
     args = parser.parse_args()
 
     return args
@@ -41,9 +44,16 @@ if __name__ == '__main__':
 
     user_inputs = input_args()
     cfg = Configuration(user_inputs.expdir)
+    base = cfg.parse_config('config.base')
+
+    if not user_inputs.v:
+        for key, value in base.items():
+            print( f'{key}:{value}' )
+        sys.exit(0)
+
 
     list_files = list(map(path.basename, cfg.config_files))
-    col = 5
+    col = 3
     length = len(list_files)
     list_files.extend([' '] * (col * ceil(length / col) - length))
     config_files = [list_files[i:i + col] for i in range(0, length, col)]
@@ -53,7 +63,6 @@ if __name__ == '__main__':
     print('Containing the configfiles:')
     print(table)
 
-    base = cfg.parse_config('config.base')
     sdate = base['SDATE'].strftime("%Y%m%d%H")
 
     print(f'config.base: {cfg.find_config("config.base")}')
