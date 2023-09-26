@@ -1,0 +1,21 @@
+#! /bin/sh
+#PBS -N C96C48_hybatmDA_gdasfcst_18
+#PBS -A GFS-DEV
+#PBS -q dev
+#PBS -l walltime=00:30:00
+#PBS -l select=1:mpiprocs=128:ompthreads=1:ncpus=128
+#PBS -j oe -o /lfs/h2/emc/eib/noscrub/terry.mcguinness/RUNTESTS/COMROT/C96C48_hybatmDA/logs/2021122018/gdasfcst.log
+#PBS -l debug=true,place=vscatter:exclhost
+export RUN_ENVIR='emc'
+export HOMEgfs='/lfs/h2/emc/eib/noscrub/terry.mcguinness/GLOBAL/global-workflow_forked'
+export EXPDIR='/lfs/h2/emc/eib/noscrub/terry.mcguinness/RUNTESTS/EXPDIR/C96C48_hybatmDA'
+export NET='gfs'
+export CDUMP='gdas'
+export RUN='gdas'
+export CDATE='2021122018'
+export PDY='20211220'
+export cyc='18'
+export COMROOT='/lfs/h1/ops/prod/com'
+export DATAROOT='/lfs/h2/emc/stmp/terry.mcguinness/RUNDIRS/C96C48_hybatmDA'
+set -x
+/lfs/h2/emc/eib/noscrub/terry.mcguinness/GLOBAL/global-workflow_forked/jobs/rocoto/fcst.sh
