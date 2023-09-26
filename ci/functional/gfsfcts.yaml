@@ -1,15 +1,13 @@
 PSLOT: C48_ATM
 SDATE: 2021032312
-FUNCTESTS_DATA: !ENV ${FUNCTESTS_DATA_ROOT}
-ICSDIR: !ENV ${ICSDIR_ROOT}
 
 stage_data:
   mkdir:
-    - "{{ FUNCTESTS_DATA }}/RUNTESTS/COMROT/{{ PSLOT }}/gfs.{{ current_cycle }}/{{ forecast_hour }}/model_data/atmos/input"
+    - "{{ FUNCTESTS_DATA_ROOT }}/RUNTESTS/COMROT/{{ PSLOT }}/gfs.{{ current_cycle }}/{{ forecast_hour }}/model_data/atmos/input"
 
   copy:
-    - ["{{ ICSDIR }}/prototype_ICs/workflowtest/{{ SDATE }}/gfs/C48/INPUT/gfs_ctrl.nc", "{{ FUNCTESTS_DATA }}/RUNTESTS/COMROT/{{ PSLOT }}/gfs.{{ current_cycle }}/{{ forecast_hour }}/model_data/atmos/input/gfs_ctrl.nc"]
+    - ["{{ ICSDIR_ROOT }}/prototype_ICs/workflowtest/{{ SDATE }}/gfs/C48/INPUT/gfs_ctrl.nc", "{{ FUNCTESTS_DATA_ROOT }}/RUNTESTS/COMROT/{{ PSLOT }}/gfs.{{ current_cycle }}/{{ forecast_hour }}/model_data/atmos/input/gfs_ctrl.nc"]
 #{% for n in range(1,7) %}
-    - ["{{ ICSDIR }}/prototype_ICs/workflowtest/{{ SDATE }}/gfs/C48/INPUT/gfs_data.tile{{ n }}.nc", "{{ FUNCTESTS_DATA }}/RUNTESTS/COMROT/{{ PSLOT }}/gfs.{{ current_cycle }}/{{ forecast_hour }}/model_data/atmos/input/gfs_data.tile{{ n }}.nc"]
-    - ["{{ ICSDIR }}/prototype_ICs/workflowtest/{{ SDATE }}/gfs/C48/INPUT/sfc_data.tile{{ n }}.nc", "{{ FUNCTESTS_DATA }}/RUNTESTS/COMROT/{{ PSLOT }}/gfs.{{ current_cycle }}/{{ forecast_hour }}/model_data/atmos/input/sfc_data.tile{{ n }}.nc"]
+    - ["{{ ICSDIR_ROOT }}/prototype_ICs/workflowtest/{{ SDATE }}/gfs/C48/INPUT/gfs_data.tile{{ n }}.nc", "{{ FUNCTESTS_DATA_ROOT }}/RUNTESTS/COMROT/{{ PSLOT }}/gfs.{{ current_cycle }}/{{ forecast_hour }}/model_data/atmos/input/gfs_data.tile{{ n }}.nc"]
+    - ["{{ ICSDIR_ROOT }}/prototype_ICs/workflowtest/{{ SDATE }}/gfs/C48/INPUT/sfc_data.tile{{ n }}.nc", "{{ FUNCTESTS_DATA_ROOT }}/RUNTESTS/COMROT/{{ PSLOT }}/gfs.{{ current_cycle }}/{{ forecast_hour }}/model_data/atmos/input/sfc_data.tile{{ n }}.nc"]
 #{% endfor %}

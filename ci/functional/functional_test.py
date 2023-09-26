@@ -2,11 +2,14 @@
 
 import os
 import sys
+import re
 from os import path
 
 from logging import getLogger
 
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+from  workflow.hosts import Host
+
 from wxflow import Configuration, Task
 
 from logging import getLogger
@@ -43,14 +46,21 @@ def input_args():
 
     return args
 
-
 if __name__ == '__main__':
+
+    host = Host()
+    machine = host.machine.lower()
+
+    cfg = Configuration(f'{_top}/ci/platforms')
+    host_info = cfg.parse_config(f'config.{machine}')
 
     user_inputs = input_args()
     config = YAMLFile(path=user_inputs.yaml)
     config.current_cycle = str(config.SDATE)[0:8]
     config.forecast_hour = str(config.SDATE)[8:10]
+
+    config.update(host_info)
     config = parse_j2yaml(user_inputs.yaml, data=config)
 
-    print('Staging files for running:', os.path.splitext(user_inputs.yaml)[0])
-    FileHandler(config.stage_data).sync()
+    print(config.stage_data.mkdir)
+    #FileHandler(config.stage_data).sync()
