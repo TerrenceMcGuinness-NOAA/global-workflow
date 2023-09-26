@@ -148,8 +148,7 @@ class Test(Task):
         exec_cmd.add_default_arg(os.path.join(workdir, exec_name))
 
         UPP._call_executable(exec_cmd)
-
-
+        
     @staticmethod
     @logit(logger)
     def _call_executable(exec_cmd: Executable) -> None:
