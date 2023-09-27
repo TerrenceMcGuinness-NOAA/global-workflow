@@ -21,7 +21,7 @@ from wxflow import (Configuration,
                     Executable,
                     WorkflowException)
 
-import TestTask
+from testtask import TestTask
 
 logger = getLogger(__name__.split('.')[-1])
 
@@ -60,7 +60,7 @@ if __name__ == '__main__':
     exec_name = 'stage_environment.sh'
     exec  = os.path.join(_top,'ci','functional',exec_name)
     exec_cmd = Executable(exec)
-    exec_cmd()
+    #exec_cmd()
 
     test_tasks = TestTask(host_info)
 
@@ -75,19 +75,23 @@ if __name__ == '__main__':
 
     config.update(host_info)
     config = parse_j2yaml(user_inputs.yaml, data=config)
-    print(config.stage_data.mkdir)
-    print(test_tasks.exp_configs[config.PSLOT].find_config('config.base'))
 
-    EXPDIR = test_tasks.exp_configs[PSLOT].config_dir
-    job = os.basename(user_inputs.yaml)  # job name and task name are the same
+    print(config.stage_data.mkdir)
+
+    EXPDIR = test_tasks.exp_configs[config.PSLOT].find_config('config.base')
+    job = os.path.basename(user_inputs.yaml)  # job name and task name are the same
     SDATE = config.SDATE
     PSLOT = config.PSLOT
+
+    print( EXPDIR, job, SDATE, PSLOT )
 
     # task = test_tasks.get_task(task_name) 
     # TODO Get batch script using get_batchscripts.sh
     # and the above four v
     
-    batch_file = os.path.join(_top,'ci','functional','ush','misc','gfsfcst_C48_ATM.sub')
+    batch_file = os.path.join(_top,'ci','functional','ush','misc','gfsfcst_C48_ATM.sbatch')
+
+    print( batch_file )
 
     # TODO Do the Filesync staging from config.stage_data
     # TODO Run the batch script TODO wrap the submision in a CTEST

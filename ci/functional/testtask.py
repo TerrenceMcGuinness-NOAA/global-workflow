@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+import re
 from logging import getLogger
 from typing import Dict, Any, Union
 from pprint import pformat
@@ -36,19 +37,21 @@ class TestTask(Task):
    
         # Get the list of the experiment directories 
         subdirectories = []
-        directory = os.path.join(self.config.FUNCTESTS_DATA_ROOT,'RUNTESTS','EXPTDIR')
+        directory = os.path.join(config.FUNCTESTS_DATA_ROOT,'RUNTESTS','EXPDIR')
         for name in os.listdir(directory):
             path = os.path.join(directory, name)
             if os.path.isdir(path):
                 subdirectories.append(path)
 
-        self.exp_configs = {}
+        self.exp_configs = AttrDict()
         for subdirectory in subdirectories:
-            pslot = re.sub(r"_.*", "", subdirectory)
+            base_name = os.path.basename(subdirectory)
+            pslot = re.sub(r"_[^_]*$","", base_name)
             self.exp_configs[pslot] = Configuration(subdirectory)
 
         # Read the upp.yaml file for common configuration
         logger.info(f"Created {len(self.exp_configs)} experiment configurations")
+        print(f"Created {len(self.exp_configs)} experiment configurations")
 
     @staticmethod
     @logit(logger)
