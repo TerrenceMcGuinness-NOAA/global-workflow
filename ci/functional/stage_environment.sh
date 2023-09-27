@@ -23,7 +23,7 @@ case ${MACHINE_ID} in
   hera | orion)
     echo "Setting up environment for running Fuctional Based Automated Testing on ${MACHINE_ID}"
     source "${HOMEgfs}/workflow/gw_setup.sh"
-    source "${HOMEgfs}/ci/platforms/${MACHINE_ID}.sh"
+    source "${HOMEgfs}/ci/platforms/config.${MACHINE_ID}"
     ;;
   *)
     echo "Unsupported platform. Exiting with error."
