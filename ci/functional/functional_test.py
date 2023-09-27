@@ -61,6 +61,14 @@ if __name__ == '__main__':
 
     config.update(host_info)
     config = parse_j2yaml(user_inputs.yaml, data=config)
+    print(config.stage_data.mkdir)
+
+    # TODO Stage the runtime environment
+    # i.e. clone build global-workflow and create experiment directories
+    exec_name = 'stage_environment.sh'
+    exec  = os.path.join(_top,'ci','functional',exec_name)
+    exec_cmd = Executable(exec)
+    exec_cmd()
 
     print(config.stage_data.mkdir)
     #FileHandler(config.stage_data).sync()
