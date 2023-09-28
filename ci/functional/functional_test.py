@@ -8,7 +8,6 @@ from os import path
 from logging import getLogger
 
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
-from  workflow.hosts import Host
 
 from logging import getLogger
 
@@ -49,11 +48,7 @@ def input_args():
 
 if __name__ == '__main__':
 
-    host = Host()
-    machine = host.machine.lower()
 
-    cfg = Configuration(f'{_top}/ci/platforms')
-    host_info = cfg.parse_config(f'config.{machine}')
 
     # Stage the runtime environment
     # i.e. clone build global-workflow and create experiment directories
@@ -70,27 +65,18 @@ if __name__ == '__main__':
 
     user_inputs = input_args()
 
-    config = YAMLFile(path=user_inputs.yaml)
-    config.current_cycle = str(config.SDATE)[0:8]
-    config.forecast_hour = str(config.SDATE)[8:10]
+    task = test_tasks.initialize(user_inputs.yaml)
 
-    config.ROTDIR = test_tasks.exp_configs[config.PSLOT].parse_config(['config.base'])['ROTDIR']
+    print( f'mkdir: {task.stage_data.mkdir}\n')
+    for copyies in task.stage_data.copy:
+        print( f'copy: {copyies}\n' )
 
-    config.update(host_info)
-    config = parse_j2yaml(user_inputs.yaml, data=config)
+    EXPDIR = task[config.PSLOT].config_dir
+    PSLOT_sha = task[config.PSLOT].PSLOT
+    SDATE = task.SDATE
+    job = task.job
 
-    print( f'mkdir: {config.stage_data.mkdir}\n')
-
-    task_config = test_tasks.exp_configs[config.PSLOT].parse_config('config.base')
-
-    #EXPDIR = test_tasks.exp_configs[config.PSLOT].find_config('config.base')
-    EXPDIR = test_tasks.exp_configs[config.PSLOT].config_dir
-    PSLOT = os.path.basename(EXPDIR)
-    SDATE = config.SDATE
-
-    job = os.path.basename(user_inputs.yaml).split('.')[0]
-
-    print( f'Arguments for get_batch_script:\n  {EXPDIR}\n  {job}\n  {SDATE}\n  {PSLOT}\n')
+    print( f'Arguments for get_batch_script:\n  {EXPDIR}\n  {job}\n  {SDATE}\n  {PSLOT_sha}\n')
 
     # task = test_tasks.get_task(task_name) 
     # TODO Get batch script using get_batchscripts.sh
