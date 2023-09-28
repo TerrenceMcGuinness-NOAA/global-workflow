@@ -6,10 +6,8 @@ import re
 from os import path
 
 from logging import getLogger
-
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
-
-from logging import getLogger
+from workflow.hosts import Host
 
 from wxflow import (Configuration,
                     AttrDict,
@@ -57,7 +55,8 @@ if __name__ == '__main__':
     exec_cmd = Executable(exec)
     #exec_cmd()
 
-    test_tasks = TestTask(host_info)
+    host = Host()
+    test_tasks = TestTask(host.machine)
 
     # TODO This should be a loop over all the tests tasks
     # but for now we are going to take in a single yaml
@@ -65,20 +64,18 @@ if __name__ == '__main__':
 
     user_inputs = input_args()
 
-    task = test_tasks.initialize(user_inputs.yaml)
+    task = test_tasks.initialize(path=user_inputs.yaml)
 
+    # TODO Move this data
     print( f'mkdir: {task.stage_data.mkdir}\n')
-    for copyies in task.stage_data.copy:
-        print( f'copy: {copyies}\n' )
 
-    EXPDIR = task[config.PSLOT].config_dir
-    PSLOT_sha = task[config.PSLOT].PSLOT
+    PSLOT_sha = task.PSLOT
     SDATE = task.SDATE
+    EXPDIR = task.config.config_dir
     job = task.job
 
     print( f'Arguments for get_batch_script:\n  {EXPDIR}\n  {job}\n  {SDATE}\n  {PSLOT_sha}\n')
 
-    # task = test_tasks.get_task(task_name) 
     # TODO Get batch script using get_batchscripts.sh
     # and the above four variables
     
@@ -86,9 +83,7 @@ if __name__ == '__main__':
 
     print( f'practice batch file: {batch_file}\n' )
 
-    # TODO Do the Filesync staging from config.stage_data
     # TODO Run the batch script TODO wrap the submision in a CTEST
     # TODO Do the Filesync of results
     # TODO Validate the results (need to know what the results are first in the yaml)
     # TODO Cleanup the Run directory
-       

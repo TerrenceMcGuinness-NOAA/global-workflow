@@ -2,10 +2,9 @@
 
 import os
 import re
+from os import path
 from logging import getLogger
 from typing import Dict, Any, Union
-
-from workflow.hosts import Host
 
 from wxflow import (AttrDict,
                     Configuration,
@@ -23,12 +22,13 @@ logger = getLogger(__name__.split('.')[-1])
 
 _here = path.dirname(__file__)
 _top = path.abspath(path.join(path.abspath(_here), '../..'))
+
 class TestTask(Task):
     """Unified Post Processor Task
     """
 
     @logit(logger, name="TestTask")
-    def __init__(self, config : Dict[str, Any]) -> Dict[str, Any]:
+    def __init__(self, machine: str) -> Dict[str, Any]:
         """Constructor for the TestTask task
         The constructor is responsible for getting a collection of Configure objects
         each for the experiments directories that are used for the functional tests.
@@ -38,36 +38,32 @@ class TestTask(Task):
         Dictionary of experiment configurations indexed by the pslot
         """
 
-        host = Host()
-        machine = host.machine.lower()
-
+        machine = machine.lower()
         cfg = Configuration(f'{_top}/ci/platforms')
         self.host_info = cfg.parse_config(f'config.{machine}')
    
         # Get the list of the experiment directories 
         subdirectories = []
-        directory = os.path.join(config.FUNCTESTS_DATA_ROOT,'RUNTESTS','EXPDIR')
+        directory = os.path.join(self.host_info.FUNCTESTS_DATA_ROOT,'RUNTESTS','EXPDIR')
         for name in os.listdir(directory):
             path = os.path.join(directory, name)
             if os.path.isdir(path):
                 subdirectories.append(path)
 
-        exp_configs = AttrDict()
+        self.configs = AttrDict()
         for subdirectory in subdirectories:
             base_name = os.path.basename(subdirectory)
             pslot = re.sub(r"_[^_]*$","", base_name)
-            exp_configs[pslot] = Configuration(subdirectory)
-            exp_configs[pslot].PSLOT = base_name
+            self.configs[pslot] = Configuration(subdirectory)
+            self.configs[pslot].PSLOT = base_name
 
         # Read the upp.yaml file for common configuration
-        logger.info(f"Created {len(self.exp_configs)} experiment configurations")
-        print(f"Created {len(self.exp_configs)} experiment configurations")
+        logger.info(f"Created {len(self.configs)} experiment configurations")
+        print(f"Created {len(self.configs)} experiment configurations")
 
-        return exp_configs
 
-    @staticmethod
     @logit(logger)
-    def initialize(self, path: str) ->  Dict[str, Any]:
+    def initialize(self, path: str):
         """Initialize a single specific task
 
         Parameters
@@ -84,12 +80,16 @@ class TestTask(Task):
         config = YAMLFile(path=path)
         config.current_cycle = str(config.SDATE)[0:8]
         config.forecast_hour = str(config.SDATE)[8:10]
-        config.job = os.path.basename(path).split('.')[0]
-
-        config.ROTDIR = self[config.PSLOT].parse_config(['config.base'])['ROTDIR']
 
         config.update(self.host_info)
+        config.ROTDIR = self.configs[config.PSLOT].parse_config(['config.base'])['ROTDIR']
         config = parse_j2yaml(path=path, data=config)
+
+        config.ROTDIR = self.configs[config.PSLOT].parse_config(['config.base'])['ROTDIR']
+        config.EXPDIR = self.configs[config.PSLOT].config_dir
+        config.job = os.path.basename(path).split('.')[0]
+
+        config.config = self.configs[config.PSLOT]
 
         return config
 
