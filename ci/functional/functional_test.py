@@ -46,14 +46,12 @@ def input_args():
 
 if __name__ == '__main__':
 
-
-
     # Stage the runtime environment
     # i.e. clone build global-workflow and create experiment directories
     exec_name = 'stage_environment.sh'
     exec  = os.path.join(_top,'ci','functional',exec_name)
     exec_cmd = Executable(exec)
-    #exec_cmd()
+    exec_cmd()
 
     host = Host()
     test_tasks = TestTask(host.machine)
