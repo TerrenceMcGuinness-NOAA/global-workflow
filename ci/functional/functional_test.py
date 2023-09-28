@@ -69,29 +69,36 @@ if __name__ == '__main__':
     # file and run the test task for that yaml file
 
     user_inputs = input_args()
+
     config = YAMLFile(path=user_inputs.yaml)
     config.current_cycle = str(config.SDATE)[0:8]
     config.forecast_hour = str(config.SDATE)[8:10]
 
+    config.ROTDIR = test_tasks.exp_configs[config.PSLOT].parse_config(['config.base'])['ROTDIR']
+
     config.update(host_info)
     config = parse_j2yaml(user_inputs.yaml, data=config)
 
-    print(config.stage_data.mkdir)
+    print( f'mkdir: {config.stage_data.mkdir}\n')
 
-    EXPDIR = test_tasks.exp_configs[config.PSLOT].find_config('config.base')
-    job = os.path.basename(user_inputs.yaml)  # job name and task name are the same
+    task_config = test_tasks.exp_configs[config.PSLOT].parse_config('config.base')
+
+    #EXPDIR = test_tasks.exp_configs[config.PSLOT].find_config('config.base')
+    EXPDIR = test_tasks.exp_configs[config.PSLOT].config_dir
+    PSLOT = os.path.basename(EXPDIR)
     SDATE = config.SDATE
-    PSLOT = config.PSLOT
 
-    print( EXPDIR, job, SDATE, PSLOT )
+    job = os.path.basename(user_inputs.yaml).split('.')[0]
+
+    print( f'Arguments for get_batch_script:\n  {EXPDIR}\n  {job}\n  {SDATE}\n  {PSLOT}\n')
 
     # task = test_tasks.get_task(task_name) 
     # TODO Get batch script using get_batchscripts.sh
-    # and the above four v
+    # and the above four variables
     
-    batch_file = os.path.join(_top,'ci','functional','ush','misc','gfsfcst_C48_ATM.sbatch')
+    batch_file = os.path.join(_top, 'ci', 'functional', 'ush', 'misc', 'gfsfcst_C48_ATM.sbatch')
 
-    print( batch_file )
+    print( f'practice batch file: {batch_file}\n' )
 
     # TODO Do the Filesync staging from config.stage_data
     # TODO Run the batch script TODO wrap the submision in a CTEST
@@ -99,4 +106,3 @@ if __name__ == '__main__':
     # TODO Validate the results (need to know what the results are first in the yaml)
     # TODO Cleanup the Run directory
        
-
