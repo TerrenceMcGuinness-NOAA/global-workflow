@@ -18,7 +18,7 @@ from wxflow import (Configuration,
                     Executable,
                     WorkflowException)
 
-from testtask import TestTask
+from testtask import TestTasks
 
 logger = getLogger(__name__.split('.')[-1])
 
@@ -46,6 +46,8 @@ def input_args():
 
 if __name__ == '__main__':
 
+    user_inputs = input_args()
+
     # Stage the runtime environment
     # i.e. clone build global-workflow and create experiment directories
     exec_name = 'stage_environment.sh'
@@ -53,33 +55,20 @@ if __name__ == '__main__':
     exec_cmd = Executable(exec)
     exec_cmd()
 
-    host = Host()
-    test_tasks = TestTask(host.machine)
+    tasks = TestTasks()
+    tasks.initialize()
 
-    # TODO This should be a loop over all the tests tasks
-    # but for now we are going to take in a single yaml
-    # file and run the test task for that yaml file
-
-    user_inputs = input_args()
-
-    task = test_tasks.initialize(path=user_inputs.yaml)
+    #TODO Loop over all YAML files in the functional test directory
+    task_config = tasks.configure(user_inputs.yaml)
 
     # TODO Move this data
-    print( f'mkdir: {task.stage_data.mkdir}\n')
-
-    PSLOT_sha = task.PSLOT
-    SDATE = task.SDATE
-    EXPDIR = task.config.config_dir
-    job = task.job
-
-    print( f'Arguments for get_batch_script:\n  {EXPDIR}\n  {job}\n  {SDATE}\n  {PSLOT_sha}\n')
+    print( f'mkdir: {task_config.stage_data.mkdir}\n')
 
     # TODO Get batch script using get_batchscripts.sh
-    # and the above four variables
-    
-    batch_file = os.path.join(_top, 'ci', 'functional', 'ush', 'misc', 'gfsfcst_C48_ATM.sbatch')
+    batch_script = tasks.get_batch_script(task_config)
+    print( f'practice batch file: {batch_script}\n' )
 
-    print( f'practice batch file: {batch_file}\n' )
+    tasks.execute(task_config, batch_script)
 
     # TODO Run the batch script TODO wrap the submision in a CTEST
     # TODO Do the Filesync of results

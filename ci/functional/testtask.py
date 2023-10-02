@@ -6,6 +6,8 @@ from os import path
 from logging import getLogger
 from typing import Dict, Any, Union
 
+from workflow.hosts import Host
+
 from wxflow import (AttrDict,
                     Configuration,
                     YAMLFile,
@@ -23,12 +25,12 @@ logger = getLogger(__name__.split('.')[-1])
 _here = path.dirname(__file__)
 _top = path.abspath(path.join(path.abspath(_here), '../..'))
 
-class TestTask(Task):
+class TestTasks(Task):
     """Unified Post Processor Task
     """
 
-    @logit(logger, name="TestTask")
-    def __init__(self, machine: str) -> Dict[str, Any]:
+    @logit(logger, name="TestTasks")
+    def __init__(self):
         """Constructor for the TestTask task
         The constructor is responsible for getting a collection of Configure objects
         each for the experiments directories that are used for the functional tests.
@@ -37,11 +39,20 @@ class TestTask(Task):
         -------
         Dictionary of experiment configurations indexed by the pslot
         """
-
-        machine = machine.lower()
+        host = Host()
         cfg = Configuration(f'{_top}/ci/platforms')
-        self.host_info = cfg.parse_config(f'config.{machine}')
+        self.host_info = cfg.parse_config(f'config.{host.machine}')
    
+    @logit(logger)
+    def initialize(self):
+        """Initialize TestTasks gets the collection of Configure objects
+        each for the experiments directories that are used for the functional tests.
+
+        Returns
+        -------
+        Dict[str, Any]
+            Dictionary of configuration parameters for the specific task    
+        """
         # Get the list of the experiment directories 
         subdirectories = []
         directory = os.path.join(self.host_info.FUNCTESTS_DATA_ROOT,'RUNTESTS','EXPDIR')
@@ -62,20 +73,7 @@ class TestTask(Task):
         print(f"Created {len(self.configs)} experiment configurations")
 
 
-    @logit(logger)
-    def initialize(self, path: str):
-        """Initialize a single specific task
-
-        Parameters
-        ----------
-        path : str 
-            path to YAML file for the specific task
-
-        Returns
-        -------
-        Dict[str, Any]
-            Dictionary of configuration parameters for the specific task    
-        """
+    def configure(self, path: Union[str, os.PathLike]) -> Dict[str, Any]:    
 
         config = YAMLFile(path=path)
         config.current_cycle = str(config.SDATE)[0:8]
@@ -95,18 +93,19 @@ class TestTask(Task):
 
     @staticmethod
     @logit(logger)
-    def configure(task_dict: Dict, task_yaml: Dict) -> None:
-        """Configure a specific task
-        Parameters
-        ----------
-        task_dict : Dict
-            Task specific keys
-        """
-        return None
+    def  get_batch_script(task_config: Dict[str, Any]) -> str:
+        PSLOT_sha = task_config.PSLOT
+        SDATE = task_config.SDATE
+        EXPDIR = task_config.config.config_dir
+        job = task_config.job
+        print( f'Arguments for get_batch_script:\n  {EXPDIR}\n  {job}\n  {SDATE}\n  {PSLOT_sha}\n')
+        batch_file = os.path.join(_top, 'ci', 'functional', 'ush', 'misc', 'gfsfcst_C48_ATM.sbatch')
+        return batch_file
+
 
     @staticmethod
     @logit(logger)
-    def execute(pathdir: Union[str, os.PathLike], batch_script, batch_type) -> None:
+    def execute(task_config: Dict[str, Any], batch_script: str) -> None:
         """Run the batch script
         Parameters
         ----------
@@ -121,7 +120,7 @@ class TestTask(Task):
         -------
         None
         """
-
+        print(f'Executing {batch_script}')
         return None
 
     @staticmethod
