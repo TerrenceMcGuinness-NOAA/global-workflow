@@ -41,7 +41,7 @@ class TestTasks(Task):
         """
         host = Host()
         cfg = Configuration(f'{_top}/ci/platforms')
-        self.host_info = cfg.parse_config(f'config.{host.machine}')
+        self.host_info = cfg.parse_config(f'config.{host.machine.lower()}')
    
     @logit(logger)
     def initialize(self):
@@ -120,7 +120,8 @@ class TestTasks(Task):
         -------
         None
         """
-        print(f'Executing {batch_script}')
+        print(f'will be executing script: {batch_script}')
+        print('using batch system')
         return None
 
     @staticmethod

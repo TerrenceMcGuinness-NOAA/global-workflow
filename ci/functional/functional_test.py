@@ -25,6 +25,18 @@ logger = getLogger(__name__.split('.')[-1])
 _here = path.dirname(__file__)
 _top = path.abspath(path.join(path.abspath(_here), '../..'))
 
+#####################################################################################
+#
+# Script description: Top level driver for running Functional Tests
+#
+# Abstract:
+#    Takes a YAML file that defines a Functional Test:
+#        - Base name of file is the Rocoto Task Name to be tested
+#        - PSLOT: Name of experment found in $FUNCTESTS_DATA_ROOT/RUDIRS
+#                 that has the Rocoto XML with corrsponding Task Name
+#        - SDSATE: Stert date of test
+#        - stage_date:  copy information for moving inputs to ROTDIR
+
 
 def input_args():
     """
@@ -32,7 +44,7 @@ def input_args():
     """
 
     description = """
-        foo
+       --yaml YAML file for defining a functional test
         """
 
     parser = ArgumentParser(description=description,
@@ -55,16 +67,17 @@ if __name__ == '__main__':
     exec_cmd = Executable(exec)
     exec_cmd()
 
+    # Get platform information
     tasks = TestTasks()
+    # Get config objects from staged runtime environment
     tasks.initialize()
-
-    #TODO Loop over all YAML files in the functional test directory
+    # Get all necessary configure objects for specific functional test
     task_config = tasks.configure(user_inputs.yaml)
 
-    # TODO Move this data
+    # TODO Move the requisite data running functional test using stage_data from task_config
     print( f'mkdir: {task_config.stage_data.mkdir}\n')
 
-    # TODO Get batch script using get_batchscripts.sh
+    # TODO Get batch script using get_batchscripts.sh from task_config ingo
     batch_script = tasks.get_batch_script(task_config)
     print( f'practice batch file: {batch_script}\n' )
 

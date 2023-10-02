@@ -54,7 +54,7 @@ clone_branch="functional_tests"
 ############################################################################
 # Create a expdirs for gfs and gdas cycling for drawing funtional tests from
 
-functional_test_case_list="C48_ATM.yaml C48_S2S.yaml C96_atm3DVar.yaml"
+functional_test_case_list="C48_ATM.yaml C48_S2SW.yaml C96_atm3DVar.yaml"
 
 export RUNTESTS="${FUNCTESTS_DATA_ROOT}/RUNTESTS"
 mkdir -p "${RUNTESTS}"
