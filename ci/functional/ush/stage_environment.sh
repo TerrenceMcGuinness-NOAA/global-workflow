@@ -46,9 +46,9 @@ DATE_STR=$(date +%m-%d-%y)
 
 ##########################################################################
 # Clone and build global-workflow for the functional tests to work against
-#clone_branch="functional_tests"
-"${HOMEgfs}"/ci/scripts/clone-build_ci.sh -b "${clone_branch}" -d "${FUNCTESTS_DATA_ROOT}" -o "${FUNCTESTS_DATA_ROOT}"/output_"${DATE_STR}".log
-#echo "SKIPPING: ${HOMEgfs}/ci/scripts/clone-build_ci.sh -b ${clone_branch}  -d ${FUNCTESTS_DATA_ROOT} -o ${FUNCTESTS_DATA_ROOT}/output_${DATE_STR}.log"
+clone_branch="functional_tests"
+#"${HOMEgfs}"/ci/scripts/clone-build_ci.sh -b "${clone_branch}" -d "${FUNCTESTS_DATA_ROOT}" -o "${FUNCTESTS_DATA_ROOT}"/output_"${DATE_STR}".log
+echo "SKIPPING: ${HOMEgfs}/ci/scripts/clone-build_ci.sh -b ${clone_branch}  -d ${FUNCTESTS_DATA_ROOT} -o ${FUNCTESTS_DATA_ROOT}/output_${DATE_STR}.log"
 
 
 ############################################################################
