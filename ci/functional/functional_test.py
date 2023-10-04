@@ -65,7 +65,7 @@ if __name__ == '__main__':
     exec_name = 'stage_environment.sh'
     exec  = os.path.join(_top,'ci','functional', 'ush', exec_name)
     exec_cmd = Executable(exec)
-    #exec_cmd()
+    exec_cmd()
 
     # Get platform information
     tasks = TestTasks()

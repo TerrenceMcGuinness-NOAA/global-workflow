@@ -8,7 +8,7 @@ export GH=${HOME}/bin/gh
 #export REPO_URL=${REPO_URL:-"https://github.com/NOAA-EMC/global-workflow.git"}
 export REPO_URL=https://github.com/TerrenceMcGuinness-NOAA/global-workflow.git
 
-HOMEgfs="$(cd "$(dirname  "${BASH_SOURCE[0]}")/../.." >/dev/null 2>&1 && pwd )"
+HOMEgfs="$(cd "$(dirname  "${BASH_SOURCE[0]}")/../../.." >/dev/null 2>&1 && pwd )"
 echo "HOMEgfs: ${HOMEgfs}"
 scriptname=$(basename "${BASH_SOURCE[0]}")
 echo "Begin ${scriptname} at $(date -u)" || true
@@ -46,7 +46,7 @@ DATE_STR=$(date +%m-%d-%y)
 
 ##########################################################################
 # Clone and build global-workflow for the functional tests to work against
-clone_branch="functional_tests"
+#clone_branch="functional_tests"
 "${HOMEgfs}"/ci/scripts/clone-build_ci.sh -b "${clone_branch}" -d "${FUNCTESTS_DATA_ROOT}" -o "${FUNCTESTS_DATA_ROOT}"/output_"${DATE_STR}".log
 #echo "SKIPPING: ${HOMEgfs}/ci/scripts/clone-build_ci.sh -b ${clone_branch}  -d ${FUNCTESTS_DATA_ROOT} -o ${FUNCTESTS_DATA_ROOT}/output_${DATE_STR}.log"
 
@@ -72,7 +72,7 @@ for yaml_config in ${functional_test_case_list}; do
     {
       echo "Created experiment:            *SUCCESS*"
       echo "Case setup: Completed at $(date) for experiment ${pslot}" || true
-      "${HOMEgfs}/ci/functional/ush/test_configuration.py" "${RUNTESTS}"/EXPDIR/"${pslot}" -v
+      "${HOMEgfs}/ci/functional/ush/misc/test_configuration.py" "${RUNTESTS}"/EXPDIR/"${pslot}" -v
     } >> "${FUNCTESTS_DATA_ROOT}/output_${DATE_STR}.log"
     #"${GH}" pr edit --repo "${REPO_URL}" "${pr}" --remove-label "CI-${MACHINE_ID^}-Building" --add-label "CI-${MACHINE_ID^}-Running"
     #"${HOMEgfs}/ci/scripts/pr_list_database.py" --dbfile "${pr_list_dbfile}" --update_pr "${pr}" Open Running
