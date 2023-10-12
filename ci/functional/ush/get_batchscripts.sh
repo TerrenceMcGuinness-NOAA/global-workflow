@@ -26,3 +26,4 @@ batch_script="${job}".sub
 if [[ "${sub_script}" =~ ${regex} ]]; then
    echo "${BASH_REMATCH[1]}" | tr -s '\n' > "${EXPDIR}/${batch_script}"
 fi
+sed -i "/^\s*$/d" "${EXPDIR}/${batch_script}"

@@ -101,14 +101,13 @@ class TestTasks(Task):
         exec_cmd = Executable(exec_name)
         exec_cmd.add_default_arg([EXPDIR, task.job, str(task.SDATE)])
         exec_cmd()
-        print(f'bach_file: {batch_file}')
         if os.path.isfile(batch_file):
             return batch_file
 
 
     @staticmethod
     @logit(logger)
-    def execute(task_config: Dict[str, Any], batch_script: str) -> None:
+    def execute(task: Dict[str, Any], batch_script: str) -> None:
         """Run the batch script
         Parameters
         ----------
@@ -123,13 +122,20 @@ class TestTasks(Task):
         -------
         None
         """
-        print(f'will be executing script: {batch_script}')
-        print('using batch system')
-        return None
+        host = Host()
+        if host.machine in ['ORION','HERA']:
+            batch_exe = 'sbatch'
+        
+        batch_system = which(batch_exe)
+        batch_system.add_default_arg(batch_script)
+        output = batch_system(output=str)
+        return output.split()[-1]
+        
+        
 
     @staticmethod
     @logit(logger)
-    def finalize(upp_run: Dict, upp_yaml: Dict) -> None:
+    def finalize() -> None:
         """Perform closing actions of the task.
         """
 

@@ -80,9 +80,10 @@ if __name__ == '__main__':
 
     # Get batch script using get_batchscripts.sh
     batch_script = tasks.get_batch_script(task_config)
-    print( f'practice batch file: {batch_script}\n' )
+    print( f'batch file: {batch_script}\n' )
 
-    #tasks.execute(task_config, batch_script)
+    job_id = tasks.execute(task_config, batch_script)
+    print(f'job_id: {job_id}')
 
     # TODO Run the batch script TODO wrap the submision in a CTEST
     # TODO Do the Filesync of results
