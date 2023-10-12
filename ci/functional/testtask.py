@@ -2,6 +2,7 @@
 
 import os
 import re
+import sys
 from os import path
 from logging import getLogger
 from typing import Dict, Any, Union
@@ -93,14 +94,16 @@ class TestTasks(Task):
 
     @staticmethod
     @logit(logger)
-    def  get_batch_script(task_config: Dict[str, Any]) -> str:
-        PSLOT_sha = task_config.PSLOT
-        SDATE = task_config.SDATE
-        EXPDIR = task_config.config.config_dir
-        job = task_config.job
-        print( f'Arguments for get_batch_script:\n  {EXPDIR}\n  {job}\n  {SDATE}\n  {PSLOT_sha}\n')
-        batch_file = os.path.join(_top, 'ci', 'functional', 'ush', 'misc', 'gfsfcst_C48_ATM.sbatch')
-        return batch_file
+    def  get_batch_script(task: Dict[str, Any]) -> str:
+        EXPDIR = task.config.config_dir
+        exec_name  = os.path.join(_top,'ci','functional', 'ush', 'get_batchscripts.sh')
+        batch_file = os.path.join(EXPDIR, f'{task.job}.sub')
+        exec_cmd = Executable(exec_name)
+        exec_cmd.add_default_arg([EXPDIR, task.job, str(task.SDATE)])
+        exec_cmd()
+        print(f'bach_file: {batch_file}')
+        if os.path.isfile(batch_file):
+            return batch_file
 
 
     @staticmethod

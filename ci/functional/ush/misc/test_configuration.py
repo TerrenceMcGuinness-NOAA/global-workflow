@@ -3,7 +3,7 @@
 import os
 import sys
 from os import path
-from columnar import columnar
+#from columnar import columnar
 from math import ceil
 
 import logging
@@ -51,18 +51,14 @@ if __name__ == '__main__':
             print( f'{key}:{value}' )
         sys.exit(0)
 
-
-    list_files = list(map(path.basename, cfg.config_files))
-    col = 3
-    length = len(list_files)
-    list_files.extend([' '] * (col * ceil(length / col) - length))
-    config_files = [list_files[i:i + col] for i in range(0, length, col)]
-    table = columnar(config_files, headers=None, no_borders=True)
+#    list_files = list(map(path.basename, cfg.config_files))
+#    col = 3
+#    length = len(list_files)
+#    list_files.extend([' '] * (col * ceil(length / col) - length))
+#    config_files = [list_files[i:i + col] for i in range(0, length, col)]
+#    table = columnar(config_files, headers=None, no_borders=True)
 
     print(f'\nUsing EXPDIR: {user_inputs.expdir}\n')
-    print('Containing the configfiles:')
-    print(table)
-
     sdate = base['SDATE'].strftime("%Y%m%d%H")
 
     print(f'config.base: {cfg.find_config("config.base")}')

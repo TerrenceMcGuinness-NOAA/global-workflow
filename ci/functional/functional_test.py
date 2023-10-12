@@ -74,14 +74,15 @@ if __name__ == '__main__':
     # Get all necessary configure objects for specific functional test
     task_config = tasks.configure(user_inputs.yaml)
 
-    # TODO Move the requisite data running functional test using stage_data from task_config
+    #  Move the requisite data running functional test
     print( f'mkdir: {task_config.stage_data.mkdir}\n')
+    FileHandler(task_config.stage_data).sync()
 
-    # TODO Get batch script using get_batchscripts.sh from task_config ingo
+    # Get batch script using get_batchscripts.sh
     batch_script = tasks.get_batch_script(task_config)
     print( f'practice batch file: {batch_script}\n' )
 
-    tasks.execute(task_config, batch_script)
+    #tasks.execute(task_config, batch_script)
 
     # TODO Run the batch script TODO wrap the submision in a CTEST
     # TODO Do the Filesync of results
