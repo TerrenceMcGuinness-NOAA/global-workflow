@@ -46,7 +46,7 @@ if __name__ == '__main__':
     cfg = Configuration(user_inputs.expdir)
     base = cfg.parse_config('config.base')
 
-    if not user_inputs.v:
+    if user_inputs.v:
         for key, value in base.items():
             print( f'{key}:{value}' )
         sys.exit(0)
