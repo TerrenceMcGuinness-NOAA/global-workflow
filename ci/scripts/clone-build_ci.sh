@@ -105,12 +105,15 @@ else
   } >> "${outfile}"
 fi
 
-./link_workflow.sh
+LINK_LOGFILE_PATH=link_workflow.log
+./link_workflow.sh > "${LINK_LOGFILE_PATH}" 2>&1
 link_status=$?
 if [[ ${link_status} != 0 ]]; then
   {
     echo "Link: *** FAILED ***"
     echo "Link: Failed at $(date)" || true
+    echo ""
+    cat "${LINK_LOGFILE_PATH}"
   } >> "${outfile}"
   # a unique error code is needed to distinguish between
   # a true link failure and one cause by user restart
