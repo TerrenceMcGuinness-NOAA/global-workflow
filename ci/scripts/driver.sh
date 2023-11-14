@@ -122,7 +122,6 @@ for pr in ${pr_list}; do
   output_ci="${pr_dir}/output_build_${id}"
   rm -f "${output_ci}"
   "${ROOT_DIR}/ci/scripts/clone-build_ci.sh" -p "${pr}" -d "${pr_dir}" -o "${output_ci}"
-  #echo "SKIPPING: ${ROOT_DIR}/ci/scripts/clone-build_ci.sh"
   ci_status=$?
   ##################################################################
   # Checking for special case when Ready label was updated
@@ -130,10 +129,16 @@ for pr in ${pr_list}; do
   # building so we force and exit 0 instead to does not get relabled
   #################################################################
   if [[ ${ci_status} -ne 0 ]]; then
-     pr_id_check=$("${ROOT_DIR}/ci/scripts/pr_list_database.py" --display "{pr}" --dbfile "${pr_list_dbfile}" | awk '{print $4}') || true
-     if [[ "${pr_id}" -ne "${pr_id_check}" ]]; then
-        exit 0
-     fi
+      # if the return status from clone-build_ci.sh is either 5 or 10
+      # this this is an authentic failure and we should not exit 0
+      if [[ ${ci_status} -ne 5 || ${ci-ci_status} -ne 10 ]]; then
+        pr_id_check=$("${ROOT_DIR}/ci/scripts/pr_list_database.py" --display "{pr}" --dbfile "${pr_list_dbfile}" | awk '{print $4}') || true
+        if [[ "${pr_id}" -ne "${pr_id_check}" ]]; then
+          # if the pr_id has changed then the user reset the Ready label (referted back so this check is done only once at a time)
+          "${ROOT_DIR}/ci/scripts/pr_list_database.py"  --dbfile "${pr_list_dbfile}" --update_pr "${pr}" Open Building "${pr_id_check}"
+          exit 0
+        fi
+      fi
   fi
   set -e
   if [[ ${ci_status} -eq 0 ]]; then

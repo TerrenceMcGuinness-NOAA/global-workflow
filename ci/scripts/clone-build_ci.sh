@@ -112,8 +112,16 @@ if [[ ${link_status} != 0 ]]; then
     echo "Link: *** FAILED ***"
     echo "Link: Failed at $(date)" || true
   } >> "${outfile}"
+  # a unique error code is needed to distinguish between
+  # a true link failure and one cause by user restart
+  link_status=5
   exit "${link_status}"
 fi
 
 echo "check/build/link test completed"
+if [[ ${build_status} != 0 ]]; then
+  # a unique error code is needed to distinguish between
+  # a true build failure and one cause by user restart
+  build_status=15
+fi
 exit "${build_status}"
