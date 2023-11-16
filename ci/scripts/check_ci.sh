@@ -20,6 +20,7 @@ REPO_URL="https://github.com/NOAA-EMC/global-workflow.git"
 #  Set up runtime environment varibles for accounts on supproted machines
 #########################################################################
 
+source "${ROOT_DIR}/ci/scripts/utils/ci_utils.sh"
 source "${ROOT_DIR}/ush/detect_machine.sh"
 case ${MACHINE_ID} in
   hera | orion)
@@ -140,8 +141,7 @@ for pr in ${pr_list}; do
       "${GH}" pr comment "${pr}" --repo "${REPO_URL}" --body-file "${output_ci}"
       "${ROOT_DIR}/ci/scripts/pr_list_database.py" --remove_pr "${pr}" --dbfile "${pr_list_dbfile}"
       for kill_cases in "${pr_dir}/RUNTESTS/"*; do
-         pslot=$(basename "${kill_cases}")
-         sacct --format=jobid,jobname%35,WorkDir%100,stat | grep "${pslot}" | grep "PR\/${pr}\/RUNTESTS" |  awk '{print $1}' | xargs scancel || true
+         cancel_slrum_jobs "${kill_cases}"
       done
       break
     fi

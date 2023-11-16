@@ -27,6 +27,7 @@ RUNTESTS="${TEST_DIR}/RUNTESTS"
 # Source modules and setup logging
 echo "Source modules."
 source "${HOMEgfs}/workflow/gw_setup.sh"
+source "${HOMEgfs}/ci/scripts/utils/ci_utils.sh"
 
 # cd into the experiment directory
 echo "cd ${RUNTESTS}/EXPDIR/${pslot}"
@@ -83,7 +84,7 @@ while true; do
      echo "${error_logs}"
     } >> "${RUNTESTS}/ci.log"
     sed -i "s/\`\`\`//2g" "${RUNTESTS}/ci.log"
-    sacct --format=jobid,jobname%35,WorkDir%100,stat | grep "${pslot}" | grep "${pr}\/RUNTESTS" |  awk '{print $1}' | xargs scancel || true
+    cancel_slrum_jobs "${RUNTESTS}/EXPDIR/${pslot}"
     rc=1
     break
   fi

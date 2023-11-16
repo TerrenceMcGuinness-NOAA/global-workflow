@@ -94,7 +94,7 @@ build_status=$?
 
 if [[ ${build_status} != 0 ]]; then
   {
-    echo "Build: *** FAILED ***"
+    echo "Build: *** FAILED *** ${MACHINE_ID^}"
     echo "Build: Failed at $(date)" || true
     echo "Build: see output at ${PWD}/log.build"
   } >> "${outfile}"
@@ -105,12 +105,14 @@ else
   } >> "${outfile}"
 fi
 
-./link_workflow.sh
-link_status=$?
+LINK_LOGFILE_PATH=log.link_workflow
+./link_workflow.sh > "${LINK_LOGFILE_PATH}" 2>&1
+link_status=$? 
 if [[ ${link_status} != 0 ]]; then
   {
-    echo "Link: *** FAILED ***"
+    echo "Link: *** FAILED *** on ${MACHINE_ID^}"
     echo "Link: Failed at $(date)" || true
+    cat "${LINK_LOGFILE_PATH}"
   } >> "${outfile}"
   # a unique error code is needed to distinguish between
   # a true link failure and one cause by user restart

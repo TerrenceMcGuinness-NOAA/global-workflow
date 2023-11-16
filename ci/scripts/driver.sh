@@ -31,7 +31,7 @@ export PS4='+ $(basename ${BASH_SOURCE})[${LINENO}]'
 #########################################################################
 #  Set up runtime environment varibles for accounts on supproted machines
 #########################################################################
-
+source "${ROOT_DIR}/ci/scripts/utils/ci_utils.sh"
 source "${ROOT_DIR}/ush/detect_machine.sh"
 case ${MACHINE_ID} in
   hera | orion)
@@ -82,8 +82,7 @@ for pr in ${pr_list}; do
       if [[ -z "${cases+x}" ]]; then
          break
       fi
-      pslot=$(basename "${cases}")
-      sacct --format=jobid,jobname%35,WorkDir%100,stat | grep "${pslot}" | grep "PR\/${pr}\/RUNTESTS" |  awk '{print $1}' | xargs scancel || true
+      cancel_slrum_jobs "${cases}"
     done
     rm -Rf "${pr_dir}"
   fi
@@ -164,7 +163,7 @@ for pr in ${pr_list}; do
       set +e
       export LOGFILE_PATH="${HOMEgfs}/ci/scripts/create_experiment.log"
       rm -f "${LOGFILE_PATH}"
-      "${HOMEgfs}/workflow/create_experiment.py" --yaml "${HOMEgfs}/ci/cases/pr/${case}.yaml" 2>&1 "${LOGFILE_PATH}"
+      "${HOMEgfs}/workflow/create_experiment.py" --yaml "${HOMEgfs}/ci/cases/pr/${case}.yaml" > "${LOGFILE_PATH}" 2>&1
       ci_status=$?
       set -e
       if [[ ${ci_status} -eq 0 ]]; then
