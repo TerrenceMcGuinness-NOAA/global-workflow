@@ -105,13 +105,14 @@ else
   } >> "${outfile}"
 fi
 
-LINK_LOGFILE_PATH=log.link_workflow
+LINK_LOGFILE_PATH=link_workflow.log
 ./link_workflow.sh > "${LINK_LOGFILE_PATH}" 2>&1
-link_status=$? 
+link_status=$?
 if [[ ${link_status} != 0 ]]; then
   {
     echo "Link: *** FAILED *** on ${MACHINE_ID^}"
     echo "Link: Failed at $(date)" || true
+    echo ""
     cat "${LINK_LOGFILE_PATH}"
   } >> "${outfile}"
   # a unique error code is needed to distinguish between
