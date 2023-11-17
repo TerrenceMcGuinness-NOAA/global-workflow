@@ -123,10 +123,10 @@ for pr in ${pr_list}; do
   log_build_err="${pr_dir}/log.err.build_${id}"
   rm -f "${output_ci}" "${log_build}" "${log_build_err}"
   # shellcheck disable=SC2016
-  build_job_id=$(sbatch -A nems -p service -t 30:00 --nodes=1 -o "${log_build}" -e "${log_build_err}" --job-name "building_PR_${pr}" "${ROOT_DIR}/ci/scripts/clone-build_ci.sh" '-p "${pr}" -d "${pr_dir}" -o "${output_ci}"' | awk '{print "${4}"}')
+  build_job_id=$(sbatch -A nems -p service -t 30:00 --nodes=1 -o "${log_build}" -e "${log_build_err}" --job-name "building_PR_${pr}" "${ROOT_DIR}/ci/scripts/clone-build_ci.sh" '-p "${pr}" -d "${pr_dir}" -o "${output_ci}"' | awk '{print "${4}"}') || true
   "${GH}" pr edit --repo "${REPO_URL}" "${pr}" --remove-label "CI-${MACHINE_ID^}-Ready" --add-label "CI-${MACHINE_ID^}-Building"
   "${ROOT_DIR}/ci/scripts/pr_list_database.py" --dbfile "${pr_list_dbfile}" --update_pr "${pr}" Open Building "${build_job_id}"
-  while squeue -j "${job_id}" | grep -q "${job_id}"
+  while squeue -j "${job_id}" | grep -q "${job_id}" || true
   do
     sleep 5
   done
