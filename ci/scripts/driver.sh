@@ -18,7 +18,8 @@ set -eux
 # TODO using static build for GitHub CLI until fixed in HPC-Stack
 #################################################################
 export GH=${HOME}/bin/gh
-export REPO_URL=${REPO_URL:-"https://github.com/NOAA-EMC/global-workflow.git"}
+#export REPO_URL=${REPO_URL:-"https://github.com/NOAA-EMC/global-workflow.git"}
+export REPO_URL=git@github.com:TerrenceMcGuinness-NOAA/global-workflow.git
 
 ################################################################
 # Setup the reletive paths to scripts and PS4 for better logging
@@ -79,13 +80,14 @@ for pr in ${pr_list}; do
       scancel "${job_id}"
     fi
     "${ROOT_DIR}/ci/scripts/pr_list_database.py" --dbfile "${pr_list_dbfile}" --update_pr "${pr}" Open Ready "0"
-    for cases in "${pr_dir}/RUNTESTS/"*; do
-      if [[ -z "${cases+x}" ]]; then
-         break
-      fi
-      cancel_slrum_jobs "${cases}"
-    done
-    rm -Rf "${pr_dir}"
+    experiments=$(find "${pr_dir}/RUNTESTS" -mindepth 1 -maxdepth 1 -type d) || true
+    if [ -z "${experiments}" ]; then
+       echo "No current experiments to cancel in PR: ${pr}"
+    else
+      for cases in "${experiments}"; do
+        cancel_slrum_jobs "${pr_dir}/RUNTESTS/${cases}"
+      done
+    fi
   fi
 done
 
@@ -112,34 +114,36 @@ for pr in ${pr_list}; do
   fi
   echo "Processing Pull Request #${pr}"
   pr_dir="${GFS_CI_ROOT}/PR/${pr}"
-  rm -Rf "${pr_dir}"
-  mkdir -p "${pr_dir}"
   # call clone-build_ci to clone and build PR
   id=$("${GH}" pr view "${pr}" --repo "${REPO_URL}" --json id --jq '.id')
   set +e
   output_ci="${pr_dir}/output_build_${id}"
   output_ci_single="${GFS_CI_ROOT}/PR/${pr}/output_driver_single.log"
-  log_build="${pr_dir}/log.build_${id}"
-  log_build_err="${pr_dir}/log.err.build_${id}"
-  rm -f "${output_ci}" "${log_build}" "${log_build_err}"
+  log_build="${GFS_CI_ROOT}/build_logs/log.build_PR-${pr}"
+  log_build_err="${GFS_CI_ROOT}/build_logs/log.err.build_PR-${pr}"
+  mkdir -p "${GFS_CI_ROOT}/build_logs"
+  rm -f "${output_ci}" "${outout_ci_single}"
   # shellcheck disable=SC2016
-  build_job_id=$(sbatch -A nems -p service -t 30:00 --nodes=1 -o "${log_build}" -e "${log_build_err}" --job-name "building_PR_${pr}" "${ROOT_DIR}/ci/scripts/clone-build_ci.sh" '-p "${pr}" -d "${pr_dir}" -o "${output_ci}"' | awk '{print "${4}"}') || true
+  build_job_id=$(sbatch --export=ALL,MACHINE="${MACHINE_ID}" -A nems -p service -t 30:00 --nodes=1 -o "${log_build}-%A" -e "${log_build_err}-%A" --job-name "${pr}_building_PR" "${ROOT_DIR}/ci/scripts/clone-build_ci.sh" -p "${pr##}" -d "${pr_dir##}" -o "${output_ci}" | awk '{print $4}') || true
   "${GH}" pr edit --repo "${REPO_URL}" "${pr}" --remove-label "CI-${MACHINE_ID^}-Ready" --add-label "CI-${MACHINE_ID^}-Building"
   "${ROOT_DIR}/ci/scripts/pr_list_database.py" --dbfile "${pr_list_dbfile}" --update_pr "${pr}" Open Building "${build_job_id}"
-  while squeue -j "${job_id}" | grep -q "${job_id}" || true
+  while squeue -j "${build_job_id}" | grep -q "${build_job_id}"
   do
-    sleep 5
+    sleep 10
   done
-  check=$(tail -1 "${log_build}")
+  check=$(tail -1 "${log_build_err}-${build_job_id}")
   if [[ "${check}" == *"CANCELLED"* ]]; then
     # User canceled the build job so exit and let the next driver script take over
-    rm -f "${output_ci_single}"
+    output_build_single="${GFS_CI_ROOT}/build_logs/single.log-${build_job_id}"
+    rm -f "${output_build_single}"
     job_id=$("${ROOT_DIR}/ci/scripts/pr_list_database.py" --dbfile "${pr_list_dbfile}" --display "${pr}" | awk '{print $4}') || true
     {
-      echo "Job ${build_job_id} for building PR:${pr} was **CANCELED** on ${MACINE_ID^} at $(date) by user}" || true
-      echo "Rebuilding PR:${pr} on with new job_id:${job_id}"
-    } >> "${output_ci_single}"
-    "${GH}" pr comment "${pr}" --repo "${REPO_URL}" --body-file "${output_ci_single}"
+      echo "Job ${build_job_id} for building PR:${pr} on ${MACHINE_ID^} was *** CANCELED *** at $(date) by user" || true
+      echo "Rebuilding PR:${pr} with new job_id:${job_id} in ${pr_dir}/global-workflow"
+    } >> "${output_build_single}"
+    sed -i "1 i\`\`\`" "${output_build_single}"
+    "${GH}" pr comment "${pr}" --repo "${REPO_URL}" --body-file "${output_build_single}"
+    rm -f "${output_build_single}"
     exit 0
   fi
   ci_status=0
@@ -201,12 +205,12 @@ for pr in ${pr_list}; do
     "${ROOT_DIR}/ci/scripts/pr_list_database.py" --dbfile "${pr_list_dbfile}" --update_pr "${pr}" Open Running
     "${GH}" pr comment "${pr}" --repo "${REPO_URL}" --body-file "${output_ci}"
 
-  else # if build failed
+  else # if build failed without CANCELLED
     {
       echo "Cloning and building *** FAILED *** on ${MACHINE_ID^} for PR: ${pr}"
       echo "on $(date) for repo ${REPO_URL}" || true
       echo ""
-      cat "${log_build_err}"
+      cat "${log_build_err}-${build_job_id}"
     } >> "${output_ci}"
     sed -i "1 i\`\`\`" "${output_ci}"
     "${GH}" pr edit "${pr}" --repo "${REPO_URL}" --remove-label "CI-${MACHINE_ID^}-Building" --add-label "CI-${MACHINE_ID^}-Failed"

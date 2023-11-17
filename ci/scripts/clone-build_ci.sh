@@ -39,11 +39,10 @@ while getopts "p:d:o:h" opt; do
   esac
 done
 
-cd "${repodir}" || exit 1
-if [[ -d global-workflow ]]; then
-  rm -Rf global-workflow
-fi
+rm -Rf "${repodir}"
+mkdir -p "${repodir}"
 
+cd "${repodir}" || exit 1
 git clone "${REPO_URL}"
 cd global-workflow || exit 1
 
@@ -62,6 +61,8 @@ source "${HOMEgfs}/ush/detect_machine.sh"
  echo "---------------------------------------------------"
 }  >> "${outfile}"
 ######################################################################
+
+export "${MACHINE}"
 
 # get commit hash
 commit=$(git log --pretty=format:'%h' -n 1)
