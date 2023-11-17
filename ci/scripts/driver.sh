@@ -68,16 +68,17 @@ pr_list=$(${GH} pr list --repo "${REPO_URL}" --label "CI-${MACHINE_ID^}-Ready" -
 for pr in ${pr_list}; do
   pr_dir="${GFS_CI_ROOT}/PR/${pr}"
   db_list=$("${ROOT_DIR}/ci/scripts/pr_list_database.py" --add_pr "${pr}" --dbfile "${pr_list_dbfile}")
-  pr_id=0
   #############################################################
   # Check if a Ready labeled PR has changed back from once set
   # and in that case remove all previous jobs in scheduler and
   # and remove PR from filesystem to start clean
   #############################################################
   if [[ "${db_list}" == *"already is in list"* ]]; then
-    pr_id=$("${ROOT_DIR}/ci/scripts/pr_list_database.py" --dbfile "${pr_list_dbfile}" --display "${pr}" | awk '{print $4}') || true
-    pr_id=$((pr_id+1))
-    "${ROOT_DIR}/ci/scripts/pr_list_database.py" --dbfile "${pr_list_dbfile}" --update_pr "${pr}" Open Ready "${pr_id}"
+    job_id=$("${ROOT_DIR}/ci/scripts/pr_list_database.py" --dbfile "${pr_list_dbfile}" --display "${pr}" | awk '{print $4}') || true
+    if [[ -n "${job_id+x}" && "${job_id}" -ne 0 ]]; then
+      scancel "${job_id}"
+    fi
+    "${ROOT_DIR}/ci/scripts/pr_list_database.py" --dbfile "${pr_list_dbfile}" --update_pr "${pr}" Open Ready "0"
     for cases in "${pr_dir}/RUNTESTS/"*; do
       if [[ -z "${cases+x}" ]]; then
          break
@@ -109,8 +110,6 @@ for pr in ${pr_list}; do
   if [[ -z "${pr_building+x}" ]]; then
       continue
   fi
-  "${GH}" pr edit --repo "${REPO_URL}" "${pr}" --remove-label "CI-${MACHINE_ID^}-Ready" --add-label "CI-${MACHINE_ID^}-Building"
-  "${ROOT_DIR}/ci/scripts/pr_list_database.py" --dbfile "${pr_list_dbfile}" --update_pr "${pr}" Open Building
   echo "Processing Pull Request #${pr}"
   pr_dir="${GFS_CI_ROOT}/PR/${pr}"
   rm -Rf "${pr_dir}"
@@ -119,28 +118,32 @@ for pr in ${pr_list}; do
   id=$("${GH}" pr view "${pr}" --repo "${REPO_URL}" --json id --jq '.id')
   set +e
   output_ci="${pr_dir}/output_build_${id}"
+  output_ci_single="${GFS_CI_ROOT}/PR/${pr}/output_driver_single.log"
   log_build="${pr_dir}/log.build_${id}"
   log_build_err="${pr_dir}/log.err.build_${id}"
   rm -f "${output_ci}" "${log_build}" "${log_build_err}"
-  build_job_id=$(sbatch -A nems -p service -t 30:00 --nodes=1 -o "${log_build}" -e "${log_build_err}" --job-name "building_PR_${pr}" "${ROOT_DIR}/ci/scripts/clone-build_ci.sh" '-p ${pr} -d ${pr_dir} -o ${output_ci}' | awk '{print $4}')
-  while squeue -j $job_id | grep -q $job_id
+  # shellcheck disable=SC2016
+  build_job_id=$(sbatch -A nems -p service -t 30:00 --nodes=1 -o "${log_build}" -e "${log_build_err}" --job-name "building_PR_${pr}" "${ROOT_DIR}/ci/scripts/clone-build_ci.sh" '-p "${pr}" -d "${pr_dir}" -o "${output_ci}"' | awk '{print "${4}"}')
+  "${GH}" pr edit --repo "${REPO_URL}" "${pr}" --remove-label "CI-${MACHINE_ID^}-Ready" --add-label "CI-${MACHINE_ID^}-Building"
+  "${ROOT_DIR}/ci/scripts/pr_list_database.py" --dbfile "${pr_list_dbfile}" --update_pr "${pr}" Open Building "${build_job_id}"
+  while squeue -j "${job_id}" | grep -q "${job_id}"
   do
-    sleep 1
+    sleep 5
   done
-  check=$(tail -1 $log_file)
+  check=$(tail -1 "${log_build}")
   if [[ "${check}" == *"CANCELLED"* ]]; then
-    echo "Job $job_id for building ${pr} was canceled"
-    # Checking for special case when Ready label was updated
-    # that cause a running driver exit fail because was currently
-    # building so we force and exit 0 instead to does not get relabled
-     pr_id_check=$("${ROOT_DIR}/ci/scripts/pr_list_database.py" --display "{pr}" --dbfile "${pr_list_dbfile}" | awk '{print $4}') || true
-     if [[ "${pr_id}" -ne "${pr_id_check}" ]]; then
-       # if the pr_id has changed then the user reset the Ready label (referted back so this check is done only once at a time)
-       "${ROOT_DIR}/ci/scripts/pr_list_database.py"  --dbfile "${pr_list_dbfile}" --update_pr "${pr}" Open Building "${pr_id_check}"
-       exit 0
-     fi
+    # User canceled the build job so exit and let the next driver script take over
+    rm -f "${output_ci_single}"
+    job_id=$("${ROOT_DIR}/ci/scripts/pr_list_database.py" --dbfile "${pr_list_dbfile}" --display "${pr}" | awk '{print $4}') || true
+    {
+      echo "Job ${build_job_id} for building PR:${pr} was **CANCELED** on ${MACINE_ID^} at $(date) by user}" || true
+      echo "Rebuilding PR:${pr} on with new job_id:${job_id}"
+    } >> "${output_ci_single}"
+    "${GH}" pr comment "${pr}" --repo "${REPO_URL}" --body-file "${output_ci_single}"
+    exit 0
   fi
   ci_status=0
+  # Checking for ERROR in log file from build-clone and assiging ci_status
   if [[ "${check}" == *"ERROR"* ]]; then
      ci_status=$(echo check | awk '{print $2}')
   fi
@@ -198,11 +201,14 @@ for pr in ${pr_list}; do
     "${ROOT_DIR}/ci/scripts/pr_list_database.py" --dbfile "${pr_list_dbfile}" --update_pr "${pr}" Open Running
     "${GH}" pr comment "${pr}" --repo "${REPO_URL}" --body-file "${output_ci}"
 
-  else
+  else # if build failed
     {
-      echo "Failed on cloning and building global-workflowi PR: ${pr}"
-      echo "CI on ${MACHINE_ID^} failed to build on $(date) for repo ${REPO_URL}" || true
+      echo "Cloning and building *** FAILED *** on ${MACHINE_ID^} for PR: ${pr}"
+      echo "on $(date) for repo ${REPO_URL}" || true
+      echo ""
+      cat "${log_build_err}"
     } >> "${output_ci}"
+    sed -i "1 i\`\`\`" "${output_ci}"
     "${GH}" pr edit "${pr}" --repo "${REPO_URL}" --remove-label "CI-${MACHINE_ID^}-Building" --add-label "CI-${MACHINE_ID^}-Failed"
     "${ROOT_DIR}/ci/scripts/pr_list_database.py" --remove_pr "${pr}" --dbfile "${pr_list_dbfile}"
     "${GH}" pr comment "${pr}" --repo "${REPO_URL}" --body-file "${output_ci}"
