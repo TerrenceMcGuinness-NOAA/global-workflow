@@ -78,6 +78,7 @@ if [[ ${checkout_status} != 0 ]]; then
     echo "Checkout: Failed at $(date)" || true
     echo "Checkout: see output at ${PWD}/log.checkout"
   } >> "${outfile}"
+  echo "ERROR: ${checkout_status}"
   exit "${checkout_status}"
 else
   {
@@ -98,6 +99,7 @@ if [[ ${build_status} != 0 ]]; then
     echo "Build: Failed at $(date)" || true
     echo "Build: see output at ${PWD}/log.build"
   } >> "${outfile}"
+  echo "ERROR: ${build_status}"
   exit "${build_status}"
 else
   {
@@ -117,14 +119,8 @@ if [[ ${link_status} != 0 ]]; then
   } >> "${outfile}"
   # a unique error code is needed to distinguish between
   # a true link failure and one cause by user restart
-  link_status=5
+  echo "ERROR: ${link_status}"
   exit "${link_status}"
 fi
 
 echo "check/build/link test completed"
-if [[ ${build_status} != 0 ]]; then
-  # a unique error code is needed to distinguish between
-  # a true build failure and one cause by user restart
-  build_status=15
-fi
-exit "${build_status}"

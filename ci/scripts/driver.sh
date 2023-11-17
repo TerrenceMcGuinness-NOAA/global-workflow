@@ -119,25 +119,30 @@ for pr in ${pr_list}; do
   id=$("${GH}" pr view "${pr}" --repo "${REPO_URL}" --json id --jq '.id')
   set +e
   output_ci="${pr_dir}/output_build_${id}"
-  rm -f "${output_ci}"
-  "${ROOT_DIR}/ci/scripts/clone-build_ci.sh" -p "${pr}" -d "${pr_dir}" -o "${output_ci}"
-  ci_status=$?
-  ##################################################################
-  # Checking for special case when Ready label was updated
-  # that cause a running driver exit fail because was currently
-  # building so we force and exit 0 instead to does not get relabled
-  #################################################################
-  if [[ ${ci_status} -ne 0 ]]; then
-      # if the return status from clone-build_ci.sh is either 5 or 10
-      # this this is an authentic failure and we should not exit 0
-      if [[ ${ci_status} -ne 5 || ${ci-ci_status} -ne 10 ]]; then
-        pr_id_check=$("${ROOT_DIR}/ci/scripts/pr_list_database.py" --display "{pr}" --dbfile "${pr_list_dbfile}" | awk '{print $4}') || true
-        if [[ "${pr_id}" -ne "${pr_id_check}" ]]; then
-          # if the pr_id has changed then the user reset the Ready label (referted back so this check is done only once at a time)
-          "${ROOT_DIR}/ci/scripts/pr_list_database.py"  --dbfile "${pr_list_dbfile}" --update_pr "${pr}" Open Building "${pr_id_check}"
-          exit 0
-        fi
-      fi
+  log_build="${pr_dir}/log.build_${id}"
+  log_build_err="${pr_dir}/log.err.build_${id}"
+  rm -f "${output_ci}" "${log_build}" "${log_build_err}"
+  build_job_id=$(sbatch -A nems -p service -t 30:00 --nodes=1 -o "${log_build}" -e "${log_build_err}" --job-name "building_PR_${pr}" "${ROOT_DIR}/ci/scripts/clone-build_ci.sh" '-p ${pr} -d ${pr_dir} -o ${output_ci}' | awk '{print $4}')
+  while squeue -j $job_id | grep -q $job_id
+  do
+    sleep 1
+  done
+  check=$(tail -1 $log_file)
+  if [[ "${check}" == *"CANCELLED"* ]]; then
+    echo "Job $job_id for building ${pr} was canceled"
+    # Checking for special case when Ready label was updated
+    # that cause a running driver exit fail because was currently
+    # building so we force and exit 0 instead to does not get relabled
+     pr_id_check=$("${ROOT_DIR}/ci/scripts/pr_list_database.py" --display "{pr}" --dbfile "${pr_list_dbfile}" | awk '{print $4}') || true
+     if [[ "${pr_id}" -ne "${pr_id_check}" ]]; then
+       # if the pr_id has changed then the user reset the Ready label (referted back so this check is done only once at a time)
+       "${ROOT_DIR}/ci/scripts/pr_list_database.py"  --dbfile "${pr_list_dbfile}" --update_pr "${pr}" Open Building "${pr_id_check}"
+       exit 0
+     fi
+  fi
+  ci_status=0
+  if [[ "${check}" == *"ERROR"* ]]; then
+     ci_status=$(echo check | awk '{print $2}')
   fi
   set -e
   if [[ ${ci_status} -eq 0 ]]; then
