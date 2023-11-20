@@ -7,7 +7,7 @@ function cancel_slrum_jobs() {
   job_ids=$(squeue -u "${USER}" -h -o "%i")
 
   for job_id in ${job_ids}; do
-    batch_script=$(sacct -j "{$job_id}" --batch-script)
+    batch_script=$(sacct -j "${job_id}" --batch-script)
     if grep -q "${substring}" <<< "${batch_script}"; then
       scancel "${job_id}"
     fi
