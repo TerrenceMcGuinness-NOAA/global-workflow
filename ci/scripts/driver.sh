@@ -144,6 +144,7 @@ for pr in ${pr_list}; do
   do
     sleep 10
   done
+  ci_status=0
   check=$(tail -1 "${log_build_err}-${build_job_id}")
   if [[ "${check}" == *"CANCELLED"* ]]; then
     # User canceled the build job so exit and let the next driver script take over
@@ -151,7 +152,8 @@ for pr in ${pr_list}; do
     rm -f "${output_build_single}"
     if [[ "${check}" == *"DUE TO TIME LIMIT"* ]]; then
       CAUSE="because of time limit over ${BUILD_TIME_LIMIT}"
-    else
+      ci_status=-1
+    else # TODO find a more conclusive check for cancel by user
       CAUSE="by user"
     fi
     job_id=$("${ROOT_DIR}/ci/scripts/pr_list_database.py" --dbfile "${pr_list_dbfile}" --display "${pr}" | awk '{print $4}') || true
@@ -163,9 +165,10 @@ for pr in ${pr_list}; do
     sed -i "1 i\`\`\`" "${output_build_single}"
     "${GH}" pr comment "${pr}" --repo "${REPO_URL}" --body-file "${output_build_single}"
     rm -f "${output_build_single}"
-    exit 0
+    if [[ "${ci_status}" -eq 0 ]]; then
+      exit "${ci_status}"
+    fi
   fi
-  ci_status=0
   # Checking for ERROR in log file from build-clone and assiging ci_status
   if [[ "${check}" == *"ERROR"* ]]; then
      ci_status=$(echo check | awk '{print $2}')
