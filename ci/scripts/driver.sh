@@ -81,7 +81,6 @@ for pr in ${pr_list}; do
     {
       echo "PR:${pr} Reset to ${MACHIND_ID^}-Ready by user and is now restarting CI tests at $(date)" || true
     } >> "${output_ci_single}"
-    }
     if [[ -n "${job_id+x}" && "${job_id}" -ne 0 ]]; then
       scancel "${job_id}"
     fi
