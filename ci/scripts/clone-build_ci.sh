@@ -62,7 +62,7 @@ source "${HOMEgfs}/ush/detect_machine.sh"
 }  >> "${outfile}"
 ######################################################################
 
-export "${MACHINE}"
+export MACHINE
 
 # get commit hash
 commit=$(git log --pretty=format:'%h' -n 1)

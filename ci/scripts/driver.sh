@@ -81,10 +81,10 @@ for pr in ${pr_list}; do
     fi
     "${ROOT_DIR}/ci/scripts/pr_list_database.py" --dbfile "${pr_list_dbfile}" --update_pr "${pr}" Open Ready "0"
     experiments=$(find "${pr_dir}/RUNTESTS" -mindepth 1 -maxdepth 1 -type d) || true
-    if [ -z "${experiments}" ]; then
+    if [[ -z "${experiments}" ]]; then
        echo "No current experiments to cancel in PR: ${pr}"
     else
-      for cases in "${experiments}"; do
+      for cases in ${experiments}; do
         cancel_slrum_jobs "${pr_dir}/RUNTESTS/${cases}"
       done
     fi
@@ -124,7 +124,7 @@ for pr in ${pr_list}; do
   mkdir -p "${GFS_CI_ROOT}/build_logs"
   rm -f "${output_ci}" "${outout_ci_single}"
   # shellcheck disable=SC2016
-  build_job_id=$(sbatch --export=ALL,MACHINE="${MACHINE_ID}" -A nems -p service -t 30:00 --nodes=1 -o "${log_build}-%A" -e "${log_build_err}-%A" --job-name "${pr}_building_PR" "${ROOT_DIR}/ci/scripts/clone-build_ci.sh" -p "${pr##}" -d "${pr_dir##}" -o "${output_ci}" | awk '{print $4}') || true
+  build_job_id=$(sbatch --export=ALL,MACHINE="${MACHINE_ID}" -A nems -p service -t 3:00:00 --nodes=1 -o "${log_build}-%A" -e "${log_build_err}-%A" --job-name "${pr}_building_PR" "${ROOT_DIR}/ci/scripts/clone-build_ci.sh" -p "${pr##}" -d "${pr_dir##}" -o "${output_ci}" | awk '{print $4}') || true
   "${GH}" pr edit --repo "${REPO_URL}" "${pr}" --remove-label "CI-${MACHINE_ID^}-Ready" --add-label "CI-${MACHINE_ID^}-Building"
   "${ROOT_DIR}/ci/scripts/pr_list_database.py" --dbfile "${pr_list_dbfile}" --update_pr "${pr}" Open Building "${build_job_id}"
   while squeue -j "${build_job_id}" | grep -q "${build_job_id}"
