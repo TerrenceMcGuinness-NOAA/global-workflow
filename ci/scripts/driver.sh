@@ -134,8 +134,9 @@ for pr in ${pr_list}; do
   log_build_err="${GFS_CI_ROOT}/build_logs/log.err.build_PR-${pr}"
   mkdir -p "${GFS_CI_ROOT}/build_logs"
   rm -f "${output_ci}" "${outout_ci_single}"
+  BUILD_TIME_LIMIT="04:00:00"
   # shellcheck disable=SC2016
-  build_job_id=$(sbatch --export=ALL,MACHINE="${MACHINE_ID}" -A "${SLURM_ACCOUNT}" -p develop -t 03:30:00 --nodes=1 -o "${log_build}-%A" -e "${log_build_err}-%A" --job-name "${pr}_building_PR" "${ROOT_DIR}/ci/scripts/clone-build_ci.sh" -p "${pr##}" -d "${pr_dir##}" -o "${output_ci}" | awk '{print $4}') || true
+  build_job_id=$(sbatch --export=ALL,MACHINE="${MACHINE_ID}" -A "${SLURM_ACCOUNT}" -p service -t "${BUILD_TIME_LIMIT}" --nodes=1 --cpus-per-task=25 -o "${log_build}-%A" -e "${log_build_err}-%A" --job-name "${pr}_building_PR" "${ROOT_DIR}/ci/scripts/clone-build_ci.sh" -p "${pr##}" -d "${pr_dir##}" -o "${output_ci}" | awk '{print $4}') || true
   "${GH}" pr edit --repo "${REPO_URL}" "${pr}" --remove-label "CI-${MACHINE_ID^}-Ready" --add-label "CI-${MACHINE_ID^}-Building"
   "${ROOT_DIR}/ci/scripts/pr_list_database.py" --dbfile "${pr_list_dbfile}" --update_pr "${pr}" Open Building "${build_job_id}"
   # shellcheck disable=SC2312
@@ -148,10 +149,16 @@ for pr in ${pr_list}; do
     # User canceled the build job so exit and let the next driver script take over
     output_build_single="${GFS_CI_ROOT}/build_logs/single.log-${build_job_id}"
     rm -f "${output_build_single}"
+    if [[ "${check}" == *"DUE TO TIME LIMIT"* ]]; then
+      CAUSE="because of time limit over ${BUILD_TIME_LIMIT}"
+    else
+      CAUSE="by user"
+    fi
     job_id=$("${ROOT_DIR}/ci/scripts/pr_list_database.py" --dbfile "${pr_list_dbfile}" --display "${pr}" | awk '{print $4}') || true
     {
-      echo "Job ${build_job_id} for building PR:${pr} on ${MACHINE_ID^} was *** CANCELED *** on $(date +'%A %b %Y') by user" || true
+      echo "Job ${build_job_id} for building PR:${pr} on ${MACHINE_ID^} was *** CANCELED *** on $(date +'%A %b %Y') ${CAUSE}" || true
       echo "Rebuilding PR:${pr} with new job_id:${job_id} in ${pr_dir}/global-workflow"
+      cat "${check}"
     } >> "${output_build_single}"
     sed -i "1 i\`\`\`" "${output_build_single}"
     "${GH}" pr comment "${pr}" --repo "${REPO_URL}" --body-file "${output_build_single}"
