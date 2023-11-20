@@ -79,7 +79,7 @@ for pr in ${pr_list}; do
   if [[ "${db_list}" == *"already is in list"* ]]; then
     job_id=$("${ROOT_DIR}/ci/scripts/pr_list_database.py" --dbfile "${pr_list_dbfile}" --display "${pr}" | awk '{print $4}') || true
     {
-      echo "PR:${pr} Reset to ${MACHINE_ID^}-Ready by user and is now restarting CI tests at $(date)" || true
+      echo "PR:${pr} Reset to ${MACHINE_ID^}-Ready by user and is now restarting CI tests on $(date +'%A %b %Y')" || true
     } >> "${output_ci_single}"
     if [[ -n "${job_id+x}" && "${job_id}" -ne 0 ]]; then
       scancel "${job_id}"
@@ -149,7 +149,7 @@ for pr in ${pr_list}; do
     rm -f "${output_build_single}"
     job_id=$("${ROOT_DIR}/ci/scripts/pr_list_database.py" --dbfile "${pr_list_dbfile}" --display "${pr}" | awk '{print $4}') || true
     {
-      echo "Job ${build_job_id} for building PR:${pr} on ${MACHINE_ID^} was *** CANCELED *** at $(date) by user" || true
+      echo "Job ${build_job_id} for building PR:${pr} on ${MACHINE_ID^} was *** CANCELED *** on $(date +'%A %b %Y') by user" || true
       echo "Rebuilding PR:${pr} with new job_id:${job_id} in ${pr_dir}/global-workflow"
     } >> "${output_build_single}"
     sed -i "1 i\`\`\`" "${output_build_single}"
@@ -219,7 +219,7 @@ for pr in ${pr_list}; do
   else # if build failed without CANCELLED
     {
       echo "Cloning and building *** FAILED *** on ${MACHINE_ID^} for PR: ${pr}"
-      echo "on $(date) for repo ${REPO_URL}" || true
+      echo "on $(date +'%A %b %Y') for repo ${REPO_URL}" || true
       echo ""
       cat "${log_build_err}-${build_job_id}"
     } >> "${output_ci}"
