@@ -144,7 +144,7 @@ for pr in ${pr_list}; do
   fi
 
   # shellcheck disable=SC2016
-  build_job_id=$(sbatch --export=ALL,MACHINE="${MACHINE_ID}" -A "${SLURM_ACCOUNT}" -p service -t "${BUILD_TIME_LIMIT}" --nodes=1 ${CPUS_BUILD} -o "${log_build}-%A" -e "${log_build_err}-%A" --job-name "${pr}_building_PR" "${ROOT_DIR}/ci/scripts/clone-build_ci.sh" -p "${pr##}" -d "${pr_dir##}" -o "${output_ci}" | awk '{print $4}') || true
+  build_job_id=$(sbatch --export=ALL,MACHINE="${MACHINE_ID}" -A "${SLURM_ACCOUNT}" -p service -t "${BUILD_TIME_LIMIT}" --nodes=1 "${CPUS_BUILD}" -o "${log_build}-%A" -e "${log_build_err}-%A" --job-name "${pr}_building_PR" "${ROOT_DIR}/ci/scripts/clone-build_ci.sh" -p "${pr##}" -d "${pr_dir##}" -o "${output_ci}" | awk '{print $4}') || true
   "${GH}" pr edit --repo "${REPO_URL}" "${pr}" --remove-label "CI-${MACHINE_ID^}-Ready" --add-label "CI-${MACHINE_ID^}-Building"
   "${ROOT_DIR}/ci/scripts/pr_list_database.py" --dbfile "${pr_list_dbfile}" --update_pr "${pr}" Open Building "${build_job_id}"
   # shellcheck disable=SC2312
@@ -153,7 +153,7 @@ for pr in ${pr_list}; do
     sleep 10
   done
 
-  build_ci_state=$(sacct -j "${build_job_id}" -o state%20 | head -3 | tail -1 | sed "s/^[ \t]*//" | sed 's/\s*$//g')
+  build_ci_state=$(sacct -j "${build_job_id}" -o state%20 | head -3 | tail -1 | sed "s/^[ \t]*//" | sed 's/\s*$//g') || true
 
   output_build_single="${GFS_CI_ROOT}/build_logs/single.log-${build_job_id}"
   rm -f "${output_build_single}"
@@ -161,7 +161,7 @@ for pr in ${pr_list}; do
   # Check if job was canceled by user (using scancel) and exit gracfully if so
   if [[ "${build_ci_state}" == *"CANCELLED by"* ]]; then
     job_id=$("${ROOT_DIR}/ci/scripts/pr_list_database.py" --dbfile "${pr_list_dbfile}" --display "${pr}" | awk '{print $4}') || true
-    check=$(grep -i "CANCELLED" "${log_build_err}-${build_job_id}" | sed 's/*//g' | tail -1)
+    check=$(grep -i "CANCELLED" "${log_build_err}-${build_job_id}" | sed 's/*//g' | tail -1) || true
     {
       echo "Job ${build_job_id} for building PR:${pr} on ${MACHINE_ID^} was *** CANCELED *** on $(date +'%A %b %Y') by user" || true
       echo "Rebuilding PR:${pr} with new job_id:${job_id} in ${pr_dir}/global-workflow"
@@ -173,16 +173,17 @@ for pr in ${pr_list}; do
     exit 0
   fi  
 
+  CAUSE=" "
   if [[ "${build_ci_state}" == "CANCELLED" ]]; then
-     check=$(grep -i "CANCELLED" "${log_build_err}-${build_job_id}" | sed 's/*//g' | tail -1)
+     check=$(grep -i "CANCELLED" "${log_build_err}-${build_job_id}" | sed 's/*//g' | tail -1) || true
      if [[ "${check}" == *"DUE TO TIME LIMIT"* ]]; then
-        CAUSE="because of time limit over ${BUILD_TIME_LIMIT}"
+        CAUSE="Because of time limit over ${BUILD_TIME_LIMIT}"
         ci_status=1
      fi
   fi
 
   if [[ "${build_ci_state}" == "FAILED" ]]; then
-    ci_status=$(sacct -j "${build_job_id}" -o ExitCode | head -3 | tail -1 | sed "s/^[ \t]*//" | sed 's/\s*$//g' | cut -d":" -f1)
+    ci_status=$(sacct -j "${build_job_id}" -o ExitCode | head -3 | tail -1 | sed "s/^[ \t]*//" | sed 's/\s*$//g' | cut -d":" -f1) || true
     # force a ci_status=2 for a failed build if it was slurm FAIL and ExitCode is 0
     if [[ "${ci_status}" -eq 0 ]]; then
       ci_status=2
@@ -190,7 +191,7 @@ for pr in ${pr_list}; do
   fi
 
   if [[ "${build_ci_state}" == "COMPLETED" ]]; then
-    ci_status=$(sacct -j "${build_job_id}" -o ExitCode | head -3 | tail -1 | sed "s/^[ \t]*//" | sed 's/\s*$//g' | cut -d":" -f1)
+    ci_status=$(sacct -j "${build_job_id}" -o ExitCode | head -3 | tail -1 | sed "s/^[ \t]*//" | sed 's/\s*$//g' | cut -d":" -f1) || true
   fi  
 
   set -e
@@ -251,7 +252,7 @@ for pr in ${pr_list}; do
     {
       echo "Cloning and building *** FAILED *** on ${MACHINE_ID^} for PR: ${pr}"
       echo "on $(date +'%A %b %Y') for repo ${REPO_URL}" || true
-      echo ""
+      echo "${CAUSE}"
       cat "${log_build_err}-${build_job_id}"
     } >> "${output_ci}"
     sed -i "1 i\`\`\`" "${output_ci}"
