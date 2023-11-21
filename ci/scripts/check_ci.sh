@@ -141,8 +141,9 @@ for pr in ${pr_list}; do
       sed -i "1 i\`\`\`" "${output_ci}"
       "${GH}" pr comment "${pr}" --repo "${REPO_URL}" --body-file "${output_ci}"
       "${ROOT_DIR}/ci/scripts/pr_list_database.py" --remove_pr "${pr}" --dbfile "${pr_list_dbfile}"
-      for kill_cases in "${pr_dir}/RUNTESTS/"*; do
-         cancel_slrum_jobs "${kill_cases}"
+      for cases in "${pr_dir}/RUNTESTS/"*; do
+         case_name=$(basename "${cases}")
+         cancel_slurm_jobs "${case_name}"
       done
       break
     fi

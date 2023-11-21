@@ -90,8 +90,8 @@ for pr in ${pr_list}; do
        echo "No current experiments to cancel in PR: ${pr} on ${MACHINE_ID^}" >> "${output_ci_single}"
     else
       for cases in ${experiments}; do
-        cancel_slrum_jobs "${cases}"
         case_name=$(basename "${cases}")
+        cancel_slurm_jobs "${case_name}"
         {
           echo "Canceled all jobs for experiment ${case_name} in PR:${pr} on ${MACHINE_ID^}"
         } >> "${output_ci_single}"
