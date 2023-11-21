@@ -85,14 +85,15 @@ for pr in ${pr_list}; do
       scancel "${job_id}"
     fi
     "${ROOT_DIR}/ci/scripts/pr_list_database.py" --dbfile "${pr_list_dbfile}" --update_pr "${pr}" Open Ready "0"
-    experiments=$(find "${pr_dir}/RUNTESTS" -mindepth 1 -maxdepth 1 -type d) || true
+    experiments=$(find "${pr_dir}/RUNTESTS/EXPDIR" -mindepth 1 -maxdepth 1 -type d) || true
     if [[ -z "${experiments}" ]]; then
        echo "No current experiments to cancel in PR: ${pr} on ${MACHINE_ID^}" >> "${output_ci_single}"
     else
       for cases in ${experiments}; do
-        cancel_slrum_jobs "${pr_dir}/RUNTESTS/${cases}"
+        cancel_slrum_jobs "${cases}"
+        case_name=$(basename "${cases}")
         {
-          echo "Canceled all jobs for experiment ${cases} in PR:${pr} on ${MACHINE_ID^}"
+          echo "Canceled all jobs for experiment ${case_name} in PR:${pr} on ${MACHINE_ID^}"
         } >> "${output_ci_single}"
       done
     fi
