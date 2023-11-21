@@ -136,8 +136,15 @@ for pr in ${pr_list}; do
   mkdir -p "${GFS_CI_ROOT}/build_logs"
   rm -f "${output_ci}" "${outout_ci_single}"
   BUILD_TIME_LIMIT="04:00:00"
+
+  if [[ "${MACHINE_ID}" == "hera" ]]; then
+    CPUS_BUILD="--ntasks-per-node=1"
+  else
+    CPUS_BUILD="--cpus-per-task=25"
+  fi
+
   # shellcheck disable=SC2016
-  build_job_id=$(sbatch --export=ALL,MACHINE="${MACHINE_ID}" -A "${SLURM_ACCOUNT}" -p service -t "${BUILD_TIME_LIMIT}" --nodes=1 --cpus-per-task=25 -o "${log_build}-%A" -e "${log_build_err}-%A" --job-name "${pr}_building_PR" "${ROOT_DIR}/ci/scripts/clone-build_ci.sh" -p "${pr##}" -d "${pr_dir##}" -o "${output_ci}" | awk '{print $4}') || true
+  build_job_id=$(sbatch --export=ALL,MACHINE="${MACHINE_ID}" -A "${SLURM_ACCOUNT}" -p service -t "${BUILD_TIME_LIMIT}" --nodes=1 ${CPUS_BUILD} -o "${log_build}-%A" -e "${log_build_err}-%A" --job-name "${pr}_building_PR" "${ROOT_DIR}/ci/scripts/clone-build_ci.sh" -p "${pr##}" -d "${pr_dir##}" -o "${output_ci}" | awk '{print $4}') || true
   "${GH}" pr edit --repo "${REPO_URL}" "${pr}" --remove-label "CI-${MACHINE_ID^}-Ready" --add-label "CI-${MACHINE_ID^}-Building"
   "${ROOT_DIR}/ci/scripts/pr_list_database.py" --dbfile "${pr_list_dbfile}" --update_pr "${pr}" Open Building "${build_job_id}"
   # shellcheck disable=SC2312
@@ -145,35 +152,47 @@ for pr in ${pr_list}; do
   do
     sleep 10
   done
-  ci_status=0
-  check=$(tail -1 "${log_build_err}-${build_job_id}")
-  if [[ "${check}" == *"CANCELLED"* ]]; then
-    # User canceled the build job so exit and let the next driver script take over
-    output_build_single="${GFS_CI_ROOT}/build_logs/single.log-${build_job_id}"
-    rm -f "${output_build_single}"
-    if [[ "${check}" == *"DUE TO TIME LIMIT"* ]]; then
-      CAUSE="because of time limit over ${BUILD_TIME_LIMIT}"
-      ci_status=-1
-    else # TODO find a more conclusive check for cancel by user
-      CAUSE="by user"
-    fi
+
+  build_ci_state=$(sacct -j "${build_job_id}" -o state%20 | head -3 | tail -1 | sed "s/^[ \t]*//" | sed 's/\s*$//g')
+
+  output_build_single="${GFS_CI_ROOT}/build_logs/single.log-${build_job_id}"
+  rm -f "${output_build_single}"
+
+  # Check if job was canceled by user (using scancel) and exit gracfully if so
+  if [[ "${build_ci_state}" == *"CANCELLED by"* ]]; then
     job_id=$("${ROOT_DIR}/ci/scripts/pr_list_database.py" --dbfile "${pr_list_dbfile}" --display "${pr}" | awk '{print $4}') || true
+    check=$(grep -i "CANCELLED" "${log_build_err}-${build_job_id}" | sed 's/*//g' | tail -1)
     {
-      echo "Job ${build_job_id} for building PR:${pr} on ${MACHINE_ID^} was *** CANCELED *** on $(date +'%A %b %Y') ${CAUSE}" || true
+      echo "Job ${build_job_id} for building PR:${pr} on ${MACHINE_ID^} was *** CANCELED *** on $(date +'%A %b %Y') by user" || true
       echo "Rebuilding PR:${pr} with new job_id:${job_id} in ${pr_dir}/global-workflow"
       cat "${check}"
     } >> "${output_build_single}"
     sed -i "1 i\`\`\`" "${output_build_single}"
     "${GH}" pr comment "${pr}" --repo "${REPO_URL}" --body-file "${output_build_single}"
     rm -f "${output_build_single}"
+    exit 0
+  fi  
+
+  if [[ "${build_ci_state}" == "CANCELLED" ]]; then
+     check=$(grep -i "CANCELLED" "${log_build_err}-${build_job_id}" | sed 's/*//g' | tail -1)
+     if [[ "${check}" == *"DUE TO TIME LIMIT"* ]]; then
+        CAUSE="because of time limit over ${BUILD_TIME_LIMIT}"
+        ci_status=1
+     fi
+  fi
+
+  if [[ "${build_ci_state}" == "FAILED" ]]; then
+    ci_status=$(sacct -j "${build_job_id}" -o ExitCode | head -3 | tail -1 | sed "s/^[ \t]*//" | sed 's/\s*$//g' | cut -d":" -f1)
+    # force a ci_status=2 for a failed build if it was slurm FAIL and ExitCode is 0
     if [[ "${ci_status}" -eq 0 ]]; then
-      exit "${ci_status}"
+      ci_status=2
     fi
   fi
-  # Checking for ERROR in log file from build-clone and assiging ci_status
-  if [[ "${check}" == *"ERROR"* ]]; then
-     ci_status=$(echo check | awk '{print $2}')
-  fi
+
+  if [[ "${build_ci_state}" == "COMPLETED" ]]; then
+    ci_status=$(sacct -j "${build_job_id}" -o ExitCode | head -3 | tail -1 | sed "s/^[ \t]*//" | sed 's/\s*$//g' | cut -d":" -f1)
+  fi  
+
   set -e
   if [[ ${ci_status} -eq 0 ]]; then
     "${ROOT_DIR}/ci/scripts/pr_list_database.py" --dbfile "${pr_list_dbfile}" --update_pr "${pr}" Open Built
@@ -228,7 +247,7 @@ for pr in ${pr_list}; do
     "${ROOT_DIR}/ci/scripts/pr_list_database.py" --dbfile "${pr_list_dbfile}" --update_pr "${pr}" Open Running
     "${GH}" pr comment "${pr}" --repo "${REPO_URL}" --body-file "${output_ci}"
 
-  else # if build failed without CANCELLED
+  else # build failed or timed out or canceled not by user (ci_status != 0)
     {
       echo "Cloning and building *** FAILED *** on ${MACHINE_ID^} for PR: ${pr}"
       echo "on $(date +'%A %b %Y') for repo ${REPO_URL}" || true
@@ -242,9 +261,3 @@ for pr in ${pr_list}; do
   fi
 
 done # looping over each open and labeled PR
-
-##########################################
-# scrub working directory for older files
-##########################################
-#
-#find "${GFS_CI_ROOT}/PR/*" -maxdepth 1 -mtime +3 -exec rm -rf {} \;
