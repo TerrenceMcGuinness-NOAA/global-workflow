@@ -44,6 +44,7 @@ function checkout () {
 
   MACHINE=$(echo "${MACHINE_ID}" | tr '[:upper:]' '[:lower:]')
   export MACHINE
+  export MACINE_ID
 
   # get commit hash
   commit=$(git log --pretty=format:'%h' -n 1)

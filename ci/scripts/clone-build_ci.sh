@@ -94,6 +94,7 @@ if [[ ${checkout} == True ]]; then
 fi
 
 # build full cycle
+source "${HOMEgfs}/ush/detect_machine.sh"
 source "${HOMEgfs}/ush/module-setup.sh"
 export BUILD_JOBS=8
 rm -rf log.build
