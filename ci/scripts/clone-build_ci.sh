@@ -98,7 +98,7 @@ if [[ ${checkout} == True ]]; then
 fi  # skipping checkout
 
 
-cd "${repodir}/gobal-workflow"
+cd "${repodir}/global-workflow"
 
 # build full cycle
 #source "${HOMEgfs}/ush/detect_machine.sh"
