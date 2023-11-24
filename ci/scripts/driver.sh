@@ -124,6 +124,7 @@ for pr in ${pr_list}; do
   if [[ -z "${pr_building+x}" ]]; then
       continue
   fi
+
   echo "Processing Pull Request #${pr}"
   pr_dir="${GFS_CI_ROOT}/PR/${pr}"
   # call clone-build_ci to clone and build PR
@@ -135,16 +136,20 @@ for pr in ${pr_list}; do
   log_build_err="${GFS_CI_ROOT}/build_logs/log.err.build_PR-${pr}"
   mkdir -p "${GFS_CI_ROOT}/build_logs"
   rm -f "${output_ci}" "${outout_ci_single}"
+
+  # Seperate the clone and build into two seperate jobs
+  # becasue service slurms partions will not allowcate
+  # enough processors resources to user paralel builds
+
+  checkout "${pr}" "${pr_dir}" "${output_ci}"
+  ci_status=$?
+
+  if [[ ${ci_status} -eq 0 ]]; then
+
   BUILD_TIME_LIMIT="04:00:00"
-
-  if [[ "${MACHINE_ID}" == "hera" ]]; then
-    CPUS_BUILD="--ntasks-per-node=1"
-  else
-    CPUS_BUILD="--cpus-per-task=25"
-  fi
-
+  CPUS_BUILD="--cpus-per-task=25"
   # shellcheck disable=SC2016
-  build_job_id=$(sbatch --export=ALL,MACHINE="${MACHINE_ID}" -A "${SLURM_ACCOUNT}" -p service -t "${BUILD_TIME_LIMIT}" --nodes=1 "${CPUS_BUILD}" -o "${log_build}-%A" -e "${log_build_err}-%A" --job-name "${pr}_building_PR" "${ROOT_DIR}/ci/scripts/clone-build_ci.sh" -p "${pr##}" -d "${pr_dir##}" -o "${output_ci}" | awk '{print $4}') || true
+  build_job_id=$(sbatch --export=ALL,MACHINE="${MACHINE_ID}" -A "${SLURM_ACCOUNT}" -p bigmem -t "${BUILD_TIME_LIMIT}" --nodes=1 "${CPUS_BUILD}" -o "${log_build}-%A" -e "${log_build_err}-%A" --job-name "${pr}_building_PR" "${ROOT_DIR}/ci/scripts/clone-build_ci.sh" -p "${pr##}" -d "${pr_dir##}" -o "${output_ci}" | awk '{print $4}') || true
   "${GH}" pr edit --repo "${REPO_URL}" "${pr}" --remove-label "CI-${MACHINE_ID^}-Ready" --add-label "CI-${MACHINE_ID^}-Building"
   "${ROOT_DIR}/ci/scripts/pr_list_database.py" --dbfile "${pr_list_dbfile}" --update_pr "${pr}" Open Building "${build_job_id}"
   # shellcheck disable=SC2312
@@ -194,6 +199,8 @@ for pr in ${pr_list}; do
     ci_status=$(sacct -j "${build_job_id}" -o ExitCode | head -3 | tail -1 | sed "s/^[ \t]*//" | sed 's/\s*$//g' | cut -d":" -f1) || true
   fi  
 
+fi # end of if checkout was successful (ci_status=0)
+   # if checkot failed it will be caught below in the else statement
   set -e
   if [[ ${ci_status} -eq 0 ]]; then
     "${ROOT_DIR}/ci/scripts/pr_list_database.py" --dbfile "${pr_list_dbfile}" --update_pr "${pr}" Open Built

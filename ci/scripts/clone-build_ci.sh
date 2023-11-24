@@ -39,52 +39,58 @@ while getopts "p:d:o:h" opt; do
   esac
 done
 
-rm -Rf "${repodir}"
-mkdir -p "${repodir}"
+checkout=False
 
-cd "${repodir}" || exit 1
-git clone "${REPO_URL}"
-cd global-workflow || exit 1
+if [[ ${checkout} == True ]]; then
 
-# checkout pull request
-"${GH}" pr checkout "${PR}" --repo "${REPO_URL}"
-HOMEgfs="${PWD}"
-source "${HOMEgfs}/ush/detect_machine.sh"
+  rm -Rf "${repodir}"
+  mkdir -p "${repodir}"
 
-####################################################################
-# start output file
-{
- echo "Automated global-workflow Testing Results:"
- echo '```'
- echo "Machine: ${MACHINE_ID^}"
- echo "Start: $(date) on $(hostname)" || true
- echo "---------------------------------------------------"
-}  >> "${outfile}"
-######################################################################
+  cd "${repodir}" || exit 1
+  git clone "${REPO_URL}"
+  cd global-workflow || exit 1
 
-export MACHINE
+  # checkout pull request
+  "${GH}" pr checkout "${PR}" --repo "${REPO_URL}"
+  HOMEgfs="${PWD}"
+  source "${HOMEgfs}/ush/detect_machine.sh"
 
-# get commit hash
-commit=$(git log --pretty=format:'%h' -n 1)
-echo "${commit}" > "../commit"
-
-# run checkout script
-cd sorc || exit 1
-set +e
-./checkout.sh -c -g -u >> log.checkout 2>&1
-checkout_status=$?
-if [[ ${checkout_status} != 0 ]]; then
+  ####################################################################
+  # start output file
   {
-    echo "Checkout: *** FAILED ***"
-    echo "Checkout: Failed at $(date)" || true
-    echo "Checkout: see output at ${PWD}/log.checkout"
-  } >> "${outfile}"
-  echo "ERROR: ${checkout_status}"
-  exit "${checkout_status}"
-else
-  {
-    echo "Checkout: Completed at $(date)" || true
-  } >> "${outfile}"
+  echo "Automated global-workflow Testing Results:"
+  echo '```'
+  echo "Machine: ${MACHINE_ID^}"
+  echo "Start: $(date) on $(hostname)" || true
+  echo "---------------------------------------------------"
+  }  >> "${outfile}"
+  ######################################################################
+
+  export MACHINE
+
+  # get commit hash
+  commit=$(git log --pretty=format:'%h' -n 1)
+  echo "${commit}" > "../commit"
+
+  # run checkout script
+  cd sorc || exit 1
+  set +e
+  ./checkout.sh -c -g -u >> log.checkout 2>&1
+  checkout_status=$?
+  if [[ ${checkout_status} != 0 ]]; then
+    {
+      echo "Checkout: *** FAILED ***"
+      echo "Checkout: Failed at $(date)" || true
+      echo "Checkout: see output at ${PWD}/log.checkout"
+    } >> "${outfile}"
+    echo "ERROR: ${checkout_status}"
+    exit "${checkout_status}"
+  else
+    {
+      echo "Checkout: Completed at $(date)" || true
+    } >> "${outfile}"
+  fi
+
 fi
 
 # build full cycle
