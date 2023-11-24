@@ -18,9 +18,9 @@ function cancel_slurm_jobs() {
 
 function checkout () {
 
-  PR = $1
-  repodir = $2
-  outfile = $3
+  PR="${1}"
+  repodir="${2}"
+  outfile="${3}"
 
   cd "${repodir}" || exit 1
   git clone "${REPO_URL}"
@@ -44,7 +44,7 @@ function checkout () {
 
   MACHINE=$(echo "${MACHINE_ID}" | tr '[:upper:]' '[:lower:]')
   export MACHINE
-  export MACINE_ID
+  export MACHINE_ID
 
   # get commit hash
   commit=$(git log --pretty=format:'%h' -n 1)
