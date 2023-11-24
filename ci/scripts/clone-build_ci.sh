@@ -99,13 +99,14 @@ fi  # skipping checkout
 
 
 cd "${repodir}/global-workflow"
+HOMEgfs="${PWD}"
 
-# build full cycle
-#source "${HOMEgfs}/ush/detect_machine.sh"
-source "${HOMEgfs}/ush/module-setup.sh"
-
+# Passing on MACINE and MACHINE_ID to build sripts
+# because the detect machine scripts to not pickup
+# hostnames on computre nodes
 export MACHINE
 export MACHINE_ID
+
 export BUILD_JOBS=8
 rm -rf log.build
 ./build_all.sh  >> log.build 2>&1
