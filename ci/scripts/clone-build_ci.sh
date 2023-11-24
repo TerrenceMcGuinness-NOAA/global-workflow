@@ -67,6 +67,10 @@ if [[ ${checkout} == True ]]; then
   ######################################################################
 
   export MACHINE
+  export MACHINE_ID
+
+  cd "${repodir}/gobal-workflow"
+  HOMEgfs="${PWD}"
 
   # get commit hash
   commit=$(git log --pretty=format:'%h' -n 1)
@@ -91,11 +95,17 @@ if [[ ${checkout} == True ]]; then
     } >> "${outfile}"
   fi
 
-fi
+fi  # skipping checkout
+
+
+cd "${repodir}/gobal-workflow"
 
 # build full cycle
-source "${HOMEgfs}/ush/detect_machine.sh"
+#source "${HOMEgfs}/ush/detect_machine.sh"
 source "${HOMEgfs}/ush/module-setup.sh"
+
+export MACHINE
+export MACHINE_ID
 export BUILD_JOBS=8
 rm -rf log.build
 ./build_all.sh  >> log.build 2>&1
