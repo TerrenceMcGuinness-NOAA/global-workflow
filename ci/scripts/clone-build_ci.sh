@@ -66,12 +66,6 @@ if [[ ${checkout} == True ]]; then
   }  >> "${outfile}"
   ######################################################################
 
-  export MACHINE
-  export MACHINE_ID
-
-  cd "${repodir}/gobal-workflow"
-  HOMEgfs="${PWD}"
-
   # get commit hash
   commit=$(git log --pretty=format:'%h' -n 1)
   echo "${commit}" > "../commit"
@@ -98,9 +92,6 @@ if [[ ${checkout} == True ]]; then
 fi  # skipping checkout
 
 
-cd "${repodir}/global-workflow"
-HOMEgfs="${PWD}"
-
 # Passing on MACINE and MACHINE_ID to build sripts
 # because the detect machine scripts to not pickup
 # hostnames on computre nodes
@@ -108,6 +99,9 @@ export MACHINE
 export MACHINE_ID
 
 export BUILD_JOBS=8
+cd "${repodir}/global-workflow"
+HOMEgfs="${PWD}"
+cd "${HOMEgfs}/sorc"
 rm -rf log.build
 ./build_all.sh  >> log.build 2>&1
 build_status=$?

@@ -22,6 +22,8 @@ function checkout () {
   repodir="${2}"
   outfile="${3}"
 
+  rm -Rf "${repodir}"
+  mkdir -p "${repodir}"
   cd "${repodir}" || exit 1
   git clone "${REPO_URL}"
   cd global-workflow || exit 1
@@ -35,7 +37,6 @@ function checkout () {
   # start output file
   {
   echo "Automated global-workflow Testing Results:"
-  echo '```'
   echo "Machine: ${MACHINE_ID^}"
   echo "Start: $(date) on $(hostname)" || true
   echo "---------------------------------------------------"
