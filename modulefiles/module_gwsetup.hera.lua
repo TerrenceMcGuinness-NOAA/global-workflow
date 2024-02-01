@@ -14,5 +14,6 @@ load(pathJoin("python", python_ver))
 load("py-jinja2")
 load("py-pyyaml")
 load("py-numpy")
+load(pathJoin("git","2.40.0"))
 
 whatis("Description: GFS run setup environment")
