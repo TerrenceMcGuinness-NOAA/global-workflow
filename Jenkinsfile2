@@ -48,24 +48,17 @@ pipeline {
             }
         }
 
-        stage('Build System') {
-            matrix {
-                agent { label "${MACHINE}-emc" }
-                options {
-                    throttle(['global_matrix_build'])
-                }
-                axes {
-                    axis { 
-                        name "system"
-                        values "gfs", "gefs"
-                    }
-                }
-                stages {
-                    stage("build system") {
-                        steps {
-                            script {
-                                def HOMEgfs = "${HOME}/${system}"
-                                sh( script: "mkdir -p ${HOMEgfs}", returnStatus: true)
+        stage('Build Systems') {
+            agent { label "${MACHINE}-emc" }
+            steps {
+                script {
+                    def builds_file = readYaml file: 'build.yaml'
+                    def build_systems = builds_file['builds'].collect { it.keySet()[0] }
+                    def systemsMap = build_systems.collectEntries { ["${it}": {
+                        stage("${it}") {
+                            steps {
+                               script {
+                                HOMEgfs = "${HOME}/${it}"
                                 dir(HOMEgfs) {
                                     env.MACHINE_ID = MACHINE
                                     if (fileExists("sorc/BUILT_semaphor")) {
@@ -84,12 +77,17 @@ pipeline {
                                         }
                                     }
                                 }
+
+                                }
                             }
-                        }
+
+                        } }]
                     }
+                    parallel systemsMap
                 }
             }
         }
+
 
         stage('Setup RUNTESTS') {
             agent { label "${MACHINE}-emc" }
