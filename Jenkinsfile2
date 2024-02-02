@@ -53,7 +53,7 @@ pipeline {
             agent { label "${MACHINE}-emc" }
             steps {
                 script {
-                    def builds_systems_file = readYaml file: 'build.yaml'
+                    def builds_systems_file = readYaml file: 'ci/cases/yamls/build.yaml'
                     def build_systems = builds_systems_file['builds'].collect { it.keySet()[0] }
                     def systemsMap = build_systems.collectEntries { ["${it}": {
                         stage("${it}") {
