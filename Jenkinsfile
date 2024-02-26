@@ -23,11 +23,11 @@ pipeline {
                     machine = 'none'
                     for (label in pullRequest.labels) {
                         echo "Label: ${label}"
-                        if ((label.matches('CI-Hera-Ready'))) {
+                        if ((label.matches('JK-Hera-Ready'))) {
                             machine = 'hera'
-                        } else if ((label.matches('CI-Orion-Ready'))) {
+                        } else if ((label.matches('JK-Orion-Ready'))) {
                             machine = 'orion'
-                        } else if ((label.matches('CI-Hercules-Ready'))) {
+                        } else if ((label.matches('JK-Hercules-Ready'))) {
                             machine = 'hercules'
                         }
                     } // createing a second machine varible with first letter capital
@@ -45,9 +45,9 @@ pipeline {
                         properties([parameters([[$class: 'NodeParameterDefinition', allowedSlaves: ['built-in', 'Hera-EMC', 'Orion-EMC'], defaultSlaves: ['built-in'], name: '', nodeEligibility: [$class: 'AllNodeEligibility'], triggerIfResult: 'allCases']])])
                         HOME = "${WORKSPACE}"
                         sh(script: "mkdir -p ${HOME}/RUNTESTS;rm -Rf ${HOME}/RUNTESTS/error.logs")
-                        pullRequest.addLabel("CI-${Machine}-Building")
-                        if (pullRequest.labels.any { value -> value.matches("CI-${Machine}-Ready") }) {
-                            pullRequest.removeLabel("CI-${Machine}-Ready")
+                        pullRequest.addLabel("JK-${Machine}-Building")
+                        if (pullRequest.labels.any { value -> value.matches("JK-${Machine}-Ready") }) {
+                            pullRequest.removeLabel("JK-${Machine}-Ready")
                         }
                     }
                     pullRequest.comment("Building and running on ${Machine} in directory ${HOME}")
@@ -93,10 +93,10 @@ pipeline {
                                         }
                                     }
                                     if (env.CHANGE_ID && system == 'gfs') {
-                                       if (pullRequest.labels.any { value -> value.matches("CI-${Machine}-Building") }) {
-                                           pullRequest.removeLabel("CI-${Machine}-Building")
+                                       if (pullRequest.labels.any { value -> value.matches("JK-${Machine}-Building") }) {
+                                           pullRequest.removeLabel("JK-${Machine}-Building")
                                        }
-                                       pullRequest.addLabel("CI-${Machine}-Running")
+                                       pullRequest.addLabel("JK-${Machine}-Running")
                                     }
                                     if (system == 'gfs') {
                                         caseList = sh(script: "${HOMEgfs}/ci/scripts/utils/get_host_case_list.py ${machine}", returnStdout: true).trim().split()
@@ -190,7 +190,7 @@ pipeline {
         success {
             script {
                 if(env.CHANGE_ID) {
-                    pullRequest.addLabel("CI-${Machine}-Passed")
+                    pullRequest.addLabel("JK-${Machine}-Passed")
                     def timestamp = new Date().format('MM dd HH:mm:ss', TimeZone.getTimeZone('America/New_York'))
                     pullRequest.comment("**CI SUCCESS** ${Machine} at ${timestamp}\n\nBuilt and ran in directory `${HOME}`")
                 }
@@ -199,7 +199,7 @@ pipeline {
         failure {
             script {
                 if(env.CHANGE_ID) {
-                    pullRequest.addLabel("CI-${Machine}-Failed")
+                    pullRequest.addLabel("JK-${Machine}-Failed")
                     def timestamp = new Date().format('MM dd HH:mm:ss', TimeZone.getTimeZone('America/New_York'))
                     pullRequest.comment("**CI FAILED** ${Machine} at ${timestamp}<br>Built and ran in directory `${HOME}`")
                 }
