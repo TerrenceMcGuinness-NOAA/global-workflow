@@ -109,7 +109,7 @@ pipeline {
                                                             url: 'https://api.github.com/repos/TerrenceMcGuinness-NOAA/global-workflow/git/tags',
                                                             httpMode: 'POST',
                                                             contentType: 'APPLICATION_JSON',
-                                                            authentication: 'GITHUB_TOKEN_TMCG'
+                                                            authentication: 'GITHUB_TOKEN_TMCG',
                                                             requestBody: '''{
                                                             "tag": "PR ${env.CHANGE_ID}",
                                                             "message": "Release for capture of PR ${env.CHANGE_ID} artifacts",
