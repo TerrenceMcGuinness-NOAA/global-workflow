@@ -104,7 +104,7 @@ pipeline {
                                                         archiveArtifacts artifacts: "${line}", fingerprint: true
                                                     }
 
-                                                    withCredentials([string(credentialsId: 'github_psswrd_tmcg', passwordVariable: 'GITHUB_TOKEN')]) {
+                                                    withCredentials([usernamePassword(credentialsId: 'github_psswrd_tmcg', passwordVariable: 'GITHUB_TOKEN')]) {
                                                         def response = httpRequest(
                                                             url: 'https://api.github.com/repos/TerrenceMcGuinness-NOAA/global-workflow/git/tags',
                                                             httpMode: 'POST',
