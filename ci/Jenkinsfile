@@ -86,7 +86,25 @@ pipeline {
                                         def build_args_list = builds_file['builds']
                                         def build_args = build_args_list[system].join(' ').trim().replaceAll('null', '')
                                         dir("${HOMEgfs}/sorc") {
-                                            sh(script: "${build_args}")
+                                            try {
+                                                sh(script: "${build_args}")
+                                            } catch (Exception e) {
+                                                echo "Failed to build the system: ${e.getMessage()}"
+                                                if (fileExists('sorc/logs/error.logs'))  {
+                                                    def error_logs = sh(script: "cat logs/error.logs", returnStdout: true).trim()
+                                                    try {
+                                                        pullRequest.comment("Build failed on on ${Machine}\n\nError logs:\n\n${error_logs}")
+                                                    } catch (Exception error) {
+                                                        echo "Failed to comment on PR: ${error.getMessage()}"
+                                                    }
+                                                    def fileContent = readFile 'logs/error.logs'
+                                                    def lines = fileContent.readLines()
+                                                    for (line in lines) {
+                                                        echo "archiving: ${line}"
+                                                        archiveArtifacts artifacts: "${line}", fingerprint: true
+                                                    }
+                                                } 
+                                            }
                                             sh(script: './link_workflow.sh')
                                             sh(script: "echo ${HOMEgfs} > BUILT_semaphor")
                                         }
