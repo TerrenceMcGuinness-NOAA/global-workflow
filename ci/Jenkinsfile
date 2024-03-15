@@ -109,7 +109,7 @@ pipeline {
                                                             url: 'https://api.github.com/repos/TerrenceMcGuinness-NOAA/global-workflow/git/tags',
                                                             httpMode: 'POST',
                                                             contentType: 'APPLICATION_JSON',
-                                                            authentication: 'GITHUB_TOKEN_TMCG',
+                                                            authentication: "${GITHUB_TOKEN}",
                                                             requestBody: '''{
                                                             "tag": "PR ${env.CHANGE_ID}",
                                                             "message": "Release for capture of PR ${env.CHANGE_ID} artifacts",
@@ -131,7 +131,7 @@ pipeline {
                                                             url: 'https://api.github.com/repos/TerrenceMcGuinness-NOAA/global-workflow/releases',
                                                             httpMode: 'POST',
                                                             contentType: 'APPLICATION_JSON',
-                                                            authentication: 'GITHUB_TOKEN_TMCG',
+                                                            authentication: "${GITHUB_TOKEN}"
                                                             requestBody: '''{
                                                             "tag_name": "PR ${env.CHANGE_ID}",
                                                             "name": "Release version 1.0.0",
@@ -150,7 +150,7 @@ pipeline {
                                                                 url: 'https://uploads.github.com/repos/TerrenceMcGuinness-NOAA/global-workflow/releases/${release_id}/assets?name=filename',
                                                                 httpMode: 'POST',
                                                                 contentType: 'application/octet-stream',
-                                                                authentication: 'GITHUB_TOKEN_TMCG',
+                                                                authentication: "${GITHUB_TOKEN}",
                                                                 requestBody: readFile(file: 'logs/error.logs')
                                                             )
                                                         }
