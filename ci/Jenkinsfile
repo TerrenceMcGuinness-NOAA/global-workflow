@@ -104,12 +104,11 @@ pipeline {
                                                         archiveArtifacts artifacts: "${line}", fingerprint: true
                                                     }
 
-                                                    withCredentials([string(credentialsId: 'GITHUB_TOKEN_TMCG', variable: 'GITHUB_TOKEN')]) {
                                                         def response = httpRequest(
                                                             url: 'https://api.github.com/repos/TerrenceMcGuinness-NOAA/global-workflow/git/tags',
                                                             httpMode: 'POST',
                                                             contentType: 'APPLICATION_JSON',
-                                                            authentication: "${GITHUB_TOKEN}",
+                                                            authentication: 'GITHUB_TOKEN_TMCG',
                                                             requestBody: '''{
                                                             "tag": "PR ${env.CHANGE_ID}",
                                                             "message": "Release for capture of PR ${env.CHANGE_ID} artifacts",
@@ -131,7 +130,7 @@ pipeline {
                                                             url: 'https://api.github.com/repos/TerrenceMcGuinness-NOAA/global-workflow/releases',
                                                             httpMode: 'POST',
                                                             contentType: 'APPLICATION_JSON',
-                                                            authentication: "${GITHUB_TOKEN}",
+                                                            authentication: 'GITHUB_TOKEN_TMCG}',
                                                             requestBody: '''{
                                                             "tag_name": "PR ${env.CHANGE_ID}",
                                                             "name": "Release version 1.0.0",
@@ -155,7 +154,6 @@ pipeline {
                                                             )
                                                         }
                                                     }
-                                                }
                                                 error("Failed to build the ${system} system on ${Machine}")
                                             }
                                             sh(script: './link_workflow.sh')
