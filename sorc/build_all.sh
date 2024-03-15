@@ -208,7 +208,7 @@ check_builds()
             if [[ ${build_stat} != 0 ]]; then
                echo "build_${build}.sh failed!  Exiting!"
                echo "Check logs/build_${build}.log for details."
-               echo "${HOMEgfs}/logs/build_${build}.log" > "${HOMEgfs}/sorc/logs/error.logs"
+               echo "logs/build_${build}.log" > "${HOMEgfs}/sorc/logs/error.logs"
                for build in "${!build_jobs[@]}"; do
                   if [[ -n "${build_ids[${build}]+0}" ]]; then
                      pkill -P "${build_ids[$build]}"

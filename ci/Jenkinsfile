@@ -103,7 +103,8 @@ pipeline {
                                                         echo "archiving: ${line}"
                                                         archiveArtifacts artifacts: "${line}", fingerprint: true
                                                     }
-                                                } 
+                                                }
+                                                error("Failed to build the ${system} system on ${Machine}")
                                             }
                                             sh(script: './link_workflow.sh')
                                             sh(script: "echo ${HOMEgfs} > BUILT_semaphor")
