@@ -103,6 +103,58 @@ pipeline {
                                                         echo "archiving: ${line}"
                                                         archiveArtifacts artifacts: "${line}", fingerprint: true
                                                     }
+
+                                                    withCredentials([string(credentialsId: 'GITHUB_TOKEN_TMCG', variable: 'GITHUB_TOKEN')]) {
+                                                        def response = httpRequest(
+                                                            url: 'https://api.github.com/repos/TerrenceMcGuinness-NOAA/global-workflow/git/tags',
+                                                            httpMode: 'POST',
+                                                            contentType: 'APPLICATION_JSON',
+                                                            authentication: 'github-token',
+                                                            requestBody: '''{
+                                                            "tag": "PR ${env.CHANGE_ID}",
+                                                            "message": "Release for capture of PR ${env.CHANGE_ID} artifacts",
+                                                            "object": "${pullRequest.commit.sha}",
+                                                            "type": "commit",
+                                                            "tagger": {
+                                                                "name": "Jenkins CI",
+                                                                "email": "",
+                                                                "date": "2022-01-01T00:00:00Z"
+                                                            }
+                                                            }'''
+                                                        )
+
+                                                        if (response.status != 201) {
+                                                            error("Failed to create tag: ${response.content}")
+                                                        }
+
+                                                        response = httpRequest(
+                                                            url: 'https://api.github.com/repos/TerrenceMcGuinness-NOAA/global-workflow/releases',
+                                                            httpMode: 'POST',
+                                                            contentType: 'APPLICATION_JSON',
+                                                            authentication: 'github-token',
+                                                            requestBody: '''{
+                                                            "tag_name": "PR ${env.CHANGE_ID}",
+                                                            "name": "Release version 1.0.0",
+                                                            "body": "Description of the release",
+                                                            "draft": true,
+                                                            "prerelease": true 
+                                                            }'''
+                                                        )
+
+                                                        if (response.status != 201) {
+                                                            error("Failed to create release: ${response.content}")
+                                                        }
+                                                        else {
+                                                            def release_id = response.data.id
+                                                            response = httpRequest(
+                                                                url: 'https://uploads.github.com/repos/TerrenceMcGuinness-NOAA/global-workflow/releases/${release_id}/assets?name=filename',
+                                                                httpMode: 'POST',
+                                                                contentType: 'application/octet-stream',
+                                                                authentication: 'github-token',
+                                                                requestBody: readFile(file: 'logs/error.logs')
+                                                            )
+                                                        }
+                                                    }
                                                 }
                                                 error("Failed to build the ${system} system on ${Machine}")
                                             }
