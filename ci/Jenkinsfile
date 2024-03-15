@@ -131,7 +131,7 @@ pipeline {
                                                             url: 'https://api.github.com/repos/TerrenceMcGuinness-NOAA/global-workflow/releases',
                                                             httpMode: 'POST',
                                                             contentType: 'APPLICATION_JSON',
-                                                            authentication: "${GITHUB_TOKEN}"
+                                                            authentication: "${GITHUB_TOKEN}",
                                                             requestBody: '''{
                                                             "tag_name": "PR ${env.CHANGE_ID}",
                                                             "name": "Release version 1.0.0",
