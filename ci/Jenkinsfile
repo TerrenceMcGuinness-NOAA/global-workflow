@@ -105,7 +105,7 @@ pipeline {
                                                     }
 
                                                         def response = httpRequest(
-                                                            url: 'https://api.github.com/repos/TerrenceMcGuinness-NOAA/global-workflow/git/tags',
+                                                            url: 'https://api.github.com/repos/TerrenceMcGuinness-NOAA/global-workflow/tags',
                                                             httpMode: 'POST',
                                                             contentType: 'APPLICATION_JSON',
                                                             authentication: 'github_psswrd_tmcg',
