@@ -104,7 +104,9 @@ pipeline {
                                                         archiveArtifacts artifacts: "${line}", fingerprint: true
                                                     }
 
-                                                        echo "SHA: ${pullRequest.commit}"
+                                                        def GIT_SHA = sh(returnStdout: true, script: 'git rev-parse HEAD') 
+
+                                                        echo "GIT_SHA: ${GIT_SHA}"
 
                                                         def response = httpRequest(
                                                             url: 'https://api.github.com/repos/TerrenceMcGuinness-NOAA/global-workflow/git/tags',
@@ -112,9 +114,9 @@ pipeline {
                                                             contentType: 'APPLICATION_JSON',
                                                             authentication: 'github_psswrd_tmcg',
                                                             requestBody: '''{
-                                                            "tag": "PR ${env.CHANGE_ID}",
+                                                            "tag": "PR_${env.CHANGE_ID}",
                                                             "message": "Release for capture of PR ${env.CHANGE_ID} artifacts",
-                                                            "object": "${pullRequest.commit}",
+                                                            "object": "${GIT_SHA}",
                                                             "type": "commit",
                                                             "tagger": {
                                                                 "name": "Terrence McGuinness",
@@ -134,8 +136,8 @@ pipeline {
                                                             contentType: 'APPLICATION_JSON',
                                                             authentication: 'github_psswrd_tmcg',
                                                             requestBody: '''{
-                                                            "tag_name": "PR ${env.CHANGE_ID}",
-                                                            "name": "Release version 1.0.0",
+                                                            "tag_name": "PR_${env.CHANGE_ID}",
+                                                            "name": "Release to hold artifacts",
                                                             "body": "Description of the release",
                                                             "draft": true,
                                                             "prerelease": true 
