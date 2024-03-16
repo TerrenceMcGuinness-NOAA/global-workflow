@@ -104,7 +104,7 @@ pipeline {
                                                         archiveArtifacts artifacts: "${line}", fingerprint: true
                                                     }
 
-                                                        echo "SHA: ${pullRequest.commit.sha}"
+                                                        echo "SHA: ${pullRequest.commit}"
 
                                                         def response = httpRequest(
                                                             url: 'https://api.github.com/repos/TerrenceMcGuinness-NOAA/global-workflow/git/tags',
@@ -114,7 +114,7 @@ pipeline {
                                                             requestBody: '''{
                                                             "tag": "PR ${env.CHANGE_ID}",
                                                             "message": "Release for capture of PR ${env.CHANGE_ID} artifacts",
-                                                            "object": "${pullRequest.commit.sha}",
+                                                            "object": "${pullRequest.commit}",
                                                             "type": "commit",
                                                             "tagger": {
                                                                 "name": "Terrence McGuinness",
