@@ -115,7 +115,7 @@ pipeline {
                                                             authentication: 'github_psswrd_tmcg',
                                                             consoleLogResponseBody: true,
                                                             customHeaders: [[maskValue: false, name: 'Accept', value: 'Accept: application/vnd.github+json'],
-                                                                            [maskValue: false, nam e: 'Authorization', value: 'Authorization: Bearer ${GITHUB_TOKEN}'],
+                                                                            [maskValue: false, name: 'Authorization', value: 'Authorization: Bearer ${GITHUB_TOKEN}'],
 	       	                                                            [maskValue: false, name: 'X', value: 'X-GitHub-Api-Version: 2022-11-28']],
 		                                            responseHandle: 'NONE',
 		                                            wrapAsMultipart: false,
