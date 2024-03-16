@@ -104,8 +104,10 @@ pipeline {
                                                         archiveArtifacts artifacts: "${line}", fingerprint: true
                                                     }
 
+                                                        echo "SHA: ${pullRequest.commit.sha}"
+
                                                         def response = httpRequest(
-                                                            url: 'https://api.github.com/repos/TerrenceMcGuinness-NOAA/global-workflow/tags',
+                                                            url: 'https://api.github.com/repos/TerrenceMcGuinness-NOAA/global-workflow/git/tags',
                                                             httpMode: 'POST',
                                                             contentType: 'APPLICATION_JSON',
                                                             authentication: 'github_psswrd_tmcg',
@@ -115,8 +117,8 @@ pipeline {
                                                             "object": "${pullRequest.commit.sha}",
                                                             "type": "commit",
                                                             "tagger": {
-                                                                "name": "Jenkins CI",
-                                                                "email": "",
+                                                                "name": "Terrence McGuinness",
+                                                                "email": "terry.mcguinness@noaa.gov",
                                                                 "date": "2022-01-01T00:00:00Z"
                                                             }
                                                             }'''
