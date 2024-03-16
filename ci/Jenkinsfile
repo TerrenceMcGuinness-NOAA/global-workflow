@@ -104,12 +104,11 @@ pipeline {
                                                         archiveArtifacts artifacts: "${line}", fingerprint: true
                                                     }
 
-                                                    withCredentials([usernamePassword(credentialsId: 'github_psswrd_tmcg', passwordVariable: 'PASSWORD')]) {
                                                         def response = httpRequest(
                                                             url: 'https://api.github.com/repos/TerrenceMcGuinness-NOAA/global-workflow/git/tags',
                                                             httpMode: 'POST',
                                                             contentType: 'APPLICATION_JSON',
-                                                            authentication: "${PASSWORD}",
+                                                            authentication: 'github_psswrd_tmcg',
                                                             requestBody: '''{
                                                             "tag": "PR ${env.CHANGE_ID}",
                                                             "message": "Release for capture of PR ${env.CHANGE_ID} artifacts",
@@ -131,7 +130,7 @@ pipeline {
                                                             url: 'https://api.github.com/repos/TerrenceMcGuinness-NOAA/global-workflow/releases',
                                                             httpMode: 'POST',
                                                             contentType: 'APPLICATION_JSON',
-                                                            authentication: "${PASSWORD}",
+                                                            authentication: 'github_psswrd_tmcg',
                                                             requestBody: '''{
                                                             "tag_name": "PR ${env.CHANGE_ID}",
                                                             "name": "Release version 1.0.0",
@@ -150,12 +149,11 @@ pipeline {
                                                                 url: 'https://uploads.github.com/repos/TerrenceMcGuinness-NOAA/global-workflow/releases/${release_id}/assets?name=filename',
                                                                 httpMode: 'POST',
                                                                 contentType: 'application/octet-stream',
-                                                                authentication: "${PASSWORD}",
+                                                                authentication: 'github_psswrd_tmcg',
                                                                 requestBody: readFile(file: 'logs/error.logs')
                                                             )
                                                         }
                                                     }
-                                                }
                                                 error("Failed to build the ${system} system on ${Machine}")
                                             }
                                             sh(script: './link_workflow.sh')
