@@ -19,7 +19,7 @@
 
 #  Set environment.
 
-source "${HOMEgfs}/ush/preamble.sh"
+source "${USHgfs}/preamble.sh"
 
 #  Directories.
 pwd=$(pwd)
@@ -42,7 +42,7 @@ export NCP=${NCP:-"/bin/cp"}
 export NMV=${NMV:-"/bin/mv"}
 export NLN=${NLN:-"/bin/ln -sf"}
 export CHGRP_CMD=${CHGRP_CMD:-"chgrp ${group_name:-rstprod}"}
-export NCLEN=${NCLEN:-${HOMEgfs}/ush/getncdimlen}
+export NCLEN=${NCLEN:-${USHgfs}/getncdimlen}
 COMPRESS=${COMPRESS:-gzip}
 UNCOMPRESS=${UNCOMPRESS:-gunzip}
 APRUNCFP=${APRUNCFP:-""}
@@ -68,19 +68,19 @@ DOIAU=${DOIAU:-"NO"}
 export IAUFHRS=${IAUFHRS:-"6"}
 
 # Dependent Scripts and Executables
-GSIEXEC=${GSIEXEC:-${HOMEgfs}/exec/gsi.x}
+GSIEXEC=${GSIEXEC:-${EXECgfs}/gsi.x}
 export NTHREADS_CALCINC=${NTHREADS_CALCINC:-1}
 export APRUN_CALCINC=${APRUN_CALCINC:-${APRUN:-""}}
 export APRUN_CALCANL=${APRUN_CALCANL:-${APRUN:-""}}
 export APRUN_CHGRES=${APRUN_CALCANL:-${APRUN:-""}}
-export CALCINCEXEC=${CALCINCEXEC:-${HOMEgfs}/exec/calc_increment_ens.x}
-export CALCINCNCEXEC=${CALCINCNCEXEC:-${HOMEgfs}/exec/calc_increment_ens_ncio.x}
-export CALCANLEXEC=${CALCANLEXEC:-${HOMEgfs}/exec/calc_analysis.x}
-export CHGRESNCEXEC=${CHGRESNCEXEC:-${HOMEgfs}/exec/enkf_chgres_recenter_nc.x}
-export CHGRESINCEXEC=${CHGRESINCEXEC:-${HOMEgfs}/exec/interp_inc.x}
-CHGRESEXEC=${CHGRESEXEC:-${HOMEgfs}/exec/enkf_chgres_recenter.x}
+export CALCINCEXEC=${CALCINCEXEC:-${EXECgfs}/calc_increment_ens.x}
+export CALCINCNCEXEC=${CALCINCNCEXEC:-${EXECgfs}/calc_increment_ens_ncio.x}
+export CALCANLEXEC=${CALCANLEXEC:-${EXECgfs}/calc_analysis.x}
+export CHGRESNCEXEC=${CHGRESNCEXEC:-${EXECgfs}/enkf_chgres_recenter_nc.x}
+export CHGRESINCEXEC=${CHGRESINCEXEC:-${EXECgfs}/interp_inc.x}
+CHGRESEXEC=${CHGRESEXEC:-${EXECgfs}/enkf_chgres_recenter.x}
 export NTHREADS_CHGRES=${NTHREADS_CHGRES:-24}
-CALCINCPY=${CALCINCPY:-${HOMEgfs}/ush/calcinc_gfs.py}
+CALCINCPY=${CALCINCPY:-${USHgfs}/calcinc_gfs.py}
 
 # OPS flags
 RUN=${RUN:-""}
@@ -89,6 +89,8 @@ SENDDBN=${SENDDBN:-"NO"}
 RUN_GETGES=${RUN_GETGES:-"NO"}
 GETGESSH=${GETGESSH:-"getges.sh"}
 export gesenvir=${gesenvir:-${envir}}
+ 
+export hofx_2m_sfcfile=${hofx_2m_sfcfile:-".false."}
 
 # Observations
 OPREFIX=${OPREFIX:-""}
@@ -289,22 +291,21 @@ else
 fi
 
 # GSI Fix files
-RTMFIX=${CRTM_FIX}
-BERROR=${BERROR:-${FIXgsi}/Big_Endian/global_berror.l${LEVS}y${NLAT_A}.f77}
-SATANGL=${SATANGL:-${FIXgsi}/global_satangbias.txt}
-SATINFO=${SATINFO:-${FIXgsi}/global_satinfo.txt}
-RADCLOUDINFO=${RADCLOUDINFO:-${FIXgsi}/cloudy_radiance_info.txt}
-ATMSFILTER=${ATMSFILTER:-${FIXgsi}/atms_beamwidth.txt}
-ANAVINFO=${ANAVINFO:-${FIXgsi}/global_anavinfo.l${LEVS}.txt}
-CONVINFO=${CONVINFO:-${FIXgsi}/global_convinfo.txt}
-vqcdat=${vqcdat:-${FIXgsi}/vqctp001.dat}
-INSITUINFO=${INSITUINFO:-${FIXgsi}/global_insituinfo.txt}
-OZINFO=${OZINFO:-${FIXgsi}/global_ozinfo.txt}
-PCPINFO=${PCPINFO:-${FIXgsi}/global_pcpinfo.txt}
-AEROINFO=${AEROINFO:-${FIXgsi}/global_aeroinfo.txt}
-SCANINFO=${SCANINFO:-${FIXgsi}/global_scaninfo.txt}
-HYBENSINFO=${HYBENSINFO:-${FIXgsi}/global_hybens_info.l${LEVS}.txt}
-OBERROR=${OBERROR:-${FIXgsi}/prepobs_errtable.global}
+BERROR=${BERROR:-${FIXgfs}/gsi/Big_Endian/global_berror.l${LEVS}y${NLAT_A}.f77}
+SATANGL=${SATANGL:-${FIXgfs}/gsi/global_satangbias.txt}
+SATINFO=${SATINFO:-${FIXgfs}/gsi/global_satinfo.txt}
+RADCLOUDINFO=${RADCLOUDINFO:-${FIXgfs}/gsi/cloudy_radiance_info.txt}
+ATMSFILTER=${ATMSFILTER:-${FIXgfs}/gsi/atms_beamwidth.txt}
+ANAVINFO=${ANAVINFO:-${FIXgfs}/gsi/global_anavinfo.l${LEVS}.txt}
+CONVINFO=${CONVINFO:-${FIXgfs}/gsi/global_convinfo.txt}
+vqcdat=${vqcdat:-${FIXgfs}/gsi/vqctp001.dat}
+INSITUINFO=${INSITUINFO:-${FIXgfs}/gsi/global_insituinfo.txt}
+OZINFO=${OZINFO:-${FIXgfs}/gsi/global_ozinfo.txt}
+PCPINFO=${PCPINFO:-${FIXgfs}/gsi/global_pcpinfo.txt}
+AEROINFO=${AEROINFO:-${FIXgfs}/gsi/global_aeroinfo.txt}
+SCANINFO=${SCANINFO:-${FIXgfs}/gsi/global_scaninfo.txt}
+HYBENSINFO=${HYBENSINFO:-${FIXgfs}/gsi/global_hybens_info.l${LEVS}.txt}
+OBERROR=${OBERROR:-${FIXgfs}/gsi/prepobs_errtable.global}
 
 # GSI namelist
 SETUP=${SETUP:-""}
@@ -382,8 +383,8 @@ ${NLN} ${OBERROR}      errtable
 #If using correlated error, link to the covariance files
 if [ ${USE_CORRELATED_OBERRS} == "YES" ];  then
   if grep -q "Rcov" ${ANAVINFO} ;  then
-     if ls ${FIXgsi}/Rcov* 1> /dev/null 2>&1; then
-       ${NLN} ${FIXgsi}/Rcov* ${DATA}
+     if ls ${FIXgfs}/gsi/Rcov* 1> /dev/null 2>&1; then
+       ${NLN} ${FIXgfs}/gsi/Rcov* ${DATA}
        echo "using correlated obs error"
      else
        echo "FATAL ERROR: Satellite error covariance files (Rcov) are missing."
@@ -408,22 +409,22 @@ fi
 # CRTM Spectral and Transmittance coefficients
 mkdir -p crtm_coeffs
 for file in $(awk '{if($1!~"!"){print $1}}' satinfo | sort | uniq); do
-   ${NLN} ${RTMFIX}/${file}.SpcCoeff.bin ./crtm_coeffs/${file}.SpcCoeff.bin
-   ${NLN} ${RTMFIX}/${file}.TauCoeff.bin ./crtm_coeffs/${file}.TauCoeff.bin
+   ${NLN} ${CRTM_FIX}/${file}.SpcCoeff.bin ./crtm_coeffs/${file}.SpcCoeff.bin
+   ${NLN} ${CRTM_FIX}/${file}.TauCoeff.bin ./crtm_coeffs/${file}.TauCoeff.bin
 done
-${NLN} ${RTMFIX}/amsua_metop-a_v2.SpcCoeff.bin ./crtm_coeffs/amsua_metop-a_v2.SpcCoeff.bin
+${NLN} ${CRTM_FIX}/amsua_metop-a_v2.SpcCoeff.bin ./crtm_coeffs/amsua_metop-a_v2.SpcCoeff.bin
 
-${NLN} ${RTMFIX}/Nalli.IRwater.EmisCoeff.bin   ./crtm_coeffs/Nalli.IRwater.EmisCoeff.bin
-${NLN} ${RTMFIX}/NPOESS.IRice.EmisCoeff.bin    ./crtm_coeffs/NPOESS.IRice.EmisCoeff.bin
-${NLN} ${RTMFIX}/NPOESS.IRland.EmisCoeff.bin   ./crtm_coeffs/NPOESS.IRland.EmisCoeff.bin
-${NLN} ${RTMFIX}/NPOESS.IRsnow.EmisCoeff.bin   ./crtm_coeffs/NPOESS.IRsnow.EmisCoeff.bin
-${NLN} ${RTMFIX}/NPOESS.VISice.EmisCoeff.bin   ./crtm_coeffs/NPOESS.VISice.EmisCoeff.bin
-${NLN} ${RTMFIX}/NPOESS.VISland.EmisCoeff.bin  ./crtm_coeffs/NPOESS.VISland.EmisCoeff.bin
-${NLN} ${RTMFIX}/NPOESS.VISsnow.EmisCoeff.bin  ./crtm_coeffs/NPOESS.VISsnow.EmisCoeff.bin
-${NLN} ${RTMFIX}/NPOESS.VISwater.EmisCoeff.bin ./crtm_coeffs/NPOESS.VISwater.EmisCoeff.bin
-${NLN} ${RTMFIX}/FASTEM6.MWwater.EmisCoeff.bin ./crtm_coeffs/FASTEM6.MWwater.EmisCoeff.bin
-${NLN} ${RTMFIX}/AerosolCoeff.bin              ./crtm_coeffs/AerosolCoeff.bin
-${NLN} ${RTMFIX}/CloudCoeff.GFDLFV3.-109z-1.bin ./crtm_coeffs/CloudCoeff.bin
+${NLN} ${CRTM_FIX}/Nalli.IRwater.EmisCoeff.bin   ./crtm_coeffs/Nalli.IRwater.EmisCoeff.bin
+${NLN} ${CRTM_FIX}/NPOESS.IRice.EmisCoeff.bin    ./crtm_coeffs/NPOESS.IRice.EmisCoeff.bin
+${NLN} ${CRTM_FIX}/NPOESS.IRland.EmisCoeff.bin   ./crtm_coeffs/NPOESS.IRland.EmisCoeff.bin
+${NLN} ${CRTM_FIX}/NPOESS.IRsnow.EmisCoeff.bin   ./crtm_coeffs/NPOESS.IRsnow.EmisCoeff.bin
+${NLN} ${CRTM_FIX}/NPOESS.VISice.EmisCoeff.bin   ./crtm_coeffs/NPOESS.VISice.EmisCoeff.bin
+${NLN} ${CRTM_FIX}/NPOESS.VISland.EmisCoeff.bin  ./crtm_coeffs/NPOESS.VISland.EmisCoeff.bin
+${NLN} ${CRTM_FIX}/NPOESS.VISsnow.EmisCoeff.bin  ./crtm_coeffs/NPOESS.VISsnow.EmisCoeff.bin
+${NLN} ${CRTM_FIX}/NPOESS.VISwater.EmisCoeff.bin ./crtm_coeffs/NPOESS.VISwater.EmisCoeff.bin
+${NLN} ${CRTM_FIX}/FASTEM6.MWwater.EmisCoeff.bin ./crtm_coeffs/FASTEM6.MWwater.EmisCoeff.bin
+${NLN} ${CRTM_FIX}/AerosolCoeff.bin              ./crtm_coeffs/AerosolCoeff.bin
+${NLN} ${CRTM_FIX}/CloudCoeff.GFDLFV3.-109z-1.bin ./crtm_coeffs/CloudCoeff.bin
 
 ##############################################################
 # Observational data
@@ -434,18 +435,13 @@ ${NLN} ${OSCATBF}          oscatbufr
 ${NLN} ${RAPIDSCATBF}      rapidscatbufr
 ${NLN} ${GSNDBF}           gsndrbufr
 ${NLN} ${GSNDBF1}          gsnd1bufr
-${NLN} ${B1HRS2}           hirs2bufr
 ${NLN} ${B1MSU}            msubufr
-${NLN} ${B1HRS3}           hirs3bufr
-${NLN} ${B1HRS4}           hirs4bufr
 ${NLN} ${B1AMUA}           amsuabufr
 ${NLN} ${B1AMUB}           amsubbufr
 ${NLN} ${B1MHS}            mhsbufr
-${NLN} ${ESHRS3}           hirs3bufrears
 ${NLN} ${ESAMUA}           amsuabufrears
 ${NLN} ${ESAMUB}           amsubbufrears
 #$NLN $ESMHS            mhsbufrears
-${NLN} ${HRS3DB}           hirs3bufr_db
 ${NLN} ${AMUADB}           amsuabufr_db
 ${NLN} ${AMUBDB}           amsubbufr_db
 #$NLN $MHSDB            mhsbufr_db
@@ -754,6 +750,7 @@ cat > gsiparm.anl << EOF
 /
 &OBS_INPUT
   dmesh(1)=145.0,dmesh(2)=150.0,dmesh(3)=100.0,dmesh(4)=50.0,time_window_max=3.0,
+  hofx_2m_sfcfile=${hofx_2m_sfcfile},
   ${OBSINPUT}
 /
 OBS_INPUT::
@@ -781,8 +778,6 @@ OBS_INPUT::
    sbuvbufr       sbuv2       n16         sbuv8_n16           0.0     0     0
    sbuvbufr       sbuv2       n17         sbuv8_n17           0.0     0     0
    sbuvbufr       sbuv2       n18         sbuv8_n18           0.0     0     0
-   hirs3bufr      hirs3       n17         hirs3_n17           0.0     1     0
-   hirs4bufr      hirs4       metop-a     hirs4_metop-a       0.0     1     1
    gimgrbufr      goes_img    g11         imgr_g11            0.0     1     0
    gimgrbufr      goes_img    g12         imgr_g12            0.0     1     0
    airsbufr       airs        aqua        airs_aqua           0.0     1     1
@@ -816,7 +811,6 @@ OBS_INPUT::
    gomebufr       gome        metop-a     gome_metop-a        0.0     2     0
    omibufr        omi         aura        omi_aura            0.0     2     0
    sbuvbufr       sbuv2       n19         sbuv8_n19           0.0     0     0
-   hirs4bufr      hirs4       n19         hirs4_n19           0.0     1     1
    amsuabufr      amsua       n19         amsua_n19           0.0     1     1
    mhsbufr        mhs         n19         mhs_n19             0.0     1     1
    tcvitl         tcp         null        tcp                 0.0     0     0
@@ -824,7 +818,6 @@ OBS_INPUT::
    seviribufr     seviri      m09         seviri_m09          0.0     1     0
    seviribufr     seviri      m10         seviri_m10          0.0     1     0
    seviribufr     seviri      m11         seviri_m11          0.0     1     0
-   hirs4bufr      hirs4       metop-b     hirs4_metop-b       0.0     1     1
    amsuabufr      amsua       metop-b     amsua_metop-b       0.0     1     1
    mhsbufr        mhs         metop-b     mhs_metop-b         0.0     1     1
    iasibufr       iasi        metop-b     iasi_metop-b        0.0     1     1

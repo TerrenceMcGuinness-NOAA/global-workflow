@@ -23,17 +23,7 @@
 #     OUTPUT_FILE   Output gaussian analysis file format.  Default is "nemsio"
 #                   Set to "netcdf" for netcdf output file
 #                   Otherwise, output in nemsio.
-#     BASEDIR       Root directory where all scripts and fixed files reside.
-#                   Default is /nwprod2.
-#     HOMEgfs       Directory for gfs version.  Default is
-#                   $BASEDIR/gfs_ver.v15.0.0}
-#     FIXam         Directory for the global fixed climatology files.
-#                   Defaults to $HOMEgfs/fix/am
-#     FIXfv3        Directory for the model grid and orography netcdf
-#                   files.  Defaults to $HOMEgfs/fix/orog
 #     FIXWGTS       Weight file to use for interpolation
-#     EXECgfs       Directory of the program executable.  Defaults to
-#                   $HOMEgfs/exec
 #     DATA          Working directory
 #                   (if nonexistent will be made, used and deleted)
 #                   Defaults to current working directory
@@ -83,9 +73,9 @@
 #
 #     programs   : $GAUSFCANLEXE
 #
-#     fixed data : $FIXfv3/${CASE}/${CASE}_oro_data.tile*.nc
-#                  $FIXWGTS
-#                  $FIXam/global_hyblev.l65.txt
+#     fixed data : ${FIXgfs}/orog/${CASE}/${CASE}.mx${OCNRES}_oro_data.tile*.nc
+#                  ${FIXWGTS}
+#                  ${FIXgfs}/am/global_hyblev.l65.txt
 #
 #     input data : ${COM_ATMOS_RESTART}/${PDY}.${cyc}0000.sfcanl_data.tile*.nc
 #
@@ -110,7 +100,7 @@
 #
 ################################################################################
 
-source "$HOMEgfs/ush/preamble.sh"
+source "${USHgfs}/preamble.sh"
 
 CASE=${CASE:-C768}
 res=$(echo $CASE | cut -c2-)
@@ -121,20 +111,13 @@ LATB_SFC=${LATB_SFC:-$LATB_CASE}
 DONST=${DONST:-"NO"}
 LEVS=${LEVS:-64}
 LEVSP1=$(($LEVS+1))
-#  Directories.
-gfs_ver=${gfs_ver:-v16.3.0}
-BASEDIR=${BASEDIR:-${PACKAGEROOT:-/lfs/h1/ops/prod/packages}}
-HOMEgfs=${HOMEgfs:-$BASEDIR/gfs.${gfs_ver}}
-EXECgfs=${EXECgfs:-$HOMEgfs/exec}
-FIXfv3=${FIXfv3:-$HOMEgfs/fix/orog}
-FIXam=${FIXam:-$HOMEgfs/fix/am}
-FIXWGTS=${FIXWGTS:-$FIXfv3/$CASE/fv3_SCRIP_${CASE}_GRIDSPEC_lon${LONB_SFC}_lat${LATB_SFC}.gaussian.neareststod.nc}
+FIXWGTS=${FIXWGTS:-${FIXgfs}/orog/${CASE}/fv3_SCRIP_${CASE}_GRIDSPEC_lon${LONB_SFC}_lat${LATB_SFC}.gaussian.neareststod.nc}
 DATA=${DATA:-$(pwd)}
 
 #  Filenames.
 XC=${XC:-}
 GAUSFCANLEXE=${GAUSFCANLEXE:-$EXECgfs/gaussian_sfcanl.x}
-SIGLEVEL=${SIGLEVEL:-$FIXam/global_hyblev.l${LEVSP1}.txt}
+SIGLEVEL=${SIGLEVEL:-${FIXgfs}/am/global_hyblev.l${LEVSP1}.txt}
 
 CDATE=${CDATE:?}
 
@@ -176,7 +159,7 @@ ih=${cyc}
 export OMP_NUM_THREADS=${OMP_NUM_THREADS_SFC:-1}
 
 # input interpolation weights
-$NLN $FIXWGTS ./weights.nc
+${NLN} "${FIXWGTS}" "./weights.nc"
 
 # input analysis tiles (with nst records)
 ${NLN} "${COM_ATMOS_RESTART}/${PDY}.${cyc}0000.sfcanl_data.tile1.nc" "./anal.tile1.nc"
@@ -187,14 +170,14 @@ ${NLN} "${COM_ATMOS_RESTART}/${PDY}.${cyc}0000.sfcanl_data.tile5.nc" "./anal.til
 ${NLN} "${COM_ATMOS_RESTART}/${PDY}.${cyc}0000.sfcanl_data.tile6.nc" "./anal.tile6.nc"
 
 # input orography tiles
-$NLN $FIXfv3/$CASE/${CASE}_oro_data.tile1.nc   ./orog.tile1.nc
-$NLN $FIXfv3/$CASE/${CASE}_oro_data.tile2.nc   ./orog.tile2.nc
-$NLN $FIXfv3/$CASE/${CASE}_oro_data.tile3.nc   ./orog.tile3.nc
-$NLN $FIXfv3/$CASE/${CASE}_oro_data.tile4.nc   ./orog.tile4.nc
-$NLN $FIXfv3/$CASE/${CASE}_oro_data.tile5.nc   ./orog.tile5.nc
-$NLN $FIXfv3/$CASE/${CASE}_oro_data.tile6.nc   ./orog.tile6.nc
+${NLN} "${FIXgfs}/orog/${CASE}/${CASE}.mx${OCNRES}_oro_data.tile1.nc" "./orog.tile1.nc"
+${NLN} "${FIXgfs}/orog/${CASE}/${CASE}.mx${OCNRES}_oro_data.tile2.nc" "./orog.tile2.nc"
+${NLN} "${FIXgfs}/orog/${CASE}/${CASE}.mx${OCNRES}_oro_data.tile3.nc" "./orog.tile3.nc"
+${NLN} "${FIXgfs}/orog/${CASE}/${CASE}.mx${OCNRES}_oro_data.tile4.nc" "./orog.tile4.nc"
+${NLN} "${FIXgfs}/orog/${CASE}/${CASE}.mx${OCNRES}_oro_data.tile5.nc" "./orog.tile5.nc"
+${NLN} "${FIXgfs}/orog/${CASE}/${CASE}.mx${OCNRES}_oro_data.tile6.nc" "./orog.tile6.nc"
 
-$NLN $SIGLEVEL                                 ./vcoord.txt
+${NLN} "${SIGLEVEL}" "./vcoord.txt"
 
 # output gaussian global surface analysis files
 ${NLN} "${COM_ATMOS_ANALYSIS}/${APREFIX}sfcanl.nc" "./sfc.gaussian.analysis.file"

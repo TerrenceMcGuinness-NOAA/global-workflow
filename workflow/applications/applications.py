@@ -62,6 +62,7 @@ class AppConfig(ABC, metaclass=AppConfigInit):
         self.do_genesis_fsu = _base.get('DO_GENESIS_FSU', False)
         self.do_metp = _base.get('DO_METP', False)
         self.do_upp = not _base.get('WRITE_DOPOST', True)
+        self.do_goes = _base.get('DO_GOES', False)
         self.do_mos = _base.get('DO_MOS', False)
 
         self.do_hpssarch = _base.get('HPSSARCH', False)
@@ -144,6 +145,10 @@ class AppConfig(ABC, metaclass=AppConfigInit):
                 files += ['config.anal', 'config.eupd']
             elif config in ['efcs']:
                 files += ['config.fcst', 'config.efcs']
+            elif config in ['atmanlinit', 'atmanlrun']:
+                files += ['config.atmanl', f'config.{config}']
+            elif config in ['atmensanlinit', 'atmensanlrun']:
+                files += ['config.atmensanl', f'config.{config}']
             elif 'wave' in config:
                 files += ['config.wave', f'config.{config}']
             else:

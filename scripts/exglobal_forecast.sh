@@ -38,19 +38,19 @@
 ##	Restart files:
 ##
 ##	Fix files:
-##		1. computing grid, $FIXfv3/$CASE/${CASE}_grid.tile${n}.nc
-##		2. orography data, $FIXfv3/$CASE/${CASE}_oro_data.tile${n}.nc
-##		3. mosaic data, $FIXfv3/$CASE/${CASE}_mosaic.nc
-##		4. Global O3 data, $FIX_AM/${O3FORC}
-##		5. Global H2O data, $FIX_AM/${H2OFORC}
-##		6. Global solar constant data, $FIX_AM/global_solarconstant_noaa_an.txt
-##		7. Global surface emissivity, $FIX_AM/global_sfc_emissivity_idx.txt
-##		8. Global CO2 historical data, $FIX_AM/global_co2historicaldata_glob.txt
-##		8. Global CO2 monthly data, $FIX_AM/co2monthlycyc.txt
-##		10. Additional global CO2 data, $FIX_AM/fix_co2_proj/global_co2historicaldata
+##		1. computing grid, ${FIXgfs}/orog/$CASE/${CASE}_grid.tile${n}.nc
+##		2. orography data, ${FIXgfs}/orog/$CASE/${CASE}.mx${OCNRES}_oro_data.tile${n}.nc
+##		3. mosaic data, ${FIXgfs}/orog/$CASE/${CASE}_mosaic.nc
+##		4. Global O3 data, ${FIXgfs}/am/${O3FORC}
+##		5. Global H2O data, ${FIXgfs}/am/${H2OFORC}
+##		6. Global solar constant data, ${FIXgfs}/am/global_solarconstant_noaa_an.txt
+##		7. Global surface emissivity, ${FIXgfs}/am/global_sfc_emissivity_idx.txt
+##		8. Global CO2 historical data, ${FIXgfs}/am/global_co2historicaldata_glob.txt
+##		8. Global CO2 monthly data, ${FIXgfs}/am/co2monthlycyc.txt
+##		10. Additional global CO2 data, ${FIXgfs}/am/fix_co2_proj/global_co2historicaldata
 ##		11. Climatological aerosol global distribution
-##			$FIX_AM/global_climaeropac_global.txt
-## 		12. Monthly volcanic forcing $FIX_AM/global_volcanic_aerosols_YYYY-YYYY.txt
+##			${FIXgfs}/am/global_climaeropac_global.txt
+## 		12. Monthly volcanic forcing ${FIXgfs}/am/global_volcanic_aerosols_YYYY-YYYY.txt
 ##
 ## Data output (location, name)
 ##	If quilting=true and output grid is gaussian grid:
@@ -77,14 +77,14 @@
 # Main body starts here
 #######################
 
-source "${HOMEgfs}/ush/preamble.sh"
+source "${USHgfs}/preamble.sh"
 
 # include all subroutines. Executions later.
-source "${HOMEgfs}/ush/forecast_predet.sh"	# include functions for variable definition
-source "${HOMEgfs}/ush/forecast_det.sh"  # include functions for run type determination
-source "${HOMEgfs}/ush/forecast_postdet.sh"	# include functions for variables after run type determination
-source "${HOMEgfs}/ush/ufs_configure.sh"	# include functions for ufs.configure processing
-source "${HOMEgfs}/ush/parsing_model_configure_FV3.sh"
+source "${USHgfs}/forecast_predet.sh"	# include functions for variable definition
+source "${USHgfs}/forecast_det.sh"  # include functions for run type determination
+source "${USHgfs}/forecast_postdet.sh"	# include functions for variables after run type determination
+source "${USHgfs}/parsing_ufs_configure.sh"	# include functions for ufs_configure processing
+source "${USHgfs}/parsing_model_configure_FV3.sh"
 
 # Coupling control switches, for coupling purpose, off by default
 cpl=${cpl:-.false.}
@@ -105,9 +105,11 @@ common_predet
 
 echo "MAIN: Loading variables before determination of run type"
 FV3_predet
+[[ ${cplflx} = .true. ]] && CMEPS_predet
 [[ ${cplflx} = .true. ]] && MOM6_predet
 [[ ${cplwav} = .true. ]] && WW3_predet
 [[ ${cplice} = .true. ]] && CICE_predet
+[[ ${cplchm} = .true. ]] && GOCART_predet
 echo "MAIN: Variables before determination of run type loaded"
 
 echo "MAIN: Determining run type"
@@ -119,6 +121,7 @@ echo "MAIN: RUN Type Determined"
 
 echo "MAIN: Post-determination set up of run type"
 FV3_postdet
+[[ ${cplflx} = .true. ]] && CMEPS_postdet
 [[ ${cplflx} = .true. ]] && MOM6_postdet
 [[ ${cplwav} = .true. ]] && WW3_postdet
 [[ ${cplice} = .true. ]] && CICE_postdet
@@ -146,7 +149,7 @@ if [[ "${esmf_profile:-}" = ".true." ]]; then
   export ESMF_RUNTIME_PROFILE_OUTPUT=SUMMARY
 fi
 
-${NCP} "${FCSTEXECDIR}/${FCSTEXEC}" "${DATA}/"
+${NCP} "${EXECgfs}/${FCSTEXEC}" "${DATA}/"
 ${APRUN_UFS} "${DATA}/${FCSTEXEC}" 1>&1 2>&2
 export ERR=$?
 export err=${ERR}
@@ -154,11 +157,12 @@ ${ERRSCRIPT} || exit "${err}"
 
 FV3_out
 [[ ${cplflx} = .true. ]] && MOM6_out
+[[ ${cplflx} = .true. ]] && CMEPS_out
 [[ ${cplwav} = .true. ]] && WW3_out
 [[ ${cplice} = .true. ]] && CICE_out
 [[ ${cplchm} = .true. ]] && GOCART_out
 [[ ${esmf_profile:-} = .true. ]] && CPL_out
-echo "MAIN: Output copied to COMROT"
+echo "MAIN: Output copied to ROTDIR"
 
 #------------------------------------------------------------------
 

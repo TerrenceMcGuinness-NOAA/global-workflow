@@ -9,13 +9,15 @@
 ## This script is a direct execution.
 #####
 
+# Disable variable not used warnings
+# shellcheck disable=SC2034
 FV3_namelists(){
 
 # setup the tables
-DIAG_TABLE=${DIAG_TABLE:-${HOMEgfs}/parm/ufs/fv3/diag_table}
-DIAG_TABLE_APPEND=${DIAG_TABLE_APPEND:-${HOMEgfs}/parm/ufs/fv3/diag_table_aod}
-DATA_TABLE=${DATA_TABLE:-${HOMEgfs}/parm/ufs/fv3/data_table}
-FIELD_TABLE=${FIELD_TABLE:-${HOMEgfs}/parm/ufs/fv3/field_table}
+DIAG_TABLE=${DIAG_TABLE:-${PARMgfs}/ufs/fv3/diag_table}
+DIAG_TABLE_APPEND=${DIAG_TABLE_APPEND:-${PARMgfs}/ufs/fv3/diag_table_aod}
+DATA_TABLE=${DATA_TABLE:-${PARMgfs}/ufs/MOM6_data_table.IN}
+FIELD_TABLE=${FIELD_TABLE:-${PARMgfs}/ufs/fv3/field_table}
 
 # ensure non-prognostic tracers are set
 dnats=${dnats:-0}
@@ -33,7 +35,15 @@ if [[ -n "${AERO_DIAG_TABLE:-}" ]]; then
   cat "${AERO_DIAG_TABLE}"
 fi
 cat "${DIAG_TABLE_APPEND}"
-} >> diag_table
+} >> diag_table_template
+
+local template=diag_table_template
+local SYEAR=${current_cycle:0:4} 
+local SMONTH=${current_cycle:4:2}
+local SDAY=${current_cycle:6:2} 
+local CHOUR=${current_cycle:8:2}
+source "${USHgfs}/atparse.bash"
+atparse < "${template}" >> "diag_table"
 
 
 # copy data table

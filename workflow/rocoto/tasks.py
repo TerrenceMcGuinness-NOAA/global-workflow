@@ -4,8 +4,9 @@ import numpy as np
 from applications.applications import AppConfig
 import rocoto.rocoto as rocoto
 from wxflow import Template, TemplateConstants, to_timedelta
+from typing import List
 
-__all__ = ['Tasks', 'create_wf_task']
+__all__ = ['Tasks']
 
 
 class Tasks:
@@ -13,15 +14,16 @@ class Tasks:
     VALID_TASKS = ['aerosol_init', 'stage_ic',
                    'prep', 'anal', 'sfcanl', 'analcalc', 'analdiag', 'arch', "cleanup",
                    'prepatmiodaobs', 'atmanlinit', 'atmanlrun', 'atmanlfinal',
+                   'prepoceanobs',
                    'ocnanalprep', 'ocnanalbmat', 'ocnanalrun', 'ocnanalchkpt', 'ocnanalpost', 'ocnanalvrfy',
                    'earc', 'ecen', 'echgres', 'ediag', 'efcs',
                    'eobs', 'eomg', 'epos', 'esfc', 'eupd',
                    'atmensanlinit', 'atmensanlrun', 'atmensanlfinal',
                    'aeroanlinit', 'aeroanlrun', 'aeroanlfinal',
-                   'preplandobs', 'landanl',
+                   'prepsnowobs', 'snowanl',
                    'fcst',
-                   'atmanlupp', 'atmanlprod', 'atmupp', 'atmprod',
-                   'ocnpost',
+                   'atmanlupp', 'atmanlprod', 'atmupp', 'goesupp',
+                   'atmosprod', 'oceanprod', 'iceprod',
                    'verfozn', 'verfrad', 'vminmon',
                    'metp',
                    'tracker', 'genesis', 'genesis_fsu',
@@ -42,12 +44,16 @@ class Tasks:
         # Save dict_configs and base in the internal state (never know where it may be needed)
         self._configs = self.app_config.configs
         self._base = self._configs['base']
+        self.HOMEgfs = self._base['HOMEgfs']
+        self.rotdir = self._base['ROTDIR']
+        self.pslot = self._base['PSLOT']
+        self.nmem = int(self._base['NMEM_ENS'])
         self._base['cycle_interval'] = to_timedelta(f'{self._base["assim_freq"]}H')
 
         self.n_tiles = 6  # TODO - this needs to be elsewhere
 
         envar_dict = {'RUN_ENVIR': self._base.get('RUN_ENVIR', 'emc'),
-                      'HOMEgfs': self._base.get('HOMEgfs'),
+                      'HOMEgfs': self.HOMEgfs,
                       'EXPDIR': self._base.get('EXPDIR'),
                       'NET': self._base.get('NET'),
                       'CDUMP': self.cdump,
@@ -57,6 +63,7 @@ class Tasks:
                       'cyc': '<cyclestr>@H</cyclestr>',
                       'COMROOT': self._base.get('COMROOT'),
                       'DATAROOT': self._base.get('DATAROOT')}
+
         self.envars = self._set_envars(envar_dict)
 
     @staticmethod
@@ -67,12 +74,6 @@ class Tasks:
             envars.append(rocoto.create_envar(name=key, value=str(value)))
 
         return envars
-
-    @staticmethod
-    def _get_hybgroups(nens: int, nmem_per_group: int, start_index: int = 1):
-        ngrps = nens / nmem_per_group
-        groups = ' '.join([f'{x:02d}' for x in range(start_index, int(ngrps) + 1)])
-        return groups
 
     def _template_to_rocoto_cycstring(self, template: str, subs_dict: dict = {}) -> str:
         '''
@@ -119,6 +120,40 @@ class Tasks:
                                              TemplateConstants.DOLLAR_CURLY_BRACE,
                                              rocoto_conversion_dict.get)
 
+    @staticmethod
+    def _get_forecast_hours(cdump, config, component='atmos') -> List[str]:
+        # Make a local copy of the config to avoid modifying the original
+        local_config = config.copy()
+
+        # Ocean/Ice components do not have a HF output option like the atmosphere
+        if component in ['ocean', 'ice']:
+            local_config['FHMAX_HF_GFS'] = config['FHMAX_GFS']
+            local_config['FHOUT_HF_GFS'] = config['FHOUT_OCNICE_GFS']
+            local_config['FHOUT_GFS'] = config['FHOUT_OCNICE_GFS']
+            local_config['FHOUT'] = config['FHOUT_OCNICE']
+
+        fhmin = local_config['FHMIN']
+
+        # Get a list of all forecast hours
+        fhrs = []
+        if cdump in ['gdas']:
+            fhmax = local_config['FHMAX']
+            fhout = local_config['FHOUT']
+            fhrs = list(range(fhmin, fhmax + fhout, fhout))
+        elif cdump in ['gfs', 'gefs']:
+            fhmax = local_config['FHMAX_GFS']
+            fhout = local_config['FHOUT_GFS']
+            fhmax_hf = local_config['FHMAX_HF_GFS']
+            fhout_hf = local_config['FHOUT_HF_GFS']
+            fhrs_hf = range(fhmin, fhmax_hf + fhout_hf, fhout_hf)
+            fhrs = list(fhrs_hf) + list(range(fhrs_hf[-1] + fhout, fhmax + fhout, fhout))
+
+        # ocean/ice components do not have fhr 0 as they are averaged output
+        if component in ['ocean', 'ice']:
+            fhrs.remove(0)
+
+        return fhrs
+
     def get_resource(self, task_name):
         """
         Given a task name (task_name) and its configuration (task_names),
@@ -158,7 +193,11 @@ class Tasks:
 
         native = None
         if scheduler in ['pbspro']:
-            native = '-l debug=true,place=vscatter'
+            # Set place=vscatter by default and debug=true if DEBUG_POSTSCRIPT="YES"
+            if self._base['DEBUG_POSTSCRIPT']:
+                native = '-l debug=true,place=vscatter'
+            else:
+                native = '-l place=vscatter'
             # Set either exclusive or shared - default on WCOSS2 is exclusive when not set
             if task_config.get('is_exclusive', False):
                 native += ':exclhost'
@@ -197,34 +236,3 @@ class Tasks:
             raise AttributeError(f'"{task_name}" is not a valid task.\n' +
                                  'Valid tasks are:\n' +
                                  f'{", ".join(Tasks.VALID_TASKS)}')
-
-
-def create_wf_task(task_name, resources,
-                   cdump='gdas', cycledef=None, envar=None, dependency=None,
-                   metatask=None, varname=None, varval=None, vardict=None,
-                   final=False, command=None):
-    tasknamestr = f'{cdump}{task_name}'
-    metatask_dict = None
-    if metatask is not None:
-        tasknamestr = f'{tasknamestr}#{varname}#'
-        metatask_dict = {'metataskname': f'{cdump}{metatask}',
-                         'varname': f'{varname}',
-                         'varval': f'{varval}',
-                         'vardict': vardict}
-
-    cycledefstr = cdump.replace('enkf', '') if cycledef is None else cycledef
-
-    task_dict = {'taskname': f'{tasknamestr}',
-                 'cycledef': f'{cycledefstr}',
-                 'maxtries': '&MAXTRIES;',
-                 'command': f'&JOBS_DIR;/{task_name}.sh' if command is None else command,
-                 'jobname': f'&PSLOT;_{tasknamestr}_@H',
-                 'resources': resources,
-                 'log': f'&ROTDIR;/logs/@Y@m@d@H/{tasknamestr}.log',
-                 'envars': envar,
-                 'dependency': dependency,
-                 'final': final}
-
-    task = rocoto.create_task(task_dict) if metatask is None else rocoto.create_metatask(task_dict, metatask_dict)
-
-    return ''.join(task)

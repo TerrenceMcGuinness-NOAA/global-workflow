@@ -34,7 +34,7 @@ export PS4='+ $(basename ${BASH_SOURCE})[${LINENO}]'
 
 source "${ROOT_DIR}/ush/detect_machine.sh"
 case ${MACHINE_ID} in
-  hera | orion)
+  hera | orion | hercules)
     echo "Running Automated Testing on ${MACHINE_ID}"
     source "${ROOT_DIR}/ci/platforms/config.${MACHINE_ID}"
     ;;
@@ -47,12 +47,15 @@ esac
 ######################################################
 # setup runtime env for correct python install and git
 ######################################################
+HOMEgfs=${ROOT_DIR}
+export HOMEgfs
 set +x
 source "${ROOT_DIR}/ci/scripts/utils/ci_utils.sh"
 source "${ROOT_DIR}/ush/module-setup.sh"
 module use "${ROOT_DIR}/modulefiles"
 module load "module_gwsetup.${MACHINE_ID}"
 set -x
+unset HOMEgfs
 
 ############################################################
 # query repo and get list of open PRs with tags {machine}-CI
@@ -173,7 +176,7 @@ for pr in ${pr_list}; do
   # we need to exit this instance of the driver script
   #################################################################
   if [[ ${ci_status} -ne 0 ]]; then
-     build_PID_check=$("${ROOT_DIR}/ci/scripts/pr_list_database.py" --display "{pr}" --dbfile "${pr_list_dbfile}" | awk '{print $4}' | cut -d":" -f1) || true
+     build_PID_check=$("${ROOT_DIR}/ci/scripts/pr_list_database.py" --display "${pr}" --dbfile "${pr_list_dbfile}" | awk '{print $4}' | cut -d":" -f1) || true
      if [[ "${build_PID_check}" -ne "$$" ]]; then
         echo "Driver build PID: ${build_PID_check} no longer running this build ... exiting"
         exit 0

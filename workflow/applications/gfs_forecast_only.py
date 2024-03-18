@@ -19,7 +19,7 @@ class GFSForecastOnlyAppConfig(AppConfig):
 
         if self.do_atm:
 
-            if self.do_upp:
+            if self.do_upp or self.do_goes:
                 configs += ['upp']
 
             configs += ['atmos_products']
@@ -49,7 +49,7 @@ class GFSForecastOnlyAppConfig(AppConfig):
                 configs += ['awips']
 
         if self.do_ocean or self.do_ice:
-            configs += ['ocnpost']
+            configs += ['oceanice_products']
 
         if self.do_wave:
             configs += ['waveinit', 'waveprep', 'wavepostsbs', 'wavepostpnt']
@@ -100,7 +100,10 @@ class GFSForecastOnlyAppConfig(AppConfig):
             if self.do_upp:
                 tasks += ['atmupp']
 
-            tasks += ['atmprod']
+            tasks += ['atmos_prod']
+
+            if self.do_goes:
+                tasks += ['goesupp']
 
             if self.do_tracker:
                 tasks += ['tracker']
@@ -123,8 +126,11 @@ class GFSForecastOnlyAppConfig(AppConfig):
             if self.do_awips:
                 tasks += ['awips_20km_1p0deg', 'awips_g2', 'fbwind']
 
-        if self.do_ocean or self.do_ice:
-            tasks += ['ocnpost']
+        if self.do_ocean:
+            tasks += ['ocean_prod']
+
+        if self.do_ice:
+            tasks += ['ice_prod']
 
         if self.do_wave:
             if self.do_wave_bnd:

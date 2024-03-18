@@ -10,7 +10,7 @@
 # echo "                    data on the CCS is properly protected."
 #####################################################################
 
-source "${HOMEgfs}/ush/preamble.sh" "${2}"
+source "${USHgfs}/preamble.sh" "${2}"
 
 #### If EMC GFS PARA runs hourly file are not available, The ILPOST
 #### will set to 3 hour in EMC GFS PARA.
@@ -28,7 +28,7 @@ mkdir -p "${DATA_RUN}"
 cd "${DATA_RUN}" || exit 1
 
 # "Import" functions used in this script
-source "${HOMEgfs}/ush/product_functions.sh"
+source "${USHgfs}/product_functions.sh"
 
 #
 NAGRIB="${GEMEXE}/nagrib2"
@@ -50,10 +50,10 @@ while (( fhcnt <= fend )) ; do
 
   if mkdir "lock.${fhcnt}" ; then
     cd "lock.${fhcnt}" || exit 1
-    cp "${FIXgempak}/g2varswmo2.tbl" "g2varswmo2.tbl"
-    cp "${FIXgempak}/g2vcrdwmo2.tbl" "g2vcrdwmo2.tbl"
-    cp "${FIXgempak}/g2varsncep1.tbl" "g2varsncep1.tbl"
-    cp "${FIXgempak}/g2vcrdncep1.tbl" "g2vcrdncep1.tbl"
+    cp "${HOMEgfs}/gempak/fix/g2varswmo2.tbl" "g2varswmo2.tbl"
+    cp "${HOMEgfs}/gempak/fix/g2vcrdwmo2.tbl" "g2vcrdwmo2.tbl"
+    cp "${HOMEgfs}/gempak/fix/g2varsncep1.tbl" "g2varsncep1.tbl"
+    cp "${HOMEgfs}/gempak/fix/g2vcrdncep1.tbl" "g2vcrdncep1.tbl"
 
     fhr=$(printf "%03d" "${fhcnt}")
 
