@@ -20,7 +20,7 @@ pipeline {
 
     options {
         skipDefaultCheckout()
-        buildDiscarder(logRotator(numToKepStr: '3'))
+        buildDiscarder(logRotator(numToKepStr: '1'))
         //parallelsAlwaysFailFast()
     }
 
