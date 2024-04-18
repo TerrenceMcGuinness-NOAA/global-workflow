@@ -10,7 +10,7 @@ def STATUS = 'Passed'
 properties([
     parameters([[
         $class: 'NodeParameterDefinition', allowedSlaves: ['built-in', 'Hera-EMC', 'Orion-EMC'], defaultSlaves: ['built-in'], name: 'Node', nodeEligibility: [$class: 'AllNodeEligibility'], triggerIfResult: 'allCases'],
-        string(name: 'machine', defaultValue: 'orion', description: 'Node to run on today'),
+        string(name: 'machine', defaultValue: 'nobody', description: 'Node to run on today'),
     ])
 ])
 
@@ -49,7 +49,7 @@ pipeline {
         //                     }
         //                 }
         //             }
-                    build(job: "global-workflow/EMC-Pipelines/PR-${env.CHANGE_ID}", parameters: [string(name: 'machine', value: 'orion')], wait: false)
+                    build(job: "global-workflow/EMC-Pipelines/PR-${env.CHANGE_ID}", parameters: [string(name: 'machine', value: 'orion')], wait: true)
                     machine = 'hera'
                 }
             }
