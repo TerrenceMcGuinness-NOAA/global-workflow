@@ -10,7 +10,7 @@ def STATUS = 'Passed'
 properties([
     parameters([[
         $class: 'NodeParameterDefinition', allowedSlaves: ['built-in', 'Hera-EMC', 'Orion-EMC'], defaultSlaves: ['built-in'], name: 'Node', nodeEligibility: [$class: 'AllNodeEligibility'], triggerIfResult: 'allCases'],
-        string(name: 'machine', defaultValue: 'nobody', description: 'Node to run on today'),
+        string(name: 'machine', defaultValue: 'orion', description: 'Node to run on today'),
     ])
 ])
 
@@ -20,7 +20,7 @@ pipeline {
 
     options {
         skipDefaultCheckout()
-        buildDiscarder(logRotator(numToKeepStr: '1'))
+        buildDiscarder(logRotator(numToKeepStr: '3'))
         //parallelsAlwaysFailFast()
     }
 
