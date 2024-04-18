@@ -16,12 +16,11 @@ properties([
 
 pipeline {
 
-    properties([ buildDiscarder(logRotator(numToKeepStr: '3')) ])
-
     agent { label 'built-in' }
 
     options {
         skipDefaultCheckout()
+        buildDiscarder(logRotator(numToKepStr: '3'))
         //parallelsAlwaysFailFast()
     }
 
