@@ -48,8 +48,9 @@ pipeline {
         //             }
                     echo "machine: ${machine}"
                     if (machine == 'none') {
+                        machine = 'orion'
                         build(job: "global-workflow/EMC-Pipelines/PR-${env.CHANGE_ID}",
-                              parameters: [ string(name: 'machine', value: 'orion'), string(name: 'Node', value: 'Orion-EMC') ],
+                              parameters: [ string(name: 'machine', value: machine), Node(name: 'Node', value: 'Orion-EMC') ],
                               wait: false
                         )
                         machine = 'hera'
