@@ -29,9 +29,6 @@ pipeline {
              // Each Jenknis Node is connected to said machine via an JAVA agent via an ssh tunnel
 
         stage('Get Machine') {
-            when {
-                expression { return machine == 'none' }
-            }
             agent { label 'built-in' }
             steps {
                 script {
@@ -49,8 +46,10 @@ pipeline {
         //                     }
         //                 }
         //             }
-                    build(job: "global-workflow/EMC-Pipelines/PR-${env.CHANGE_ID}", parameters: [string(name: 'machine', value: 'orion')], wait: true)
-                    machine = 'hera'
+                    if (machine == 'none') {
+                        build(job: "global-workflow/EMC-Pipelines/PR-${env.CHANGE_ID}", parameters: [string(name: 'machine', value: 'orion')], wait: false)
+                        machine = 'hera'
+                    }
                 }
             }
         }
