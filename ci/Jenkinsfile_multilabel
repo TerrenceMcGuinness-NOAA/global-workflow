@@ -49,14 +49,12 @@ pipeline {
         //                     }
         //                 }
         //             }
-                    machine = 'orion'
                     build(job: "global-workflow/EMC-Pipelines/PR-${env.CHANGE_ID}",
-                          parameters: [ string(name: 'machine', value: machine),
-                          string(name: 'Node', value: 'Orion-EMC') ],
+                          parameters: [ string(name: 'machine', value: 'hera'),
+                          string(name: 'Node', value: 'Hera-EMC') ],
                           wait: false
                         )
-                    machine = 'hera'
-                    Machine = machine[0].toUpperCase() + machine.substring(1)
+                    machine = 'orion'    
                 }
             }
         }
@@ -65,6 +63,7 @@ pipeline {
             agent { label "${machine}-emc" }
             steps {
                 script {
+                    Machine = machine[0].toUpperCase() + machine.substring(1)
                     ws("${custom_workspace[machine]}/${env.CHANGE_ID}") {
                         HOME = "${WORKSPACE}"
                         sh(script: "mkdir -p ${HOME}/RUNTESTS;rm -Rf ${HOME}/RUNTESTS/error.logs")
