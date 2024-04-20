@@ -28,6 +28,8 @@ properties([
              // which is used to designate the Nodes in the Jenkins Controler by the agent label
              // Each Jenknis Node is connected to said machine via an JAVA agent via an ssh tunnel
 
+             // WHY IS THIS STILL NOT WORKING?
+
         stage('Get Machine') {
             when {
                 expression { env.BUILD_CAUSE != 'UPSTREAMTRIGGER' }
