@@ -9,13 +9,6 @@ def STATUS = 'Passed'
 
 pipeline {
 
-properties([
-    parameters([[
-        $class: 'NodeParameterDefinition', allowedSlaves: ['built-in', 'Hera-EMC', 'Orion-EMC'], defaultSlaves: ['built-in'], name: 'Node', nodeEligibility: [$class: 'AllNodeEligibility'], triggerIfResult: 'allCases'],
-        string(name: 'machine', defaultValue: 'orion', description: 'Node to run on today'),
-    ])
-])
-
     agent { label 'built-in' }
 
     options {
@@ -65,6 +58,12 @@ properties([
             agent { label "${machine}-emc" }
             steps {
                 script {
+properties([
+    parameters([[
+        $class: 'NodeParameterDefinition', allowedSlaves: ['built-in', 'Hera-EMC', 'Orion-EMC'], defaultSlaves: ['built-in'], name: 'Node', nodeEligibility: [$class: 'AllNodeEligibility'], triggerIfResult: 'allCases'],
+        string(name: 'machine', defaultValue: 'orion', description: 'Node to run on today'),
+    ])
+])
                     Machine = machine[0].toUpperCase() + machine.substring(1)
                     ws("${custom_workspace[machine]}/${env.CHANGE_ID}") {
                         HOME = "${WORKSPACE}"
