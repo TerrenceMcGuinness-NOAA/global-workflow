@@ -46,16 +46,15 @@ pipeline {
         //                     }
         //                 }
         //             }
-                    echo "machine: ${machine}"
-                    if (machine == 'none') {
+                    if (!binding.hasVariable('machine')) {
                         machine = 'orion'
                         build(job: "global-workflow/EMC-Pipelines/PR-${env.CHANGE_ID}",
                               parameters: [ string(name: 'machine', value: machine), Node(name: 'Node', value: 'Orion-EMC') ],
                               wait: false
                         )
-                        machine = 'hera'
-                        Machine = machine[0].toUpperCase() + machine.substring(1)
                     }
+                    machine = 'hera'
+                    Machine = machine[0].toUpperCase() + machine.substring(1)
                 }
             }
         }
