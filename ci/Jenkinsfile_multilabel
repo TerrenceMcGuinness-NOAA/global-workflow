@@ -30,7 +30,7 @@ pipeline {
 
         stage('Get Machine') {
             when {
-                expression { !binding.hasVariable('machine') }
+                expression { env.BUILD_CAUSE != 'UPSTREAMTRIGGER' }
             }
             agent { label 'built-in' }
             steps {
