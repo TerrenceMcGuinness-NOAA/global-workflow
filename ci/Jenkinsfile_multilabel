@@ -111,7 +111,7 @@ pipeline {
                                                 echo "To also be clone in directory: ${pwd()}"
                                                 checkout([
                                                     $class: 'GitSCM',
-                                                    userRemoteConfigs: [[url: "${repo_url}", credentialsId: 'TMC_TOK']],
+                                                    userRemoteConfigs: [[url: "${repo_url}", credentialsId: '4ecd9d87-9253-45b0-929c-0dab37905d69']],
                                                     branches: [[name: "PR-${env.CHANGE_ID}/head"]],
                                                 ])
                                             } catch (Exception e) {
