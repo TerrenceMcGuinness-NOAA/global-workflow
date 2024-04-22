@@ -105,7 +105,7 @@ pipeline {
                                         if (env.CHANGE_ID) {
                                             try {
                                                 echo "Checkout out PR-${env.CHANGE_ID} from ${repo_url}"
-                                                echo "To be clone in directory: ${pwd()}"
+                                                echo "To also be clone in directory: ${pwd()}"
                                                 checkout([
                                                     $class: 'GitSCM',
                                                     userRemoteConfigs: [[url: "${repo_url}", credentialsId: 'TMC_TOK']],
