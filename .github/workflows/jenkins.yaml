@@ -1,0 +1,11 @@
+name: Trigger Jenkins Job
+on:
+  repository_dispatch:
+    types: [start-build]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Trigger Jenkins Job
+      run: |
+        curl -X POST "http://jenkins.epic.oarcloud.noaa.gov/job/global-workflow/EMC-Pipelines/PR-274/buildWithParameters?token=${{ secrets.JENKINS_TOKEN }}&MACINE=${{ github.event.client_payload.param_value }}"
