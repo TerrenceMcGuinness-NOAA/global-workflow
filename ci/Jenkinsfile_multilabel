@@ -103,7 +103,9 @@ pipeline {
                                         }
                                     } else {
                                         if (env.CHANGE_ID) {
-                                            dir("${HOMEgfs}")
+                                            dir("${HOMEgfs}") {
+                                                sh(script: "cd ${HOMEgfs}")
+                                            }
                                             try {
                                                 echo "Checkout out PR-${env.CHANGE_ID} from ${repo_url}"
                                                 echo "To also be clone in directory: ${pwd()}"
