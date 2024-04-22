@@ -103,7 +103,12 @@ pipeline {
                                             sh(script: './link_workflow.sh')
                                         }
                                     } else {
-                                        checkout scm
+                                        try {
+                                            echo "Current directory: ${pwd()}"
+                                            checkout scm
+                                        } catch (Exception e) {
+                                            echo "Failed to checkout scm: ${e.getMessage()}"
+                                        }
                                         def gist_url = ""
                                         def error_logs = ""
                                         def error_logs_message = ""
