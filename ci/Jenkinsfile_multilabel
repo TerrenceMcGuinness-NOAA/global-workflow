@@ -4,7 +4,8 @@ def HOME = 'none'
 def caseList = ''
 // no op 2 Location of the custom workspaces for each machine in the CI system.  They are persitent for each iteration of the PR.
 def custom_workspace = [hera: '/scratch1/NCEPDEV/global/CI', orion: '/work2/noaa/stmp/CI/ORION', hercules: '/work2/noaa/stmp/CI/HERCULES']
-def repo_url = 'git@github.com:TerrenceMcGuinness-NOAA/global-workflow.git'
+def repo_ssh = 'git@github.com:TerrenceMcGuinness-NOAA/global-workflow.git'
+def repo_url = 'https://https://github.com/TerrenceMcGuinness-NOAA/global-workflow.git'
 def STATUS = 'Passed'
 
 properties([
@@ -101,11 +102,19 @@ pipeline {
                                             sh(script: './link_workflow.sh')
                                         }
                                     } else {
-                                        try {
-                                            echo "Current directory: ${pwd()}"
-                                            checkout scm
-                                        } catch (Exception e) {
-                                            echo "Failed to checkout scm: ${e.getMessage()}"
+                                        if (env.CHANGE_ID) {
+                                            try {
+                                                echo "Current directory: ${pwd()}"
+                                                checkout([
+                                                    $class: 'GitHubSCM',
+                                                    userRemoteConfigs: [[url: "${repo_url}", credentialsId: 'TMC_TOK']],
+                                                    branches: [[name: "PR-${env.CHANGE_ID}/merge"]],
+                                                ])
+                                            } catch (Exception e) {
+                                                echo "Failed to checkout scm: ${e.getMessage()}"
+                                            }
+                                        } else {
+                                            echo "Not a pull request, skipping checkout"
                                         }
                                         def gist_url = ""
                                         def error_logs = ""
