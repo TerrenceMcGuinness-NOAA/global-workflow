@@ -104,11 +104,12 @@ pipeline {
                                     } else {
                                         if (env.CHANGE_ID) {
                                             try {
-                                                echo "Current directory: ${pwd()}"
+                                                echo "Checkout out PR-${env.CHANGE_ID} from ${repo_url}"
+                                                echo "To be clone in directory: ${pwd()}"
                                                 checkout([
                                                     $class: 'GitHubSCM',
                                                     userRemoteConfigs: [[url: "${repo_url}", credentialsId: 'TMC_TOK']],
-                                                    branches: [[name: "PR-${env.CHANGE_ID}/merge"]],
+                                                    branches: [[name: "PR-${env.CHANGE_ID}/head"]],
                                                 ])
                                             } catch (Exception e) {
                                                 echo "Failed to checkout scm: ${e.getMessage()}"
