@@ -110,7 +110,7 @@ pipeline {
                                                 echo "Checkout out PR-${env.CHANGE_ID} from ${repo_url}"
                                                 echo "To also be clone in directory: ${pwd()}"
                                                 checkout scm
-                                                // no op
+                                                // no op 2
                                                 //checkout([
                                                 //    $class: 'GitSCM',
                                                 //    userRemoteConfigs: [[url: "${repo_url}", credentialsId: '4ecd9d87-9253-45b0-929c-0dab37905d69']],
