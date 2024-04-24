@@ -53,23 +53,22 @@ pipeline {
         //             }
                     echo "Debugging Information: in Get Machine"
                     echo "====================================="
-                    if (binding.hasVariable('machine')) {
-                        echo "machine: ${machine}"
-                    } else {
-                        echo "machine: not set"
-                    }
+                    echo "machine: ${machine}"
                     echo "Node: ${env.Node}"
                     echo "Change ID: ${env.CHANGE_ID}"
                     echo "env.BUILD_CAUSE: ${env.BUILD_CAUSE}"
 
                     if ( env.Node != 'built-in' ) {
+                        echo "machine being set to value passed to job"
                         echo "passed machine: ${params.machine}"
                         machine = params.machine
                     } else {
+                        echo "Lanuching second build job on Hercules-EMC"
                         build job: "/global-workflow/EMC-Pipelines/PR-${env.CHANGE_ID}", parameters: [
                             string(name: 'machine', value: 'hercules'),
                             string(name: 'Node', value: 'Hercules-EMC') ],
                             wait: false
+                        echo "Continuing with build on Hera-EMC"
                         machine = 'hera'
                     }
                 }
@@ -81,18 +80,9 @@ pipeline {
             steps {
                 script {
 
-                    if (machine == 'none') {
-                        machine = params.machine
-                    }
-
                     echo "Debugging Information: in Get Common Workspace"
                     echo "====================================="
                     echo "machine: ${machine}"
-                    if (binding.hasVariable('machine')) {
-                        echo "machine: ${machine}"
-                    } else {
-                        echo "machine: not set"
-                    }
                     echo "Node: ${env.Node}"
                     echo "Change ID: ${env.CHANGE_ID}"
                     echo "env.BUILD_CAUSE: ${env.BUILD_CAUSE}"
