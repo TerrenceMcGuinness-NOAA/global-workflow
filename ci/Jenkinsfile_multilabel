@@ -10,7 +10,7 @@ def STATUS = 'Passed'
 
 properties([
     parameters([[
-        $class: 'NodeParameterDefinition', allowedSlaves: ['built-in', 'Hera-EMC', 'Orion-EMC'], defaultSlaves: ['built-in'], name: 'Node', nodeEligibility: [$class: 'AllNodeEligibility'], triggerIfResult: 'allCases'],
+        $class: 'NodeParameterDefinition', allowedSlaves: ['built-in', 'Hera-EMC', 'Orion-EMC', 'Hercules-EMC'], defaultSlaves: ['built-in'], name: 'Node', nodeEligibility: [$class: 'AllNodeEligibility'], triggerIfResult: 'allCases'],
         string(name: 'machine', defaultValue: 'orion', description: 'Node to run on today'),
     ])
 ])
@@ -57,6 +57,7 @@ pipeline {
                     echo "Node: ${env.Node}"
                     echo "Change ID: ${env.CHANGE_ID}"
                     echo "env.BUILD_CAUSE: ${env.BUILD_CAUSE}"
+                    echo "env.Node: ${env.Node}"
 
                     if ( env.Node != 'built-in' ) {
                         echo "machine being set to value passed to job"
