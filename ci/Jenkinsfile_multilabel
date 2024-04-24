@@ -1,5 +1,5 @@
 def Machine = 'none'
-def machine = 'none'
+//def machine = 'none'
 def HOME = 'none'
 def caseList = ''
 // no op 2 Location of the custom workspaces for each machine in the CI system.  They are persitent for each iteration of the PR.
@@ -31,7 +31,8 @@ pipeline {
 
         stage('Get Machine') {
             when {
-                expression { env.BUILD_CAUSE != 'UPSTREAMTRIGGER' }
+                //expression { env.BUILD_CAUSE != 'UPSTREAMTRIGGER' }
+                expression { env.Node == 'built-in' }
             }
             agent { label 'built-in' }
             steps {
@@ -50,9 +51,13 @@ pipeline {
         //                     }
         //                 }
         //             }
-                    echo "Debugging Information:"
-                    echo "======================"
-                    echo "Machine: ${machine}"
+                    echo "Debugging Information: in Get Machine"
+                    echo "====================================="
+                    if (binding.hasVariable('machine')) {
+                        echo "machine: ${machine}"
+                    } else {
+                        echo "machine: not set"
+                    }
                     echo "Node: ${env.Node}"
                     echo "Change ID: ${env.CHANGE_ID}"
                     echo "env.BUILD_CAUSE: ${env.BUILD_CAUSE}"
@@ -70,6 +75,17 @@ pipeline {
             agent { label "${machine}-emc" }
             steps {
                 script {
+
+                    echo "Debugging Information: in Get Common Workspace"
+                    echo "====================================="
+                    if (binding.hasVariable('machine')) {
+                        echo "machine: ${machine}"
+                    } else {
+                        echo "machine: not set"
+                    }
+                    echo "Node: ${env.Node}"
+                    echo "Change ID: ${env.CHANGE_ID}"
+                    echo "env.BUILD_CAUSE: ${env.BUILD_CAUSE}"
 
                     Machine = machine[0].toUpperCase() + machine.substring(1)
                     ws("${custom_workspace[machine]}/${env.CHANGE_ID}") {
