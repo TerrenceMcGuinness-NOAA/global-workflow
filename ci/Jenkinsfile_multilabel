@@ -30,10 +30,10 @@ pipeline {
              // Each Jenknis Node is connected to said machine via an JAVA agent via an ssh tunnel
 
         stage('Get Machine') {
-            when {
-                //expression { env.BUILD_CAUSE != 'UPSTREAMTRIGGER' }
-                expression { env.Node == 'built-in' }
-            }
+            //when {
+            //    //expression { env.BUILD_CAUSE != 'UPSTREAMTRIGGER' }
+            //    expression { env.Node == 'built-in' }
+            //}
             agent { label 'built-in' }
             steps {
                 script {
@@ -62,11 +62,16 @@ pipeline {
                     echo "Change ID: ${env.CHANGE_ID}"
                     echo "env.BUILD_CAUSE: ${env.BUILD_CAUSE}"
 
-                    build job: "/global-workflow/EMC-Pipelines/PR-${env.CHANGE_ID}", parameters: [
-                          string(name: 'machine', value: 'hercules'),
-                          string(name: 'Node', value: 'Hercules-EMC') ],
-                          wait: false
-                    machine = 'hera'
+                    if ( env.Node != 'built-in' ) {
+                        echo "passed machine: ${params.machine}"
+                        machine = params.machine
+                    } else {
+                        build job: "/global-workflow/EMC-Pipelines/PR-${env.CHANGE_ID}", parameters: [
+                            string(name: 'machine', value: 'hercules'),
+                            string(name: 'Node', value: 'Hercules-EMC') ],
+                            wait: false
+                        machine = 'hera'
+                    }
                 }
             }
         }
@@ -82,6 +87,7 @@ pipeline {
 
                     echo "Debugging Information: in Get Common Workspace"
                     echo "====================================="
+                    echo "machine: ${machine}"
                     if (binding.hasVariable('machine')) {
                         echo "machine: ${machine}"
                     } else {
