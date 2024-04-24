@@ -50,12 +50,12 @@ pipeline {
         //                     }
         //                 }
         //             }
-                    // build(job: "global-workflow/EMC-Pipelines/PR-${env.CHANGE_ID}",
-                    //       parameters: [ string(name: 'machine', value: 'hera'),
-                    //       string(name: 'Node', value: 'Hera-EMC') ],
-                    //       wait: false
-                    //     )
-                    machine = 'orion'    
+                    build(job: "global-workflow/EMC-Pipelines/PR-${env.CHANGE_ID}",
+                          parameters: [ string(name: 'machine', value: 'hercules'),
+                          string(name: 'Node', value: 'Hercules-EMC') ],
+                          wait: false
+                        )
+                    machine = 'hera'
                 }
             }
         }
@@ -275,8 +275,10 @@ pipeline {
             steps {
                 script {
                     try {
+                        def currentDate = new Date()
+                        def date = currentDate.format('MMMM dd HH:mm')
                         sh(script: """${GH} pr edit ${env.CHANGE_ID} --repo ${repo_url} --remove-label "CI-${Machine}-Running" --remove-label "CI-${Machine}-Building" --add-label "CI-${Machine}-${STATUS}" """, returnStatus: true)
-                        sh(script: """${GH} pr comment ${env.CHANGE_ID} --repo ${repo_url} --body "**CI ${STATUS}** ${Machine} at <br>Built and ran in directory \\`${HOME}\\`" """, returnStatus: true)
+                        sh(script: """${GH} pr comment ${env.CHANGE_ID} --repo ${repo_url} --body "**CI ${STATUS}** ${Machine} at ${date} Built and ran in directory<br>\\`${HOME}\\`" """, returnStatus: true)
                     } catch (Exception e) {
                         echo "Failed to update label from Running to ${STATUS}: ${e.getMessage()}"
                     }
