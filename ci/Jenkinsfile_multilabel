@@ -1,5 +1,5 @@
 def Machine = 'none'
-//def machine = 'none'
+def machine = 'none'
 def HOME = 'none'
 def caseList = ''
 // no op 2 Location of the custom workspaces for each machine in the CI system.  They are persitent for each iteration of the PR.
@@ -61,11 +61,11 @@ pipeline {
                     echo "Node: ${env.Node}"
                     echo "Change ID: ${env.CHANGE_ID}"
                     echo "env.BUILD_CAUSE: ${env.BUILD_CAUSE}"
-                    build(job: "global-workflow/EMC-Pipelines/PR-${env.CHANGE_ID}",
-                          parameters: [ string(name: 'machine', value: 'hercules'),
+
+                    build job: "/global-workflow/EMC-Pipelines/PR-${env.CHANGE_ID}", parameters: [
+                          string(name: 'machine', value: 'hercules'),
                           string(name: 'Node', value: 'Hercules-EMC') ],
                           wait: false
-                        )
                     machine = 'hera'
                 }
             }
@@ -75,6 +75,10 @@ pipeline {
             agent { label "${machine}-emc" }
             steps {
                 script {
+
+                    if (machine == 'none') {
+                        machine = params.machine
+                    }
 
                     echo "Debugging Information: in Get Common Workspace"
                     echo "====================================="
