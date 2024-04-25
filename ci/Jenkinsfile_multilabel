@@ -54,9 +54,9 @@ pipeline {
 
                     } else {
 
-                        for (label in pullRequest.labels) {
-                            echo "label: ${label.name}"
-                        }
+                        //for (label in pullRequest.labels) {
+                        //    echo "label: ${label.name}"
+                        //}
 
                         def nodes = []
                         jenkins.model.Jenkins.get().computers.each { c ->
