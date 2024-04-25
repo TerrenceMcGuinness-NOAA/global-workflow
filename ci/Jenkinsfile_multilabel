@@ -37,20 +37,7 @@ pipeline {
             agent { label 'built-in' }
             steps {
                 script {
-        //             generateBaselineNode = []
-        // .           for (label in pullRequest.labels) {
-        //                 listOfLabelNodeNames = jenkins.model.Jenkins.instance.nodes.collect {
-        //                     node -> node.getLabelString().contains(label) ? node.name : null
 
-        //                     if ((label.matches(node.getLabelString()+"-(.*)"))) {
-        //                         matchedNode += node.getLabelString()
-        //                     }
-
-        //                     if ((label.matches(node.getLabelString()+"(.*)-emc"))) {
-        //                         generateBaselineNode += node.getLabelString()
-        //                     }
-        //                 }
-        //             }
                     echo "Debugging Information: in Get Machine"
                     echo "====================================="
                     echo "machine: ${machine}"
@@ -60,9 +47,29 @@ pipeline {
                     echo "env.Node: ${env.Node}"
 
                     if ( env.Node != 'built-in' ) {
+
+                        generateBaselineNode = []
+                        for (label in pullRequest.labels) {
+                            echo "label: ${label.name}"
+                            listOfLabelNodeNames = jenkins.model.Jenkins.instance.nodes.collect {
+                            node -> node.getLabelString().contains(label) ? node.name : null
+
+                                echo "node.geLabelString(): ${node.getLabelString()}"
+
+                                if ((label.matches(node.getLabelString()+"-(.*)"))) {
+                                    matchedNode += node.getLabelString()
+                                }
+
+                                if ((label.matches(node.getLabelString()+"(.*)-emc"))) {
+                                   generateBaselineNode += node.getLabelString()
+                                }
+                            }
+                        }
+
                         echo "machine being set to value passed to job"
                         echo "passed machine: ${params.machine}"
                         machine = params.machine
+
                     } else {
                         echo "Lanuching second build job on Hercules-EMC"
                         build job: "/global-workflow/EMC-Pipelines/PR-${env.CHANGE_ID}", parameters: [
