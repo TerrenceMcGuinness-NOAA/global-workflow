@@ -8,6 +8,20 @@ def repo_tmp = 'git@github.com:TerrenceMcGuinness-NOAA/global-workflow.git'
 def repo_url = 'https://github.com/TerrenceMcGuinness-NOAA/global-workflow.git'
 def STATUS = 'Passed'
 
+
+//for (label in pullRequest.labels) {
+//    echo "label: ${label.name}"
+//}
+
+def nodes = []
+jenkins.model.Jenkins.get().computers.each { c ->
+    echo "c.node.selfLable.name: ${c.node.selfLabel.name}"
+    if (c.node.labelString.contains('emc')) {
+        nodes.add(c.node.selfLabel.name)
+    }
+}
+
+
 properties([
     parameters([[
         $class: 'NodeParameterDefinition', allowedSlaves: ['built-in', 'Hera-EMC', 'Orion-EMC', 'Hercules-EMC'], defaultSlaves: ['built-in'], name: 'Node', nodeEligibility: [$class: 'AllNodeEligibility'], triggerIfResult: 'allCases'],
@@ -54,24 +68,11 @@ pipeline {
 
                     } else {
 
-                        //for (label in pullRequest.labels) {
-                        //    echo "label: ${label.name}"
-                        //}
-
-                        def nodes = []
-                        jenkins.model.Jenkins.get().computers.each { c ->
-                            echo "c.node.selfLable.name: ${c.node.selfLabel.name}"
-                            if (c.node.labelString.contains('emc')) {
-                                nodes.add(c.node.selfLabel.name)
-                            }
-                        }
-
                         for (node in nodes) {
-                            echo "node: ${node}"
-                            if (pullRequest.labels.any { it.name == "CI-${node}" }) {
-                                echo "machine = for this node"
-                                break
-                            }
+                            //if (pullRequest.labels.any { it.name == "CI-${node}" }) {
+                                echo "node: ${node}"
+                              //  break
+                            //}
                         }
 
                         echo "Lanuching second build job on Hercules-EMC"
