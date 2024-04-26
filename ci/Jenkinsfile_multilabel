@@ -74,8 +74,11 @@ pipeline {
                             matcher = label =~ /CI-(.*?)-Ready/
                             if (matcher.matches()) {
                                 machine = matcher[0][1]
+                                echo "machine: ${machine}"
                                 jenkins.model.Jenkins.get().computers.each { c ->
                                     echo "c.node.selfLabel.name: ${c.node.selfLabel.name}"
+                                    echo "Checking if node is EMC node and matches the machine:"
+                                    echo "${c.node.selfLabel.name} == ${machine}-EMC"
                                     if (c.node.selfLabel.name == "${machine}-EMC") {
                                         nodes.add(c.node.selfLabel.name)
                                         echo "added node: ${c.node.selfLabel.name}"
