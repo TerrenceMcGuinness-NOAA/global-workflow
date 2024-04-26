@@ -88,7 +88,7 @@ pipeline {
                             }
                         }
 
-                        if (run_nodes.isEmpty() {
+                        if (run_nodes.isEmpty()) {
                             error("No nodes found matching the labels")
                         } else {
                             for (node in run_nodes) {
