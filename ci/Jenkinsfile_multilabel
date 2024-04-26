@@ -88,6 +88,8 @@ pipeline {
                             }
                         }
 
+                        echo "Checking the results in run_nodes:"
+                        echo "run_nodes.isEmpty(): ${run_nodes.isEmpty()}"
                         if (run_nodes.isEmpty()) {
                             error("No nodes found matching the labels")
                         } else {
@@ -95,6 +97,12 @@ pipeline {
                                 echo "node: ${node}"
                             }
                         }
+
+                        echo "Now just printing the run_nodes list:"
+                        for (node in run_nodes) {
+                            echo "node: ${node}"
+                        }
+
 
                         echo "Lanuching second build job on Hercules-EMC (noop)"
                         build job: "/global-workflow/EMC-Pipelines/PR-${env.CHANGE_ID}", parameters: [
