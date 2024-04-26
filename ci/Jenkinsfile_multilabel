@@ -8,19 +8,19 @@ def repo_tmp = 'git@github.com:TerrenceMcGuinness-NOAA/global-workflow.git'
 def repo_url = 'https://github.com/TerrenceMcGuinness-NOAA/global-workflow.git'
 def STATUS = 'Passed'
 
-
-//for (label in pullRequest.labels) {
-//    echo "label: ${label.name}"
-//}
-
 def nodes = []
-jenkins.model.Jenkins.get().computers.each { c ->
-    echo "c.node.selfLable.name: ${c.node.selfLabel.name}"
-    //if (c.node.labelString.contains('emc')) {
-        nodes.add(c.node.selfLabel.name)
-    //}
+for (label in pullRequest.labels) {
+    if (label.name.matches("CI-(.*?)-Ready")) {
+        jenkins.model.Jenkins.get().computers.each { c ->
+            if (c.node.labelString.contains('EMC')) {
+                def node_machine = c.node.selfLabel.name.split('-')[0] 
+                if (label.name == "CI-${node_machine}-Ready") {
+                    nodes.add(c.node.selfLabel.name)
+                }
+            }
+        }
+    }
 }
-
 
 properties([
     parameters([[
@@ -67,12 +67,9 @@ pipeline {
                         machine = params.machine
 
                     } else {
-                        echo "This is parent job and testing the listing out of nodes"
+                        echo "This is parent job and testing the listing out of nodes matching labels:"
                         for (node in nodes) {
-                            //if (pullRequest.labels.any { it.name == "CI-${node}" }) {
-                                echo "node: ${node}"
-                              //  break
-                            //}
+                            echo "node: ${node}"
                         }
 
                         echo "Lanuching second build job on Hercules-EMC (noop)"
