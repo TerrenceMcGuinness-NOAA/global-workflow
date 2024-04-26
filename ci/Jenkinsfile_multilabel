@@ -16,9 +16,9 @@ def STATUS = 'Passed'
 def nodes = []
 jenkins.model.Jenkins.get().computers.each { c ->
     echo "c.node.selfLable.name: ${c.node.selfLabel.name}"
-    if (c.node.labelString.contains('emc')) {
+    //if (c.node.labelString.contains('emc')) {
         nodes.add(c.node.selfLabel.name)
-    }
+    //}
 }
 
 
@@ -62,12 +62,12 @@ pipeline {
 
                     if ( env.Node != 'built-in' ) {
 
-                        echo "machine being set to value passed to job"
+                        echo "machine being set to value passed to this spawned job"
                         echo "passed machine: ${params.machine}"
                         machine = params.machine
 
                     } else {
-
+                        echo "This is parent job and testing the listing out of nodes"
                         for (node in nodes) {
                             //if (pullRequest.labels.any { it.name == "CI-${node}" }) {
                                 echo "node: ${node}"
