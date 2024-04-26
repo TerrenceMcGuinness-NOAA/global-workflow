@@ -69,19 +69,16 @@ pipeline {
                     } else {
                         echo "This is parent job and testing the listing out of nodes matching labels:"
 
-                        def nodes = []
                         for (label in pullRequest.labels) {
                             echo "label: ${label}"
-                            if (label.matches("CI-(.*?)-Ready")) {
+                            matcher = label =~ /CI-(.*?)-Ready/
+                            if (matcher.matches()) {
+                                machine = matcher[0][1]
                                 jenkins.model.Jenkins.get().computers.each { c ->
                                     echo "c.node.selfLabel.name: ${c.node.selfLabel.name}"
-                                    if (c.node.labelString.contains('EMC')) {
-                                        def node_machine = c.node.selfLabel.name.split('-')[0]
-                                        echo "node_machine: ${node_machine}"
-                                        if (label == "CI-${node_machine}-Ready") {
-                                            nodes.add(c.node.selfLabel.name)
-                                            echo "added node: ${c.node.selfLabel.name}"
-                                        }
+                                    if (c.node.selfLabel.name == "${machine}-EMC") {
+                                        nodes.add(c.node.selfLabel.name)
+                                        echo "added node: ${c.node.selfLabel.name}"
                                     }
                                 }
                             }
