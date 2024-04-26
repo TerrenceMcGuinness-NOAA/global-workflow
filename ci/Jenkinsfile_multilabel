@@ -75,7 +75,7 @@ pipeline {
                             //}
                         }
 
-                        echo "Lanuching second build job on Hercules-EMC"
+                        echo "Lanuching second build job on Hercules-EMC (noop)"
                         build job: "/global-workflow/EMC-Pipelines/PR-${env.CHANGE_ID}", parameters: [
                             string(name: 'machine', value: 'hercules'),
                             string(name: 'Node', value: 'Hercules-EMC') ],
