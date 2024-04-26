@@ -13,7 +13,7 @@ for (label in pullRequest.labels) {
     if (label.matches("CI-(.*?)-Ready")) {
         jenkins.model.Jenkins.get().computers.each { c ->
             if (c.node.labelString.contains('EMC')) {
-                def node_machine = c.node.selfLabel.name.split('-')[0] 
+                def node_machine = c.node.selfLabel.name.split('-')[0]
                 if (label == "CI-${node_machine}-Ready") {
                     nodes.add(c.node.selfLabel.name)
                 }
@@ -68,8 +68,31 @@ pipeline {
 
                     } else {
                         echo "This is parent job and testing the listing out of nodes matching labels:"
-                        for (node in nodes) {
-                            echo "node: ${node}"
+
+                        def nodes = []
+                        for (label in pullRequest.labels) {
+                            echo "label: ${label}"
+                            if (label.matches("CI-(.*?)-Ready")) {
+                                jenkins.model.Jenkins.get().computers.each { c ->
+                                    echo "c.node.selfLabel.name: ${c.node.selfLabel.name}"
+                                    if (c.node.labelString.contains('EMC')) {
+                                        def node_machine = c.node.selfLabel.name.split('-')[0]
+                                        echo "node_machine: ${node_machine}"
+                                        if (label == "CI-${node_machine}-Ready") {
+                                            nodes.add(c.node.selfLabel.name)
+                                            echo "added node: ${c.node.selfLabel.name}"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        if (nodes.size() == 0) {
+                            error("No nodes found matching the labels")
+                        } else {
+                            for (node in nodes) {
+                                echo "node: ${node}"
+                            }
                         }
 
                         echo "Lanuching second build job on Hercules-EMC (noop)"
