@@ -7,6 +7,7 @@ def custom_workspace = [hera: '/scratch1/NCEPDEV/global/CI', orion: '/work2/noaa
 def repo_tmp = 'git@github.com:TerrenceMcGuinness-NOAA/global-workflow.git'
 def repo_url = 'https://github.com/TerrenceMcGuinness-NOAA/global-workflow.git'
 def STATUS = 'Passed'
+def run_nodes = []
 
 // def nodes = []
 // for (label in pullRequest.labels) {
@@ -80,7 +81,7 @@ pipeline {
                                     echo "Checking if node is EMC node and matches the machine:"
                                     echo "${c.node.selfLabel.name} == ${machine}-EMC"
                                     if (c.node.selfLabel.name == "${machine}-EMC") {
-                                        nodes.add(c.node.selfLabel.name)
+                                        run_nodes.add(c.node.selfLabel.name)
                                         echo "added node: ${c.node.selfLabel.name}"
                                     }
                                 }
@@ -90,7 +91,7 @@ pipeline {
                         if (nodes.size() == 0) {
                             error("No nodes found matching the labels")
                         } else {
-                            for (node in nodes) {
+                            for (node in run_nodes) {
                                 echo "node: ${node}"
                             }
                         }
