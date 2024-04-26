@@ -8,19 +8,19 @@ def repo_tmp = 'git@github.com:TerrenceMcGuinness-NOAA/global-workflow.git'
 def repo_url = 'https://github.com/TerrenceMcGuinness-NOAA/global-workflow.git'
 def STATUS = 'Passed'
 
-def nodes = []
-for (label in pullRequest.labels) {
-    if (label.matches("CI-(.*?)-Ready")) {
-        jenkins.model.Jenkins.get().computers.each { c ->
-            if (c.node.labelString.contains('EMC')) {
-                def node_machine = c.node.selfLabel.name.split('-')[0]
-                if (label == "CI-${node_machine}-Ready") {
-                    nodes.add(c.node.selfLabel.name)
-                }
-            }
-        }
-    }
-}
+// def nodes = []
+// for (label in pullRequest.labels) {
+//     if (label.matches("CI-(.*?)-Ready")) {
+//         jenkins.model.Jenkins.get().computers.each { c ->
+//             if (c.node.labelString.contains('EMC')) {
+//                 def node_machine = c.node.selfLabel.name.split('-')[0]
+//                 if (label == "CI-${node_machine}-Ready") {
+//                     nodes.add(c.node.selfLabel.name)
+//                 }
+//             }
+//         }
+//     }
+// }
 
 properties([
     parameters([[
