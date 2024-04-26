@@ -10,11 +10,11 @@ def STATUS = 'Passed'
 
 def nodes = []
 for (label in pullRequest.labels) {
-    if (label.name.matches("CI-(.*?)-Ready")) {
+    if (label.matches("CI-(.*?)-Ready")) {
         jenkins.model.Jenkins.get().computers.each { c ->
             if (c.node.labelString.contains('EMC')) {
                 def node_machine = c.node.selfLabel.name.split('-')[0] 
-                if (label.name == "CI-${node_machine}-Ready") {
+                if (label == "CI-${node_machine}-Ready") {
                     nodes.add(c.node.selfLabel.name)
                 }
             }
