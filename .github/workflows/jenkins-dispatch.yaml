@@ -26,6 +26,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: DNS Lookup
+      run: dig +short jenkins.epic.oarcload.noaa.gov
+      #run: echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf > /dev/null
+    - name: Test Connection
+      run: ping -c 3 google.com
     - name: Trigger Jenkins
       run: | 
         curl -X POST https://jenkins.epic.oarcload.noaa.gov/job/global-workflow/job/EMC-Pipelines/job/PR-281/build \
