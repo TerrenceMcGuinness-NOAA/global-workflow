@@ -28,7 +28,7 @@ jobs:
     steps:
     - name: Trigger Jenkins
       run: | 
-        curl -X POST https://jenkins.epic.oarcloud.noaa.gov/job/global-workflow/job/EMC-Pipelines/job/PR-281/build \
+        curl -X -L POST https://jenkins.epic.oarcloud.noaa.gov/job/global-workflow/job/EMC-Pipelines/job/PR-281/build \
           --user ${{ secrets.JENKINS_USER }}:${{ secrets.JENKINS_TOKEN }}
 #          --data-urlencode json='{"parameter": [{"name":"machine", "value":"orion"},
 #                                                {"name":"Node", "value":"${{ github.event.inputs.machine }}"}
