@@ -8,9 +8,9 @@ on:
         description: 'Run on RDHPCS Systems'
         required: true
         options:
-        - Orion
-        - Hercules
-        - Hera
+        - Orion-EMC
+        - Hercules-EMC
+        - Hera-EMC
       case:
         type: choice
         description: Cases to run
@@ -28,9 +28,8 @@ jobs:
     steps:
     - name: Trigger Jenkins
       run: | 
-        curl -X POST https://jenkins.epic.oarcload.noaa.gov/job/global-workflow/job/EMC-Pipelines/build \
+        curl -X POST https://jenkins.epic.oarcload.noaa.gov/job/global-workflow/job/EMC-Pipelines/job/PR-281/build \
           --user ${{ secrets.JENKINS_USER }}:${{ secrets.JENKINS_TOKEN }} \
-          --data-urlencode json='{"parameter": [{"name":"BRANCH", "value":"${{ github.event.pull_request.head.ref }}"},
-                                                {"name":"CASE", "value":"${{ github.event.inputs.case }}"},
-                                                {"name":"MACHINE", "value":"${{ github.event.inputs.machine }}"}
+          --data-urlencode json='{"parameter": [{"name":"machine", "value":"orion"},
+                                                {"name":"Node", "value":"${{ github.event.inputs.machine }}"}
                                   ]}'
