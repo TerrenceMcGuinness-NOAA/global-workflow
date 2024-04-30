@@ -10,16 +10,16 @@ on:
       description: 'Run on RDHPCS Systems'
       required: true
       options:
-        - Orion
-        - Hercules
-        - Hera
+      - Orion
+      - Hercules
+      - Hera
     case:
       type: choice
       description: Cases to run
       options:
-        - C48_ATM
-        - C48_S2SW
-        - C48mx500_3DvarAOWCDA
+      - C48_ATM
+      - C48_S2SW
+      - C48mx500_3DvarAOWCDA
 
 jobs:
   build:
