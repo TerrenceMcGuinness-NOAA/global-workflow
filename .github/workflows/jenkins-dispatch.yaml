@@ -19,7 +19,6 @@ on:
         - C48_S2SW
         - C48mx500_3DvarAOWCDA
 
-on:
   pull_request:
     types: [opened, synchronize, reopened]
 
