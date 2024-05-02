@@ -12,11 +12,6 @@ pipeline {
 
     agent { label 'built-in' }
 
-    parameters {
-        NodeParameterDefinition( allowedSlaves: ['built-in', 'Hera-EMC', 'Orion-EMC'], description: 'Node Name for each Machine', defaultSlaves: ['built-in'], name: '', nodeEligibility: [$class: 'AllNodeEligibility'], triggerIfResult: 'allCases'
-        string(name: 'machine', defaultValue: 'hera', description: 'Machine to run the job on')
-    }
-
     options {
         skipDefaultCheckout()
         //parallelsAlwaysFailFast()
@@ -92,8 +87,8 @@ pipeline {
                                  allowedSlaves: ['built-in', 'Hera-EMC', 'Orion-EMC'],
                                  defaultSlaves: ['built-in'], name: 'Node',
                                  nodeEligibility: [$class: 'AllNodeEligibility'],
-                                 triggerIfResult: 'allCases']
-                                 //string(name: 'machine', defaultValue: 'hera', description: 'Machine to run the job on')
+                                 triggerIfResult: 'allCases'],
+                                 string(name: 'machine', defaultValue: 'hera', description: 'Machine to run the job on')
                             ])
                         ])
                         HOME = "${WORKSPACE}"
