@@ -12,7 +12,7 @@ pipeline {
 
     agent { label 'built-in' }
 
-    parameters{[[$class: 'NodeParameterDefinition', allowedSlaves: ['built-in', 'Hera-EMC', 'Orion-EMC'], defaultSlaves: ['built-in'], name: 'Node Name', nodeEligibility: [$class: 'AllNodeEligibility'], triggerIfResult: 'allCases']],
+    parameters{[$class: 'NodeParameterDefinition', allowedSlaves: ['built-in', 'Hera-EMC', 'Orion-EMC'], defaultSlaves: ['built-in'], name: 'Node Name', nodeEligibility: [$class: 'AllNodeEligibility'], triggerIfResult: 'allCases'],
                  string(name: 'machine', defaultValue: 'hera', description: 'Machine to run the job on')
     }
 
