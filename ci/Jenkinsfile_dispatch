@@ -38,6 +38,8 @@ pipeline {
                         machine = params.machine
                     } else {
                         echo "This is parent job so getting list of nodes from dispatched inputs"
+                        echo "machine: ${params.machine}"
+                        echo "Node: ${params.Node}"
                         run_nodes.add(params.Node)
 
                         // for (label in pullRequest.labels) {
