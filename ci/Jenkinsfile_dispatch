@@ -12,8 +12,9 @@ pipeline {
 
     agent { label 'built-in' }
 
-    parameters{[$class: 'NodeParameterDefinition', allowedSlaves: ['built-in', 'Hera-EMC', 'Orion-EMC'], defaultSlaves: ['built-in'], name: 'Node Name', nodeEligibility: [$class: 'AllNodeEligibility'], triggerIfResult: 'allCases'],
-                 string(name: 'machine', defaultValue: 'hera', description: 'Machine to run the job on')
+    parameters {
+        NodeParameterDefinition( allowedSlaves: ['built-in', 'Hera-EMC', 'Orion-EMC'], description: 'Node Name for each Machine', defaultSlaves: ['built-in'], name: '', nodeEligibility: [$class: 'AllNodeEligibility'], triggerIfResult: 'allCases'
+        string(name: 'machine', defaultValue: 'hera', description: 'Machine to run the job on')
     }
 
     options {
@@ -85,7 +86,11 @@ pipeline {
                     Machine = machine[0].toUpperCase() + machine.substring(1)
                     echo "Getting Common Workspace for ${Machine}"
                     ws("${custom_workspace[machine]}/${env.CHANGE_ID}") {
-                        properties([parameters([[$class: 'NodeParameterDefinition', allowedSlaves: ['built-in', 'Hera-EMC', 'Orion-EMC'], defaultSlaves: ['built-in'], name: '', nodeEligibility: [$class: 'AllNodeEligibility'], triggerIfResult: 'allCases']])])
+                        properties([
+                            parameters([[$class: 'NodeParameterDefinition', allowedSlaves: ['built-in', 'Hera-EMC', 'Orion-EMC'], defaultSlaves: ['built-in'], name: 'Node Name', nodeEligibility: [$class: 'AllNodeEligibility'], triggerIfResult: 'allCases'],
+                                       string(name: 'machine', defaultValue: 'hera', description: 'Machine to run the job on')
+                            ])
+                        ])
                         HOME = "${WORKSPACE}"
                         sh(script: "mkdir -p ${HOME}/RUNTESTS;rm -Rf ${HOME}/RUNTESTS/error.logs")
                         sh(script: """${GH} pr edit ${env.CHANGE_ID} --repo ${repo_url} --add-label "CI-${Machine}-Building" --remove-label "CI-${Machine}-Ready" """)
