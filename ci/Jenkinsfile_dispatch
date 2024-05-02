@@ -38,7 +38,8 @@ pipeline {
                         machine = params.machine
                     } else {
                         echo "This is parent job so getting list of nodes from dispatched inputs"
-                        run_nodes.add(para.machine)
+                        run_nodes.add(params.machine)
+
                         // for (label in pullRequest.labels) {
                         //     if (label.matches("CI-(.*?)-Ready")) {
                         //         def Machine_name = label.split('-')[1].toString()
