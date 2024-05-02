@@ -37,17 +37,18 @@ pipeline {
                         echo "passed machine: ${params.machine}"
                         machine = params.machine
                     } else {
-                        echo "This is parent job so getting list of nodes matching labels:"
-                        for (label in pullRequest.labels) {
-                            if (label.matches("CI-(.*?)-Ready")) {
-                                def Machine_name = label.split('-')[1].toString()
-                                jenkins.model.Jenkins.get().computers.each { c ->
-                                    if (c.node.selfLabel.name == "${Machine_name}-EMC") {
-                                        run_nodes.add(c.node.selfLabel.name)
-                                    }
-                                }
-                            }
-                        }
+                        echo "This is parent job so getting list of nodes from dispatched inputs"
+                        run_nodes.add(para.machine)
+                        // for (label in pullRequest.labels) {
+                        //     if (label.matches("CI-(.*?)-Ready")) {
+                        //         def Machine_name = label.split('-')[1].toString()
+                        //         jenkins.model.Jenkins.get().computers.each { c ->
+                        //             if (c.node.selfLabel.name == "${Machine_name}-EMC") {
+                        //                 run_nodes.add(c.node.selfLabel.name)
+                        //             }
+                        //         }
+                        //     }
+                        // }
                         // Spawning all the jobs on the nodes matching the labels
                         if (run_nodes.size() > 1) {
                             run_nodes.init().each { node ->
