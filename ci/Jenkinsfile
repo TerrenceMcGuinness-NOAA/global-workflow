@@ -4,6 +4,7 @@ def HOME = 'none'
 def caseList = ''
 // Location of the custom workspaces for each machine in the CI system.  They are persitent for each iteration of the PR.
 def custom_workspace = [hera: '/scratch1/NCEPDEV/global/CI', orion: '/work2/noaa/stmp/CI/ORION', hercules: '/work2/noaa/stmp/CI/HERCULES']
+def NodeName = [Hera: 'Hera-EMC', Orion: 'Orion-EMC', Hercules: 'Hercules-EMC', Gaea: 'Gaea']
 def repo_url = 'git@github.com:NOAA-EMC/global-workflow.git'
 def STATUS = 'Passed'
 
@@ -19,7 +20,6 @@ pipeline {
     stages { // This initial stage is used to get the Machine name from the GitHub labels on the PR
              // which is used to designate the Nodes in the Jenkins Controler by the agent label
              // Each Jenknis Node is connected to said machine via an JAVA agent via an ssh tunnel
-             // no op 2
 
         stage('1. Get Machine') {
             agent { label 'built-in' }
@@ -42,7 +42,7 @@ pipeline {
                             if (label.matches("CI-(.*?)-Ready")) {
                                 def Machine_name = label.split('-')[1].toString()
                                 jenkins.model.Jenkins.get().computers.each { c ->
-                                    if (c.node.selfLabel.name == "${Machine_name}-EMC") {
+                                    if (c.node.selfLabel.name == NodeName[Machine_name]) {
                                         run_nodes.add(c.node.selfLabel.name)
                                     }
                                 }
@@ -70,13 +70,13 @@ pipeline {
         }
 
         stage('2. Get Common Workspace') {
-            agent { label "${machine}-emc" }
+            agent { label NodeName[machine].toLowerCase() }
             steps {
                 script {
                     Machine = machine[0].toUpperCase() + machine.substring(1)
                     echo "Getting Common Workspace for ${Machine}"
                     ws("${custom_workspace[machine]}/${env.CHANGE_ID}") {
-                        properties([parameters([[$class: 'NodeParameterDefinition', allowedSlaves: ['built-in', 'Hera-EMC', 'Orion-EMC'], defaultSlaves: ['built-in'], name: '', nodeEligibility: [$class: 'AllNodeEligibility'], triggerIfResult: 'allCases']])])
+                        properties([parameters([[$class: 'NodeParameterDefinition', allowedSlaves: ['built-in', 'Hera-EMC', 'Orion-EMC', 'Gaea'], defaultSlaves: ['built-in'], name: '', nodeEligibility: [$class: 'AllNodeEligibility'], triggerIfResult: 'allCases']])])
                         HOME = "${WORKSPACE}"
                         sh(script: "mkdir -p ${HOME}/RUNTESTS;rm -Rf ${HOME}/RUNTESTS/*")
                         sh(script: """${GH} pr edit ${env.CHANGE_ID} --repo ${repo_url} --add-label "CI-${Machine}-Building" --remove-label "CI-${Machine}-Ready" """)
@@ -88,7 +88,7 @@ pipeline {
 
         stage('3. Build System') {
             matrix {
-                agent { label "${machine}-emc" }
+                agent { label NodeName[machine].toLowerCase() }
                 //options {
                 //    throttle(['global_matrix_build'])
                 //}
@@ -173,7 +173,7 @@ pipeline {
         stage('4. Run Tests') {
             failFast false 
             matrix {
-                agent { label "${machine}-emc" }
+                agent { label NodeName[machine].toLowerCase() }
                 axes {
                     axis {
                         name 'Case'
@@ -264,7 +264,7 @@ pipeline {
                    STATUS == 'Passed'
                 }
             }
-            agent { label "${machine}-emc" }
+            agent { label NodeName[machine].toLowerCase() }
             steps {
                 script {
                     try {
