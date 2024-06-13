@@ -72,7 +72,7 @@ pipeline {
         }
 
         stage('2. Get Common Workspace') {
-            agent { label NodeName[machine].toLowerCase() }
+            agent { label "${machine}-emc" }
             steps {
                 script {
                     Machine = machine[0].toUpperCase() + machine.substring(1)
@@ -184,7 +184,7 @@ pipeline {
         stage('4. Run Tests') {
             failFast false 
             matrix {
-                agent { label "${machine}-emc" }
+                agent { label NodeName[machine].toLowerCase() }
                 axes {
                     axis {
                         name 'Case'
