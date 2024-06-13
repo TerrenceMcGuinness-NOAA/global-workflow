@@ -115,15 +115,6 @@ pipeline {
                                         }
                                     } else {
                                         checkout scm
-                                        try {
-                                            echo "Building system: ${system}"
-                                            //checkout scm
-                                        } catch (Exception e) {
-                                            if (env.CHANGE_ID) {
-                                                sh(script: """${GH} pr comment ${env.CHANGE_ID} --repo ${repo_url} --body "Checkout **Failed** on ${Machine}: ${e.getMessage()}" """)
-                                            }
-                                            error "Failed to checkout: ${e.getMessage()}"
-                                        }
                                         def gist_url = ""
                                         def error_logs = ""
                                         def error_logs_message = ""
