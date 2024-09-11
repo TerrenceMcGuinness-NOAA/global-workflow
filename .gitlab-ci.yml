@@ -18,6 +18,7 @@ mirror:
     - if git remote | grep -q upstream; then git remote remove upstream; fi
     - git remote add upstream $GITHUB_REPO_URL
     - git fetch upstream
+    - rm -fr ".git/rebase-merge"
     - git rebase upstream/develop
     - git pull --rebase
     - git push "https://${GITLAB_USER_LOGIN}:${ACCESS_TOKEN}@${CI_REPOSITORY_URL#*@}" "HEAD:${CI_DEFAULT_BRANCH}"
