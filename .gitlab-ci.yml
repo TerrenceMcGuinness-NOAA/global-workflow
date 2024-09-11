@@ -20,7 +20,7 @@ mirror:
     - if git remote | grep -q upstream; then git remote remove upstream; fi
     - git remote add upstream $GITHUB_REPO_URL
     - git fetch upstream
-    - git merge upstream/$CI_DEFAULT_BRANCH --allow-unrelated-histories
+    - git rebase upstream/$CI_DEFAULT_BRANCH || (git rebase --abort && exit 1)
     - git push "https://${GITLAB_USER_LOGIN}:${ACCESS_TOKEN}@${CI_REPOSITORY_URL#*@}" "HEAD:${CI_DEFAULT_BRANCH}"
   only:
     - schedules
