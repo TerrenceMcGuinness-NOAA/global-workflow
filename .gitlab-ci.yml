@@ -1,0 +1,26 @@
+stages:
+  - mirror
+
+variables:
+  DOCKER_REGISTRY: "docker.io"
+  DOCKER_IMAGE: "alpine:latest"
+
+mirror:
+  stage: mirror
+  before_script:
+    - apk add --no-cache git openssh-keygen openssh-client-default
+    - git config --global user.name "${GITLAB_USER_NAME}"
+    - git config --global user.email "${GITLAB_USER_EMAIL}"
+  script:
+    - git checkout $CI_DEFAULT_BRANCH
+    - git config advice.skippedCherryPicks false
+    - git pull --rebase
+    - if git remote | grep -q upstream; then git remote remove upstream; fi
+    - git remote add upstream $GITHUB_REPO_URL
+    - git fetch upstream
+    - git rebase upstream/develop
+    - git pull --rebase
+    - git push "https://${GITLAB_USER_LOGIN}:${ACCESS_TOKEN}@${CI_REPOSITORY_URL#*@}" "HEAD:${CI_DEFAULT_BRANCH}"
+
+  only:
+    - schedules
