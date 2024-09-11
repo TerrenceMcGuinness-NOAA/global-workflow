@@ -12,6 +12,8 @@ mirror:
     - git config --global user.name "${GITLAB_USER_NAME}"
     - git config --global user.email "${GITLAB_USER_EMAIL}"
   script:
+    - mkdir - git_sync
+    - cd git_sync
     - git checkout $CI_DEFAULT_BRANCH
     - git config advice.skippedCherryPicks false
     - if git remote | grep -q upstream; then git remote remove upstream; fi
