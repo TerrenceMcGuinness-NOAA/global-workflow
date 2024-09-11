@@ -12,9 +12,6 @@ mirror:
     - git config --global user.name "${GITLAB_USER_NAME}"
     - git config --global user.email "${GITLAB_USER_EMAIL}"
   script:
-    - rm -Rf git_sync
-    - mkdir git_sync
-    - cd git_sync
     - git init
     - git remote add origin $CI_REPOSITORY_URL
     - git remote add upstream $GITHUB_REPO_URL
