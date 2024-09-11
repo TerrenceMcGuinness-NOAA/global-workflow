@@ -21,6 +21,7 @@ pipeline {
     stages { // This initial stage is used to get the Machine name from the GitHub labels on the PR
              // which is used to designate the Nodes in the Jenkins Controler by the agent label
              // Each Jenknis Node is connected to said machine via an JAVA agent via an ssh tunnel
+             // no op 2
 
         stage('1. Get Machine') {
             agent { label 'built-in' }
