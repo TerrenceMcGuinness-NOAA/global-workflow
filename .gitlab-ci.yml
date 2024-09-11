@@ -12,9 +12,10 @@ mirror:
     - git config --global user.name "${GITLAB_USER_NAME}"
     - git config --global user.email "${GITLAB_USER_EMAIL}"
   script:
-    - mkdir - git_sync
+    - mkdir -p git_sync
     - cd git_sync
     - git checkout $CI_DEFAULT_BRANCH
+    - git pull --ff
     - git config advice.skippedCherryPicks false
     - if git remote | grep -q upstream; then git remote remove upstream; fi
     - git remote add upstream $GITHUB_REPO_URL
