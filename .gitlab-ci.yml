@@ -1,3 +1,6 @@
+stages:
+  - mirror
+
 variables:
   DOCKER_REGISTRY: "docker.io"
   DOCKER_IMAGE: "alpine:latest"
