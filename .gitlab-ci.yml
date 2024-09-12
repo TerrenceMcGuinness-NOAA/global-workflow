@@ -10,7 +10,7 @@ mirror:
   before_script:
     - apk update
     - apk add --no-cache git openssh-keygen openssh-client-default github-cli jq
-    - git config --global user.name "${GITLAB_USER_NAME}"
+    - git config--global user.name "${GITLAB_USER_NAME}"
     - git config--global user.email "${GITLAB_USER_EMAIL}"
   script:
     - TIMESTAMP=$(date +%s)
