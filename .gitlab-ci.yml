@@ -12,8 +12,7 @@ mirror:
     - apk add --no-cache curl
     - apk add --no-cache gnupg
     - curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | gpg --dearmor -o /etc/apk/keys/githubcli-archive-keyring.gpg
-    - mkdir -p /etc/apk/repositories
-    - echo "https://cli.github.com/packages stable main" | tee /etc/apk/repositories/github-cli.list
+    - echo "https://cli.github.com/packages stable main" | tee /etc/apk/repositories/github-cli.list > /dev/null
     - apk update
     - apk add gh
     - git config --global user.name "${GITLAB_USER_NAME}"
