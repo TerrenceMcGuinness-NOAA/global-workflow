@@ -1,6 +1,3 @@
-stages:
-  - mirror
-
 variables:
   DOCKER_REGISTRY: "docker.io"
   DOCKER_IMAGE: "alpine:latest"
@@ -10,8 +7,10 @@ mirror:
   before_script:
     - apk add --no-cache git openssh-keygen openssh-client-default
     - apk add --no-cache curl
-    - curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
-    - echo "https://cli.github.com/packages stable main" | tee /etc/apk/repositories.d/github-cli.list > /dev/null
+    - apk add --no-cache gnupg
+    - curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | gpg --dearmor -o /etc/apk/keys/githubcli-archive-keyring.gpg
+    - echo "https://cli.github.com/packages stable main" | tee /etc/apk/repositories/github-cli.list
+    - apk update
     - apk add gh
     - git config --global user.name "${GITLAB_USER_NAME}"
     - git config --global user.email "${GITLAB_USER_EMAIL}"
@@ -26,7 +25,7 @@ mirror:
     - git fetch upstream
     - git reset --hard upstream/$CI_DEFAULT_BRANCH
     - git push -f "https://${GITLAB_USER_LOGIN}:${ACCESS_TOKEN}@${CI_REPOSITORY_URL#*@}" "HEAD:${CI_DEFAULT_BRANCH}"
-    - gh auth login --with-token <<< $GITHUB_TOKEN
+    - echo $GITHUB_TOKEN | gh auth login --with-token
     - for pr in $(gh pr list --state open --json number --jq '.[].number'); do
         gh pr checkout $pr;
         git push -f "https://${GITLAB_USER_LOGIN}:${ACCESS_TOKEN}@${CI_REPOSITORY_URL#*@}" "HEAD:pr-$pr";
