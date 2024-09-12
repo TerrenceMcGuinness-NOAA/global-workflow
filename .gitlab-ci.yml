@@ -8,16 +8,10 @@ variables:
 mirror:
   stage: mirror
   before_script:
-    - apk add --no-cache git openssh-keygen openssh-client-default
-    - apk add --no-cache curl
-    - apk add --no-cache gnupg
-    - curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | gpg --dearmor -o /etc/apk/keys/githubcli-archive-keyring.gpg
-    - echo "https://cli.github.com/packages/ stable main" | tee github-cli.list > /dev/null
-    - mv github-cli.list /etc/apk/repositories
     - apk update
-    - apk add gh
+    - apk add --no-cache git openssh-keygen openssh-client-default github-cli jq
     - git config --global user.name "${GITLAB_USER_NAME}"
-    - git config --global user.email "${GITLAB_USER_EMAIL}"
+    - git config--global user.email "${GITLAB_USER_EMAIL}"
   script:
     - TIMESTAMP=$(date +%s)
     - DIR_NAME="git_sync_$TIMESTAMP"
