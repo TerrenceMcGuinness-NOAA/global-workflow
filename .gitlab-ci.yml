@@ -23,7 +23,8 @@ mirror:
     - git fetch upstream
     - git reset --hard upstream/$CI_DEFAULT_BRANCH
     - git push -f "https://${GITLAB_USER_LOGIN}:${ACCESS_TOKEN}@${CI_REPOSITORY_URL#*@}" "HEAD:${CI_DEFAULT_BRANCH}"
-    - echo $GITHUB_TOKEN | xargs gh auth login --with-token
+    - echo $GITHUB_TOKEN > github_token
+    - gh auth login --with-token < github_token
     - for pr in $(gh pr list --state open --json number --jq '.[].number'); do
         gh pr checkout $pr;
         git push -f "https://${GITLAB_USER_LOGIN}:${ACCESS_TOKEN}@${CI_REPOSITORY_URL#*@}" "HEAD:pr-$pr";
