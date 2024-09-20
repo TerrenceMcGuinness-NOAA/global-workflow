@@ -1,0 +1,47 @@
+stages:
+  - mirror
+
+variables:
+  DOCKER_REGISTRY: "docker.io"
+  DOCKER_IMAGE: "alpine:latest"
+
+mirror:
+  stage: mirror
+  before_script:
+    - apk update
+    - apk add --no-cache bash git openssh-keygen openssh-client-default github-cli jq glab
+    - git config --global user.name "${GITLAB_USER_NAME}"
+    - git config --global user.email "${GITLAB_USER_EMAIL}"
+  script:
+    - TIMESTAMP=$(date +%s)
+    - DIR_NAME="git_sync_$TIMESTAMP"
+    - mkdir -p $DIR_NAME
+    - cd $DIR_NAME
+    - git init
+    - git remote add origin $CI_REPOSITORY_URL
+    - git remote add upstream $GITHUB_REPO_URL
+    - git fetch upstream
+    - git reset --hard upstream/$CI_DEFAULT_BRANCH
+    - git push -f "https://${GITLAB_USER_LOGIN}:${ACCESS_TOKEN}@${CI_REPOSITORY_URL#*@}" "HEAD:${CI_DEFAULT_BRANCH}"
+    - echo $GITHUB_TOKEN > github_token
+    - echo $GITLAB_ACCESS_TOKEN > gitlab_token
+    - unset GITHUB_TOKEN
+    - unset GITLAB_ACCESS_TOKEN
+    - glab config set -g host $CI_SERVER_URL
+    - export GITLAB_HOST=$CI_SERVER_HOST
+    - gh auth login --with-token < github_token
+    - glab auth login --hostname $CI_SERVER_HOST --stdin < gitlab_token
+    - |
+      bash -c '
+      for pr in $(gh pr list --state open --json number,title --jq ".[] | @base64"); do
+        pr_number=$(echo $pr | base64 -d | jq -r ".number")
+        pr_title=$(echo $pr | base64 -d | jq -r ".title")
+        gh pr checkout "$pr_number"
+        git checkout -b "pr-${pr_number}"
+        git push --set-upstream origin "pr-${pr_number}"
+        glab mr create --target-branch "$CI_DEFAULT_BRANCH" --title "$pr_title" --description "This is an automated mirror of PR $pr_number from GitHub."
+      done
+      '
+  only:
+    - schedules
+  
