@@ -175,6 +175,7 @@ pipeline {
             agent { label NodeName[machine].toLowerCase() }
             steps {
                 script {
+                    env.HOMEGFS = HOMEgfs
                     def parallelStages = CI_CASES.collectEntries { caseName ->
                         ["${caseName}": {
                             stage("Create ${caseName}") {
