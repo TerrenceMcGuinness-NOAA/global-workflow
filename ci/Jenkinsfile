@@ -7,7 +7,8 @@ def GH = 'none'
 // Location of the custom workspaces for each machine in the CI system.  They are persistent for each iteration of the PR.
 def NodeName = [hera: 'Hera-EMC', orion: 'Orion-EMC', hercules: 'Hercules-EMC', gaea: 'Gaea']
 def custom_workspace = [hera: '/scratch1/NCEPDEV/global/CI', orion: '/work2/noaa/stmp/CI/ORION', hercules: '/work2/noaa/global/CI/HERCULES', gaea: '/gpfs/f5/epic/proj-shared/global/CI']
-def repo_url = 'git@github.com:NOAA-EMC/global-workflow.git'
+//def repo_url = 'git@github.com:NOAA-EMC/global-workflow.git'
+def repo_url = 'git@github.com:TerrenceMcGuinness-NOAA/global-workflow.git'
 def STATUS = 'Passed'
 
 pipeline {
@@ -22,7 +23,6 @@ pipeline {
     stages { // This initial stage is used to get the Machine name from the GitHub labels on the PR
              // which is used to designate the Nodes in the Jenkins Controller by the agent label
              // Each Jenkins Node is connected to said machine via an JAVA agent via an ssh tunnel
-             // no op 2
 
         stage('1. Get Machine') {
             agent { label 'built-in' }
