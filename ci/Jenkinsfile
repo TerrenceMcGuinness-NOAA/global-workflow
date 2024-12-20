@@ -158,9 +158,6 @@ pipeline {
                                     echo "Failed to update label from Building to Running: ${e.getMessage()}"
                                 }
                             }
-                            // Get a list of CI cases to run
-                            CI_CASES = sh(script: "${HOMEgfs}/ci/scripts/utils/get_host_case_list.py ${machine}", returnStdout: true).trim().split()
-                            echo "Cases to run: ${CI_CASES}"
                         }
                     }
                 }
@@ -177,6 +174,9 @@ pipeline {
                     env.HOMEGFS = HOMEgfs
                     env.RUNTESTS = "${CUSTOM_WORKSPACE}/RUNTESTS"
                     withEnv(["BASH_ENV=${CUSTOM_WORKSPACE}/workflow/gw_setup.sh"]) {
+                        // Get a list of CI cases to run
+                        CI_CASES = sh(script: "${HOMEgfs}/ci/scripts/utils/get_host_case_list.py ${machine}", returnStdout: true).trim().split()
+                        echo "Cases to run: ${CI_CASES}"
                         def parallelStages = CI_CASES.collectEntries { caseName ->
                             ["${caseName}": {
                                 stage("Create ${caseName}") {
