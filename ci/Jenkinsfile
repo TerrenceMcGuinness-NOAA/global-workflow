@@ -86,8 +86,8 @@ pipeline {
                         GH = sh(script: "which gh || echo '~/bin/gh'", returnStdout: true).trim()
                         CUSTOM_WORKSPACE = "${WORKSPACE}"
                         HOMEgfs = "${CUSTOM_WORKSPACE}/global-workflow"
-                        sh(script: "rm -Rf ${CUSTOM_WORKSPACE}/global-workflow; mkdir -p ${CUSTOM_WORKSPACE}/global-workflow")
-                        sh(script: "rm -Rf ${CUSTOM_WORKSPACE}/RUNTESTS; mkdir -p ${CUSTOM_WORKSPACE}/RUNTESTS")
+                        //sh(script: "rm -Rf ${CUSTOM_WORKSPACE}/global-workflow; mkdir -p ${CUSTOM_WORKSPACE}/global-workflow")
+                        //sh(script: "rm -Rf ${CUSTOM_WORKSPACE}/RUNTESTS; mkdir -p ${CUSTOM_WORKSPACE}/RUNTESTS")
                         sh(script: """${GH} pr edit ${env.CHANGE_ID} --repo ${repo_url} --add-label "CI-${Machine}-Building" --remove-label "CI-${Machine}-Ready" """)
                     }
                     echo "Building and running on ${Machine} in directory ${CUSTOM_WORKSPACE}"
@@ -123,10 +123,10 @@ pipeline {
                             def error_logs_message = ""
                             dir("${HOMEgfs}/sorc") {
                                 try {
-                                    sh(script: './build_all.sh -kgu')  // build the global-workflow executables for GFS variant (UFS-wx-model, WW3 pre/post executables)
-                                    sh(script: './build_ww3prepost.sh -w > ./logs/build_ww3prepost_gefs.log 2>&1')  // build the WW3 pre/post processing executables for GEFS variant
-                                    sh(script: './build_ufs.sh -w -e gefs_model.x > ./logs/build_ufs_gefs.log 2>&1')  // build the UFS-wx-model executable for GEFS variant
-                                    //echo "Building global-workflow on ${Machine} SKIPPED"
+                                    //sh(script: './build_all.sh -kgu')  // build the global-workflow executables for GFS variant (UFS-wx-model, WW3 pre/post executables)
+                                    //sh(script: './build_ww3prepost.sh -w > ./logs/build_ww3prepost_gefs.log 2>&1')  // build the WW3 pre/post processing executables for GEFS variant
+                                    //sh(script: './build_ufs.sh -w -e gefs_model.x > ./logs/build_ufs_gefs.log 2>&1')  // build the UFS-wx-model executable for GEFS variant
+                                    echo "Building global-workflow on ${Machine} SKIPPED"
                                 } catch (Exception error_build) {
                                     echo "Failed to build global-workflow: ${error_build.getMessage()}"
                                     if ( fileExists("logs/error.logs") ) {
@@ -179,7 +179,7 @@ pipeline {
                     env.HOMEGFS = HOMEgfs
                     env.RUNTESTS = "${CUSTOM_WORKSPACE}/RUNTESTS"
                     // Get a list of CI cases to run
-                    CI_CASES = sh(script: "${HOMEgfs}/ci/scripts/utils/get_host_case_list.py ${machine}", returnStdout: true).trim().split()
+                    CI_CASES = sh(script: "source ${CUSTOM_WORKSPACE}/workflow/gw_setup.sh && ${HOMEgfs}/ci/scripts/utils/get_host_case_list.py ${machine}", returnStdout: true).trim().split()
                     echo "Cases to run: ${CI_CASES}"
                     def parallelStages = CI_CASES.collectEntries { caseName ->
                         ["${caseName}": {
