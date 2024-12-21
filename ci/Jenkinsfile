@@ -176,7 +176,8 @@ pipeline {
             agent { label NodeName[machine].toLowerCase() }
             steps {
                 script {
-                    env.RUNTESTS = "${HOMEgfs}/RUNTESTS"
+                    env.BASH_ENV = sh(script: "source ${HOMEgfs}/workflow/gw_setup.sh", returnStdout: true).trim()
+                    env.RUNTESTS = "${CUSTOM_WORKSPACE}/RUNTESTS"
                     // Get a list of CI cases to run
                     CI_CASES = sh(script: "source ${HOMEgfs}/workflow/gw_setup.sh && ${HOMEgfs}/ci/scripts/utils/get_host_case_list.py ${machine}", returnStdout: true).trim().split()
                     echo "Cases to run: ${CI_CASES}"
@@ -190,11 +191,15 @@ pipeline {
                             stage("Running ${caseName}") {
                                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                                     script {
-                                        def pslot = sh(script: "${HOMEgfs}/ci/scripts/utils/ci_utils_wrapper.sh get_pslot ${CUSTOM_WORKSPACE}/RUNTESTS ${caseName}", returnStdout: true).trim()
-                                        def error_file = "${CUSTOM_WORKSPACE}/RUNTESTS/${pslot}_error.logs"
+                                        def pslot = sh(script: "${HOMEgfs}/ci/scripts/utils/ci_utils_wrapper.sh get_pslot ${RUNTESTS} ${caseName}", returnStdout: true).trim()
+                                        echo "pslot: ${pslot}"
+                                        echo "CUSTOM_WORKSPACE: ${CUSTOM_WORKSPACE}"
+                                        echo "RUNTESTS: ${RUNTESTS}"
+                                        echo "HOMEgfs: ${HOMEgfs}"
+                                        def error_file = "${RUNTESTS}/${pslot}_error.logs"
                                         sh(script: "rm -f ${error_file}")
                                         sh(script: "${HOMEgfs}/ci/scripts/run-check_ci.sh ${CUSTOM_WORKSPACE} ${pslot} 'global-workflow'")
-                                        sh(script: "${HOMEgfs}/ci/scripts/utils/ci_utils_wrapper.sh cleanup_experiment ${CUSTOM_WORKSPACE}/RUNTESTS/EXPDIR/${pslot}")
+                                        sh(script: "${HOMEgfs}/ci/scripts/utils/ci_utils_wrapper.sh cleanup_experiment ${RUNTESTS}/EXPDIR/${pslot}")
                                     }
                                 }
                             }
