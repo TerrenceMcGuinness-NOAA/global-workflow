@@ -176,10 +176,9 @@ pipeline {
             agent { label NodeName[machine].toLowerCase() }
             steps {
                 script {
-                    env.HOMEGFS = HOMEgfs
-                    env.RUNTESTS = "${CUSTOM_WORKSPACE}/RUNTESTS"
+                    env.RUNTESTS = "${HOMEgfs}/RUNTESTS"
                     // Get a list of CI cases to run
-                    CI_CASES = sh(script: "source ${CUSTOM_WORKSPACE}/workflow/gw_setup.sh && ${HOMEgfs}/ci/scripts/utils/get_host_case_list.py ${machine}", returnStdout: true).trim().split()
+                    CI_CASES = sh(script: "source ${HOMEgfs}/workflow/gw_setup.sh && ${HOMEgfs}/ci/scripts/utils/get_host_case_list.py ${machine}", returnStdout: true).trim().split()
                     echo "Cases to run: ${CI_CASES}"
                     def parallelStages = CI_CASES.collectEntries { caseName ->
                         ["${caseName}": {
