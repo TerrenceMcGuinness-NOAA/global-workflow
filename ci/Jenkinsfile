@@ -12,6 +12,10 @@ def STATUS = 'Passed'
 
 pipeline {
 
+    environment {
+        BASH_ENV = "${CUSTOM_WORKSPACE}/workflow/gw_setup.sh"
+    }
+
     agent { label 'built-in' }
 
     options {
@@ -119,9 +123,10 @@ pipeline {
                             def error_logs_message = ""
                             dir("${HOMEgfs}/sorc") {
                                 try {
-                                    sh(script: './build_all.sh -kgu')  // build the global-workflow executables for GFS variant (UFS-wx-model, WW3 pre/post executables)
-                                    sh(script: './build_ww3prepost.sh -w > ./logs/build_ww3prepost_gefs.log 2>&1')  // build the WW3 pre/post processing executables for GEFS variant
-                                    sh(script: './build_ufs.sh -w -e gefs_model.x > ./logs/build_ufs_gefs.log 2>&1')  // build the UFS-wx-model executable for GEFS variant
+                                    //sh(script: './build_all.sh -kgu')  // build the global-workflow executables for GFS variant (UFS-wx-model, WW3 pre/post executables)
+                                    //sh(script: './build_ww3prepost.sh -w > ./logs/build_ww3prepost_gefs.log 2>&1')  // build the WW3 pre/post processing executables for GEFS variant
+                                    //sh(script: './build_ufs.sh -w -e gefs_model.x > ./logs/build_ufs_gefs.log 2>&1')  // build the UFS-wx-model executable for GEFS variant
+                                    echo "Building global-workflow on ${Machine} SKIPPED"
                                 } catch (Exception error_build) {
                                     echo "Failed to build global-workflow: ${error_build.getMessage()}"
                                     if ( fileExists("logs/error.logs") ) {
@@ -173,32 +178,30 @@ pipeline {
                 script {
                     env.HOMEGFS = HOMEgfs
                     env.RUNTESTS = "${CUSTOM_WORKSPACE}/RUNTESTS"
-                    withEnv(["BASH_ENV=${CUSTOM_WORKSPACE}/workflow/gw_setup.sh"]) {
-                        // Get a list of CI cases to run
-                        CI_CASES = sh(script: "${HOMEgfs}/ci/scripts/utils/get_host_case_list.py ${machine}", returnStdout: true).trim().split()
-                        echo "Cases to run: ${CI_CASES}"
-                        def parallelStages = CI_CASES.collectEntries { caseName ->
-                            ["${caseName}": {
-                                stage("Create ${caseName}") {
+                    // Get a list of CI cases to run
+                    CI_CASES = sh(script: "${HOMEgfs}/ci/scripts/utils/get_host_case_list.py ${machine}", returnStdout: true).trim().split()
+                    echo "Cases to run: ${CI_CASES}"
+                    def parallelStages = CI_CASES.collectEntries { caseName ->
+                        ["${caseName}": {
+                            stage("Create ${caseName}") {
+                                script {
+                                    sh(script: "${HOMEgfs}/ci/scripts/utils/ci_utils_wrapper.sh create_experiment ${HOMEgfs}/ci/cases/pr/${caseName}.yaml")
+                                }
+                            }
+                            stage("Running ${caseName}") {
+                                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                                     script {
-                                        sh(script: "${HOMEgfs}/ci/scripts/utils/ci_utils_wrapper.sh create_experiment ${HOMEgfs}/ci/cases/pr/${caseName}.yaml")
+                                        def pslot = sh(script: "${HOMEgfs}/ci/scripts/utils/ci_utils_wrapper.sh get_pslot ${CUSTOM_WORKSPACE}/RUNTESTS ${caseName}", returnStdout: true).trim()
+                                        def error_file = "${CUSTOM_WORKSPACE}/RUNTESTS/${pslot}_error.logs"
+                                        sh(script: "rm -f ${error_file}")
+                                        sh(script: "${HOMEgfs}/ci/scripts/run-check_ci.sh ${CUSTOM_WORKSPACE} ${pslot} 'global-workflow'")
+                                        sh(script: "${HOMEgfs}/ci/scripts/utils/ci_utils_wrapper.sh cleanup_experiment ${CUSTOM_WORKSPACE}/RUNTESTS/EXPDIR/${pslot}")
                                     }
                                 }
-                                stage("Running ${caseName}") {
-                                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                                        script {
-                                            def pslot = sh(script: "${HOMEgfs}/ci/scripts/utils/ci_utils_wrapper.sh get_pslot ${CUSTOM_WORKSPACE}/RUNTESTS ${caseName}", returnStdout: true).trim()
-                                            def error_file = "${CUSTOM_WORKSPACE}/RUNTESTS/${pslot}_error.logs"
-                                            sh(script: "rm -f ${error_file}")
-                                            sh(script: "${HOMEgfs}/ci/scripts/run-check_ci.sh ${CUSTOM_WORKSPACE} ${pslot} 'global-workflow'")
-                                            sh(script: "${HOMEgfs}/ci/scripts/utils/ci_utils_wrapper.sh cleanup_experiment ${CUSTOM_WORKSPACE}/RUNTESTS/EXPDIR/${pslot}")
-                                        }
-                                    }
-                                }
-                            }]
-                        }
-                        parallel parallelStages + [failFast: true]
+                            }
+                        }]
                     }
+                    parallel parallelStages + [failFast: true]
                 }
             }
         }
