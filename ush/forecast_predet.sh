@@ -57,7 +57,10 @@ FV3_restarts(){
   # Create an array of FV3 restart files
   local fv3_restart_files tile_files
   fv3_restart_files=(coupler.res fv_core.res.nc)
-  tile_files=(fv_core.res fv_srf_wnd.res fv_tracer.res phy_data sfc_data ca_data)
+  tile_files=(fv_core.res fv_srf_wnd.res fv_tracer.res phy_data sfc_data)
+  if [[ ${DO_CA:-"NO"} == "YES" ]]; then
+    tile_files+=(ca_data)
+  fi
   local nn tt
   for (( nn = 1; nn <= ntiles; nn++ )); do
     for tt in "${tile_files[@]}"; do
@@ -66,6 +69,22 @@ FV3_restarts(){
   done
   # Create a comma separated string from array using IFS
   IFS=, echo "${fv3_restart_files[*]}"
+}
+
+stoch_restarts(){
+  # These only get copied for reruns
+  local stoch_restart_files
+  stoch_restart_files=(  )
+
+  if [[ "${DO_SPPT:-}" == "YES" || "${DO_SKEB:-}" == "YES" || \
+        "${DO_SHUM:-}" == "YES" || "${DO_LAND_PERT:-}" == "YES" ]]; then
+    stoch_restart_files+=(atm_stoch.res.nc)
+  fi
+  if [[ "${DO_OCN:-}" == "YES" && ( "${DO_OCN_SPPT:-}" == "YES" || "${DO_OCN_PERT_EPBL}" == "YES" ) ]]; then
+    stoch_restart_files+=(ocn_stoch.res.nc)
+  fi
+  # Create a comma separated string from array using IFS
+  IFS=, echo "${stoch_restart_files[*]}"
 }
 
 # shellcheck disable=SC2034
@@ -332,9 +351,15 @@ FV3_predet(){
     if [[ "${TYPE}" == "nh" ]]; then  # monotonic and non-hydrostatic
       hord_mt=${hord_mt_nh_mono:-"10"}
       hord_xx=${hord_xx_nh_mono:-"10"}
+      hord_dp=${hord_xx_nh_mono:-"10"}
     else  # monotonic and hydrostatic
       hord_mt=${hord_mt_hydro_mono:-"10"}
       hord_xx=${hord_xx_hydro_mono:-"10"}
+      hord_dp=${hord_xx_hydro_mono:-"10"}
+      kord_tm=${kord_tm_hydro_mono:-"-12"}
+      kord_mt=${kord_mt_hydro_mono:-"12"}
+      kord_wz=${kord_wz_hydro_mono:-"12"}
+      kord_tr=${kord_tr_hydro_mono:-"12"}
     fi
   else  # non-monotonic options
     d_con=${d_con_nonmono:-"1."}
@@ -342,9 +367,11 @@ FV3_predet(){
     if [[ "${TYPE}" == "nh" ]]; then  # non-monotonic and non-hydrostatic
       hord_mt=${hord_mt_nh_nonmono:-"5"}
       hord_xx=${hord_xx_nh_nonmono:-"5"}
+      hord_dp=${hord_dp_nh_nonmono:-"-5"}
     else # non-monotonic and hydrostatic
       hord_mt=${hord_mt_hydro_nonmono:-"10"}
       hord_xx=${hord_xx_hydro_nonmono:-"10"}
+      hord_dp=${hord_xx_hydro_nonmono:-"10"}
     fi
   fi
 
@@ -369,41 +396,38 @@ FV3_predet(){
   do_sppt=".false."
   do_ca=".false."
   ISEED=0
-  if (( MEMBER > 0 )); then  # these are only applicable for ensemble members
-    local imem=${MEMBER#0}
-    local base_seed=$((current_cycle*10000 + imem*100))
+  local imem=${MEMBER#0}
+  local base_seed=$((current_cycle*10000 + imem*100))
 
-    if [[ "${DO_SKEB:-}" == "YES" ]]; then
-      do_skeb=".true."
-      ISEED_SKEB=$((base_seed + 1))
-    fi
+  if [[ "${DO_SKEB:-}" == "YES" ]]; then
+    do_skeb=".true."
+    ISEED_SKEB=$((base_seed + 1))
+  fi
 
-    if [[ "${DO_SHUM:-}" == "YES" ]]; then
-      do_shum=".true."
-      ISEED_SHUM=$((base_seed + 2))
-    fi
+  if [[ "${DO_SHUM:-}" == "YES" ]]; then
+    do_shum=".true."
+    ISEED_SHUM=$((base_seed + 2))
+  fi
 
-    if [[ "${DO_SPPT:-}" == "YES" ]]; then
-      do_sppt=".true."
-      ISEED_SPPT=$((base_seed + 3)),$((base_seed + 4)),$((base_seed + 5)),$((base_seed + 6)),$((base_seed + 7))
-    fi
+  if [[ "${DO_SPPT:-}" == "YES" ]]; then
+    do_sppt=".true."
+    ISEED_SPPT=$((base_seed + 3)),$((base_seed + 4)),$((base_seed + 5)),$((base_seed + 6)),$((base_seed + 7))
+  fi
 
-    if [[ "${DO_CA:-}" == "YES" ]]; then
-      do_ca=".true."
-      ISEED_CA=$(( (base_seed + 18) % 2147483647 ))
-    fi
+  if [[ "${DO_CA:-}" == "YES" ]]; then
+    do_ca=".true."
+    ISEED_CA=$(( (base_seed + 18) % 2147483647 ))
+  fi
 
-    if [[ "${DO_LAND_PERT:-}" == "YES" ]]; then
-      lndp_type=${lndp_type:-2}
-      ISEED_LNDP=$(( (base_seed + 5) % 2147483647 ))
-      LNDP_TAU=${LNDP_TAU:-21600}
-      LNDP_SCALE=${LNDP_SCALE:-500000}
-      lndp_var_list=${lndp_var_list:-"'smc', 'vgf',"}
-      lndp_prt_list=${lndp_prt_list:-"0.2,0.1"}
-      n_var_lndp=$(echo "${lndp_var_list}" | wc -w)
-    fi
-
-  fi  # end of ensemble member specific options
+  if [[ "${DO_LAND_PERT:-}" == "YES" ]]; then
+    lndp_type=${lndp_type:-2}
+    ISEED_LNDP=$(( (base_seed + 5) % 2147483647 ))
+    LNDP_TAU=${LNDP_TAU:-21600}
+    LNDP_SCALE=${LNDP_SCALE:-500000}
+    lndp_var_list=${lndp_var_list:-"'smc', 'vgf',"}
+    lndp_prt_list=${lndp_prt_list:-"0.2,0.1"}
+    n_var_lndp=$(echo "${lndp_var_list}" | wc -w)
+  fi
 
   #--------------------------------------------------------------------------
 
@@ -543,12 +567,26 @@ FV3_predet(){
     if [[ "${RUN}" =~ "gdas" || "${RUN}" =~ "gfs" ]]; then  # RUN = gdas | enkfgdas | gfs | enkfgfs
       ${NCP} "${PARMgfs}/post/gfs/postxconfig-NT-gfs-two.txt"     "${DATA}/postxconfig-NT.txt"
       ${NCP} "${PARMgfs}/post/gfs/postxconfig-NT-gfs-f00-two.txt" "${DATA}/postxconfig-NT_FH00.txt"
-    elif [[ "${RUN}" == "gefs" ]]; then  # RUN = gefs
+    elif [[ "${RUN}" == "gefs" && "${SFS_POST:-NO}" == "NO" ]]; then  # RUN = gefs
       ${NCP} "${PARMgfs}/post/gefs/postxconfig-NT-gefs.txt"       "${DATA}/postxconfig-NT.txt"
       ${NCP} "${PARMgfs}/post/gefs/postxconfig-NT-gefs-f00.txt"   "${DATA}/postxconfig-NT_FH00.txt"
+    elif [[ "${RUN}" == "gefs" && "${SFS_POST:-NO}" == "YES" ]]; then  # RUN = sfs output
+      ${NCP} "${PARMgfs}/post/sfs/postxconfig-NT-sfs.txt"       "${DATA}/postxconfig-NT.txt"
+      ${NCP} "${PARMgfs}/post/sfs/postxconfig-NT-sfs.txt"       "${DATA}/postxconfig-NT_FH00.txt"
     fi
-  fi
 
+    # For gefs run, provide ensemble header information
+    if [[ "${RUN}" == "gefs" ]]; then
+      if [[ "${ENSMEM}" == "000" ]]; then
+        export e1=1
+      else
+        export e1=3
+      fi
+      export e2="${ENSMEM:1:2}"
+      export e3="${NMEM_ENS}"
+    fi
+
+  fi
 }
 
 # Disable variable not used warnings
@@ -557,30 +595,17 @@ WW3_predet(){
   echo "SUB ${FUNCNAME[0]}: WW3 before run type determination"
 
   if [[ ! -d "${COMOUT_WAVE_HISTORY}" ]]; then mkdir -p "${COMOUT_WAVE_HISTORY}"; fi
-  if [[ ! -d "${COMOUT_WAVE_RESTART}" ]]; then mkdir -p "${COMOUT_WAVE_RESTART}" ; fi
+  if [[ ! -d "${COMOUT_WAVE_RESTART}" ]]; then mkdir -p "${COMOUT_WAVE_RESTART}"; fi
 
-  if [[ ! -d "${DATArestart}/WAVE_RESTART" ]]; then mkdir -p "${DATArestart}/WAVE_RESTART"; fi
-  ${NLN} "${DATArestart}/WAVE_RESTART" "${DATA}/restart_wave"
+  if [[ ! -d "${DATArestart}/WW3_RESTART" ]]; then mkdir -p "${DATArestart}/WW3_RESTART"; fi
+  # Wave restarts are linked in postdet to only create links for files that will be created
 
   # Files from wave prep and wave init jobs
   # Copy mod_def files for wave grids
   local ww3_grid
-  if [[ "${waveMULTIGRID}" == ".true." ]]; then
-    local array=("${WAVECUR_FID}" "${WAVEICE_FID}" "${WAVEWND_FID}" "${waveuoutpGRD}" "${waveGRD}" "${waveesmfGRD}")
-    echo "Wave Grids: ${array[*]}"
-    local grdALL
-    # shellcheck disable=SC2312
-    grdALL=$(printf "%s\n" "${array[@]}" | sort -u | tr '\n' ' ')
-
-    for ww3_grid in ${grdALL}; do
-      ${NCP} "${COMIN_WAVE_PREP}/${RUN}wave.mod_def.${ww3_grid}" "${DATA}/mod_def.${ww3_grid}" \
-      || ( echo "FATAL ERROR: Failed to copy '${RUN}wave.mod_def.${ww3_grid}' from '${COMIN_WAVE_PREP}'"; exit 1 )
-    done
-  else
-    #if shel, only 1 waveGRD which is linked to mod_def.ww3
-    ${NCP} "${COMIN_WAVE_PREP}/${RUN}wave.mod_def.${waveGRD}" "${DATA}/mod_def.ww3" \
-    || ( echo "FATAL ERROR: Failed to copy '${RUN}wave.mod_def.${waveGRD}' from '${COMIN_WAVE_PREP}'"; exit 1 )
-  fi
+  #if shel, only 1 waveGRD which is linked to mod_def.ww3
+  ${NCP} "${COMIN_WAVE_PREP}/${RUN}wave.mod_def.${waveGRD}" "${DATA}/mod_def.ww3" \
+  || ( echo "FATAL ERROR: Failed to copy '${RUN}wave.mod_def.${waveGRD}' from '${COMIN_WAVE_PREP}'"; exit 1 )
 
   if [[ "${WW3ICEINP}" == "YES" ]]; then
     local wavicefile="${COMIN_WAVE_PREP}/${RUN}wave.${WAVEICE_FID}.t${current_cycle:8:2}z.ice"
@@ -612,20 +637,6 @@ WW3_predet(){
   fi
 
   WAV_MOD_TAG="${RUN}wave${waveMEMB}"
-  if [[ "${USE_WAV_RMP:-YES}" == "YES" ]]; then
-    local file file_array file_count
-    # shellcheck disable=SC2312
-    mapfile -t file_array < <(find "${FIXgfs}/wave" -name "rmp_src_to_dst_conserv_*" | sort)
-    file_count=${#file_array[@]}
-    if (( file_count > 0 )); then
-      for file in "${file_array[@]}" ; do
-        ${NCP} "${file}" "${DATA}/"
-      done
-    else
-      echo 'FATAL ERROR : No rmp precomputed nc files found for wave model, ABORT!'
-      exit 4
-    fi
-  fi
 }
 
 # shellcheck disable=SC2034
@@ -642,15 +653,8 @@ CICE_predet(){
 
   # CICE does not have a concept of high frequency output like FV3
   # Convert output settings into an explicit list for CICE
-  if (( $(( ( cyc + FHMIN ) % FHOUT_ICE )) == 0 )); then
-    # shellcheck disable=SC2312
-    mapfile -t CICE_OUTPUT_FH < <(seq "${FHMIN}" "${FHOUT_ICE}" "${FHMAX}") || exit 10
-  else
-    CICE_OUTPUT_FH=("${FHMIN}")
-    # shellcheck disable=SC2312
-    mapfile -t -O "${#CICE_OUTPUT_FH[@]}" CICE_OUTPUT_FH < <(seq "$(( FHMIN + $(( ( cyc + FHMIN ) % FHOUT_ICE )) ))" "${FHOUT_ICE}" "${FHMAX}") || exit 10
-    CICE_OUTPUT_FH+=("${FHMAX}")
-  fi
+  # shellcheck disable=SC2312
+  mapfile -t CICE_OUTPUT_FH < <(seq "${FHMIN}" "${FHOUT_ICE}" "${FHMAX}") || exit 10
 
   # Fix files
   ${NCP} "${FIXgfs}/cice/${ICERES}/${CICE_GRID}" "${DATA}/"
@@ -677,17 +681,15 @@ MOM6_predet(){
 
   # If using stochastic parameterizations, create a seed that does not exceed the
   # largest signed integer
-  if (( MEMBER > 0 )); then  # these are only applicable for ensemble members
-    local imem=${MEMBER#0}
-    local base_seed=$((current_cycle*10000 + imem*100))
+  local imem=${MEMBER#0}
+  local base_seed=$((current_cycle*10000 + imem*100))
 
-    if [[ "${DO_OCN_SPPT:-}" == "YES" ]]; then
-      ISEED_OCNSPPT=$((base_seed + 8)),$((base_seed + 9)),$((base_seed + 10)),$((base_seed + 11)),$((base_seed + 12))
-    fi
+  if [[ "${DO_OCN_SPPT:-}" == "YES" ]]; then
+    ISEED_OCNSPPT=$((base_seed + 8)),$((base_seed + 9)),$((base_seed + 10)),$((base_seed + 11)),$((base_seed + 12))
+  fi
 
-    if [[ "${DO_OCN_PERT_EPBL:-}" == "YES" ]]; then
-      ISEED_EPBL=$((base_seed + 13)),$((base_seed + 14)),$((base_seed + 15)),$((base_seed + 16)),$((base_seed + 17))
-    fi
+  if [[ "${DO_OCN_PERT_EPBL:-}" == "YES" ]]; then
+    ISEED_EPBL=$((base_seed + 13)),$((base_seed + 14)),$((base_seed + 15)),$((base_seed + 16)),$((base_seed + 17))
   fi
 
   # Fix files
@@ -705,6 +707,7 @@ MOM6_predet(){
 
 }
 
+# shellcheck disable=SC2178 
 CMEPS_predet(){
   echo "SUB ${FUNCNAME[0]}: CMEPS before run type determination"
 
@@ -713,6 +716,29 @@ CMEPS_predet(){
   if [[ ! -d "${DATArestart}/CMEPS_RESTART" ]]; then mkdir -p "${DATArestart}/CMEPS_RESTART"; fi
   ${NLN} "${DATArestart}/CMEPS_RESTART" "${DATA}/CMEPS_RESTART"
 
+  # For CMEPS, CICE, MOM6 and WW3 determine restart writes
+  # Note FV3 has its own restart intervals  
+  cmeps_restart_interval=${restart_interval:-${FHMAX}}
+  # restart_interval = 0 implies write restart at the END of the forecast i.e. at FHMAX
+  # Convert restart interval into an explicit list for FV3
+  if (( cmeps_restart_interval == 0 )); then
+    if [[ "${DOIAU:-NO}" == "YES" ]]; then
+      CMEPS_RESTART_FH=$(( FHMAX + half_window ))
+    else
+      CMEPS_RESTART_FH=("${FHMAX}")
+    fi
+  else
+    if [[ "${DOIAU:-NO}" == "YES" ]]; then
+      local restart_interval_start=$(( cmeps_restart_interval + half_window ))
+      local restart_interval_end=$(( FHMAX + half_window ))
+    else
+      local restart_interval_start=${cmeps_restart_interval}
+      local restart_interval_end=${FHMAX}
+    fi
+    CMEPS_RESTART_FH="$(seq -s ' ' "${restart_interval_start}" "${cmeps_restart_interval}" "${restart_interval_end}")"
+  fi
+  export CMEPS_RESTART_FH
+  # TODO: For GEFS, once cycling waves "self-cycles" and therefore needs to have a restart at 6 hour
 }
 
 # shellcheck disable=SC2034
@@ -721,6 +747,8 @@ GOCART_predet(){
 
   if [[ ! -d "${COMOUT_CHEM_HISTORY}" ]]; then mkdir -p "${COMOUT_CHEM_HISTORY}"; fi
 
-  GOCART_OUTPUT_FH=$(seq -s ' ' "${FHMIN}" "6" "${FHMAX}")
-  # TODO: AERO_HISTORY.rc has hardwired output frequency to 6 hours
+  # FHMAX gets modified when IAU is on, so keep origianl value for GOCART output
+  GOCART_MAX=${FHMAX}
+
+  # GOCART output times can't be computed here because they may depend on FHROT
 }

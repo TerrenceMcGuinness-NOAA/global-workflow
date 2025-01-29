@@ -3,6 +3,11 @@
 # Jet-specific job resources
 
 case ${step} in
+  "prep")
+    # Run on 7 nodes for memory requirement
+    tasks_per_node=2
+    ;;
+
   "anal")
     if [[ "${CASE}" == "C384" ]]; then
       export ntasks=270
@@ -35,7 +40,7 @@ case ${step} in
     ;;
 
   "ecen")
-    if [[ "${CASE}" == "C768" ]]; then export threads_per_task=6; fi
+    if [[ "${CASE}" == "C768" || "${CASE}" == "C1152" ]]; then export threads_per_task=6; fi
     export tasks_per_node=$(( max_tasks_per_node / threads_per_task ))
     ;;
 

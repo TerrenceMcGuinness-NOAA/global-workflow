@@ -163,7 +163,7 @@ cat > input.nml <<EOF
   hord_mt = ${hord_mt}
   hord_vt = ${hord_xx}
   hord_tm = ${hord_xx}
-  hord_dp = -${hord_xx}
+  hord_dp = ${hord_dp}
   hord_tr = ${hord_tr:-"8"}
   adjust_dry_mass = ${adjust_dry_mass:-".true."}
   dry_mass=${dry_mass:-98320.0}
@@ -656,6 +656,7 @@ if [[ "${DO_SPPT}" = "YES" || "${DO_SHUM}" = "YES" || "${DO_SKEB}" = "YES" || "$
 
     cat >> input.nml << EOF
 &nam_stochy
+  stochini=${stochini:-".false."}
 EOF
 
   if [[ ${DO_SKEB} = "YES" ]]; then
@@ -689,24 +690,6 @@ EOF
   sppt_sfclimit = ${SPPT_SFCLIMIT:-".true."}
   use_zmtnblck = ${use_zmtnblck:-".true."}
   pbl_taper = ${pbl_taper:-"0,0,0,0.125,0.25,0.5,0.75"}
-EOF
-  fi
-
-  if [[ "${DO_OCN_SPPT:-NO}" == "YES" ]]; then
-    cat >> input.nml <<EOF
-  OCNSPPT=${OCNSPPT}
-  OCNSPPT_LSCALE=${OCNSPPT_LSCALE}
-  OCNSPPT_TAU=${OCNSPPT_TAU}
-  ISEED_OCNSPPT=${ISEED_OCNSPPT:-${ISEED}}
-EOF
-  fi
-
-  if [[ "${DO_OCN_PERT_EPBL:-NO}" == "YES" ]]; then
-    cat >> input.nml <<EOF
-  EPBL=${EPBL}
-  EPBL_LSCALE=${EPBL_LSCALE}
-  EPBL_TAU=${EPBL_TAU}
-  ISEED_EPBL=${ISEED_EPBL:-${ISEED}}
 EOF
   fi
 

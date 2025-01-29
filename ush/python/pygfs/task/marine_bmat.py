@@ -9,51 +9,73 @@ from wxflow import (AttrDict,
                     FileHandler,
                     add_to_datetime, to_timedelta,
                     chdir,
-                    parse_j2yaml,
+                    parse_j2yaml, save_as_yaml,
                     logit,
                     Executable,
                     Task)
+
+from pygfs.jedi import Jedi
 
 logger = getLogger(__name__.split('.')[-1])
 
 
 class MarineBMat(Task):
     """
-    Class for global marine B-matrix tasks
+    Class for global marine B-matrix tasks.
     """
     @logit(logger, name="MarineBMat")
     def __init__(self, config):
+        """Constructor for marine B-matrix task
+
+        This method will construct the marine B-matrix task object
+        This includes:
+        - extending the task_config AttrDict to include parameters required for this task
+        - instantiate the Jedi attribute objects
+
+        Parameters
+        ----------
+        config: Dict
+            dictionary object containing task configuration
+
+        Returns
+        ----------
+        None
+        """
         super().__init__(config)
+
         _home_gdas = os.path.join(self.task_config.HOMEgfs, 'sorc', 'gdas.cd')
         _calc_scale_exec = os.path.join(self.task_config.HOMEgfs, 'ush', 'soca', 'calc_scales.py')
-        _window_begin = add_to_datetime(self.task_config.current_cycle, -to_timedelta(f"{self.task_config.assim_freq}H") / 2)
-        _window_end = add_to_datetime(self.task_config.current_cycle, to_timedelta(f"{self.task_config.assim_freq}H") / 2)
+        _window_begin = add_to_datetime(self.task_config.current_cycle,
+                                        -to_timedelta(f"{self.task_config.assim_freq}H") / 2)
+        _window_end = add_to_datetime(self.task_config.current_cycle,
+                                      to_timedelta(f"{self.task_config.assim_freq}H") / 2)
 
         # compute the relative path from self.task_config.DATA to self.task_config.DATAenspert
-        if self.task_config.NMEM_ENS > 0:
-            _enspert_relpath = os.path.relpath(self.task_config.DATAenspert, self.task_config.DATA)
-        else:
-            _enspert_relpath = None
+        _enspert_relpath = os.path.relpath(self.task_config.DATAens, self.task_config.DATA)
 
         # Create a local dictionary that is repeatedly used across this class
         local_dict = AttrDict(
             {
-                'HOMEgdas': _home_gdas,
+                'PARMsoca': os.path.join(self.task_config.PARMgfs, 'gdas', 'soca'),
+                'CALC_SCALE_EXEC': _calc_scale_exec,
                 'MARINE_WINDOW_BEGIN': _window_begin,
-                'MARINE_WINDOW_END': _window_end,
                 'MARINE_WINDOW_MIDDLE': self.task_config.current_cycle,
-                'BERROR_YAML_DIR': os.path.join(_home_gdas, 'parm', 'soca', 'berror'),
-                'UTILITY_YAML_TMPL': os.path.join(_home_gdas, 'parm', 'soca', 'soca_utils_stage.yaml.j2'),
-                'MARINE_ENSDA_STAGE_BKG_YAML_TMPL': os.path.join(_home_gdas, 'parm', 'soca', 'ensda', 'stage_ens_mem.yaml.j2'),
-                'MARINE_DET_STAGE_BKG_YAML_TMPL': os.path.join(_home_gdas, 'parm', 'soca', 'soca_det_bkg_stage.yaml.j2'),
+                'MARINE_WINDOW_END': _window_end,
+                'MARINE_WINDOW_LENGTH': f"PT{self.task_config['assim_freq']}H",
                 'ENSPERT_RELPATH': _enspert_relpath,
                 'CALC_SCALE_EXEC': _calc_scale_exec,
                 'APREFIX': f"{self.task_config.RUN}.t{self.task_config.cyc:02d}z.",
+                'MOM6_LEVS': mdau.get_mom6_levels(str(self.task_config.OCNRES))
             }
         )
 
         # Extend task_config with local_dict
         self.task_config = AttrDict(**self.task_config, **local_dict)
+
+        # Create dictionary of Jedi objects
+        expected_keys = ['gridgen', 'soca_diagb', 'soca_parameters_diffusion_vt', 'soca_setcorscales',
+                         'soca_parameters_diffusion_hz', 'soca_ensb', 'soca_ensweights']
+        self.jedi_dict = Jedi.get_jedi_dict(self.task_config.JEDI_CONFIG_YAML, self.task_config, expected_keys)
 
     @logit(logger)
     def initialize(self: Task) -> None:
@@ -61,14 +83,22 @@ class MarineBMat(Task):
 
         This method will initialize a global B-Matrix.
         This includes:
-        - staging the deterministic backgrounds (middle of window)
+        - staging the deterministic backgrounds
         - staging SOCA fix files
         - staging static ensemble members (optional)
         - staging ensemble members (optional)
-        - generating the YAML files for the JEDI and GDASApp executables
+        - initializing the soca_vtscales Python script
+        - initializing the JEDI applications
         - creating output directories
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        ----------
+        None
         """
-        super().initialize()
 
         # stage fix files
         logger.info(f"Staging SOCA fix files from {self.task_config.SOCA_INPUT_FIX_DIR}")
@@ -83,189 +113,78 @@ class MarineBMat(Task):
         bkg_list = parse_j2yaml(self.task_config.MARINE_DET_STAGE_BKG_YAML_TMPL, self.task_config)
         FileHandler(bkg_list).sync()
 
-        # stage the soca utility yamls (gridgen, fields and ufo mapping yamls)
-        logger.info(f"Staging SOCA utility yaml files from {self.task_config.HOMEgfs}/parm/gdas/soca")
-        soca_utility_list = parse_j2yaml(self.task_config.UTILITY_YAML_TMPL, self.task_config)
+        # stage the soca utility yamls (fields and ufo mapping yamls)
+        logger.info(f"Staging SOCA utility yaml files")
+        soca_utility_list = parse_j2yaml(self.task_config.MARINE_UTILITY_YAML_TMPL, self.task_config)
         FileHandler(soca_utility_list).sync()
 
-        # generate the variance partitioning YAML file
-        logger.debug("Generate variance partitioning YAML file")
-        diagb_config = parse_j2yaml(path=os.path.join(self.task_config.BERROR_YAML_DIR, 'soca_diagb.yaml.j2'),
-                                    data=self.task_config)
-        diagb_config.save(os.path.join(self.task_config.DATA, 'soca_diagb.yaml'))
+        # initialize vtscales python script
+        vtscales_config = self.jedi_dict['soca_parameters_diffusion_vt'].render_jcb(self.task_config, 'soca_vtscales')
+        save_as_yaml(vtscales_config, os.path.join(self.task_config.DATA, 'soca_vtscales.yaml'))
+        FileHandler({'copy': [[os.path.join(self.task_config.CALC_SCALE_EXEC),
+                               os.path.join(self.task_config.DATA, 'calc_scales.x')]]}).sync()
 
-        # generate the vertical decorrelation scale YAML file
-        logger.debug("Generate the vertical correlation scale YAML file")
-        vtscales_config = parse_j2yaml(path=os.path.join(self.task_config.BERROR_YAML_DIR, 'soca_vtscales.yaml.j2'),
-                                       data=self.task_config)
-        vtscales_config.save(os.path.join(self.task_config.DATA, 'soca_vtscales.yaml'))
+        # initialize JEDI applications
+        self.jedi_dict['gridgen'].initialize(self.task_config)
+        self.jedi_dict['soca_diagb'].initialize(self.task_config)
+        self.jedi_dict['soca_parameters_diffusion_vt'].initialize(self.task_config)
+        self.jedi_dict['soca_setcorscales'].initialize(self.task_config)
+        self.jedi_dict['soca_parameters_diffusion_hz'].initialize(self.task_config)
+        if self.task_config.DOHYBVAR_OCN == "YES" or self.task_config.NMEM_ENS >= 2:
+            self.jedi_dict['soca_ensb'].initialize(self.task_config)
+            self.jedi_dict['soca_ensweights'].initialize(self.task_config)
 
-        # generate vertical diffusion scale YAML file
-        logger.debug("Generate vertical diffusion YAML file")
-        diffvz_config = parse_j2yaml(path=os.path.join(self.task_config.BERROR_YAML_DIR, 'soca_parameters_diffusion_vt.yaml.j2'),
-                                     data=self.task_config)
-        diffvz_config.save(os.path.join(self.task_config.DATA, 'soca_parameters_diffusion_vt.yaml'))
-
-        # generate the horizontal diffusion YAML files
-        if True:  # TODO(G): skip this section once we have optimized the scales
-            # stage the correlation scale configuration
-            logger.debug("Generate correlation scale YAML file")
-            FileHandler({'copy': [[os.path.join(self.task_config.BERROR_YAML_DIR, 'soca_setcorscales.yaml'),
-                                   os.path.join(self.task_config.DATA, 'soca_setcorscales.yaml')]]}).sync()
-
-            # generate horizontal diffusion scale YAML file
-            logger.debug("Generate horizontal diffusion scale YAML file")
-            diffhz_config = parse_j2yaml(path=os.path.join(self.task_config.BERROR_YAML_DIR, 'soca_parameters_diffusion_hz.yaml.j2'),
-                                         data=self.task_config)
-            diffhz_config.save(os.path.join(self.task_config.DATA, 'soca_parameters_diffusion_hz.yaml'))
-
-        # hybrid EnVAR case
-        if self.task_config.DOHYBVAR == "YES" or self.task_config.NMEM_ENS > 2:
-            # stage ensemble membersfiles for use in hybrid background error
+        # stage ensemble members for the hybrid background error
+        if self.task_config.DOHYBVAR_OCN == "YES" or self.task_config.NMEM_ENS >= 2:
             logger.debug(f"Stage ensemble members for the hybrid background error")
             mdau.stage_ens_mem(self.task_config)
 
-            # generate ensemble recentering/rebalancing YAML file
-            logger.debug("Generate ensemble recentering YAML file")
-            ensrecenter_config = parse_j2yaml(path=os.path.join(self.task_config.BERROR_YAML_DIR, 'soca_ensb.yaml.j2'),
-                                              data=self.task_config)
-            ensrecenter_config.save(os.path.join(self.task_config.DATA, 'soca_ensb.yaml'))
-
-            # generate ensemble weights YAML file
-            logger.debug("Generate ensemble recentering YAML file: {self.task_config.abcd_yaml}")
-            hybridweights_config = parse_j2yaml(path=os.path.join(self.task_config.BERROR_YAML_DIR, 'soca_ensweights.yaml.j2'),
-                                                data=self.task_config)
-            hybridweights_config.save(os.path.join(self.task_config.DATA, 'soca_ensweights.yaml'))
-
-        # need output dir for ensemble perturbations and static B-matrix
-        logger.debug("Create empty diagb directories to receive output from executables")
-        FileHandler({'mkdir': [os.path.join(self.task_config.DATA, 'diagb')]}).sync()
+        # create the symbolic link to the static B-matrix directory
+        link_target = os.path.join(self.task_config.DATAstaticb)
+        link_name = os.path.join(self.task_config.DATA, 'staticb')
+        if os.path.exists(link_name):
+            os.remove(link_name)
+        os.symlink(link_target, link_name)
 
     @logit(logger)
-    def gridgen(self: Task) -> None:
-        # link gdas_soca_gridgen.x
-        mdau.link_executable(self.task_config, 'gdas_soca_gridgen.x')
-        exec_cmd = Executable(self.task_config.APRUN_MARINEBMAT)
-        exec_name = os.path.join(self.task_config.DATA, 'gdas_soca_gridgen.x')
-        exec_cmd.add_default_arg(exec_name)
-        exec_cmd.add_default_arg('gridgen.yaml')
+    def execute(self) -> None:
+        """Generate the full B-matrix
 
-        mdau.run(exec_cmd)
+        This method will generate the full B-matrix according to the configuration.
+        This includes:
+        - running all JEDI application and Python scripts required to generate the B-matrix
 
-    @logit(logger)
-    def variance_partitioning(self: Task) -> None:
-        # link the variance partitioning executable, gdas_soca_diagb.x
-        mdau.link_executable(self.task_config, 'gdas_soca_diagb.x')
-        exec_cmd = Executable(self.task_config.APRUN_MARINEBMAT)
-        exec_name = os.path.join(self.task_config.DATA, 'gdas_soca_diagb.x')
-        exec_cmd.add_default_arg(exec_name)
-        exec_cmd.add_default_arg('soca_diagb.yaml')
+        Parameters
+        ----------
+        None
 
-        mdau.run(exec_cmd)
-
-    @logit(logger)
-    def horizontal_diffusion(self: Task) -> None:
-        """Generate the horizontal diffusion coefficients
+        Returns
+        ----------
+        None
         """
-        # link the executable that computes the correlation scales, gdas_soca_setcorscales.x,
-        # and prepare the command to run it
-        mdau.link_executable(self.task_config, 'gdas_soca_setcorscales.x')
-        exec_cmd = Executable(self.task_config.APRUN_MARINEBMAT)
-        exec_name = os.path.join(self.task_config.DATA, 'gdas_soca_setcorscales.x')
-        exec_cmd.add_default_arg(exec_name)
-        exec_cmd.add_default_arg('soca_setcorscales.yaml')
 
-        # create a files containing the correlation scales
-        mdau.run(exec_cmd)
+        self.jedi_dict['gridgen'].execute()
 
-        # link the executable that computes the correlation scales, gdas_soca_error_covariance_toolbox.x,
-        # and prepare the command to run it
-        mdau.link_executable(self.task_config, 'gdas_soca_error_covariance_toolbox.x')
-        exec_cmd = Executable(self.task_config.APRUN_MARINEBMAT)
-        exec_name = os.path.join(self.task_config.DATA, 'gdas_soca_error_covariance_toolbox.x')
-        exec_cmd.add_default_arg(exec_name)
-        exec_cmd.add_default_arg('soca_parameters_diffusion_hz.yaml')
+        # variance partitioning
+        self.jedi_dict['soca_diagb'].execute()
 
-        # compute the coefficients of the diffusion operator
-        mdau.run(exec_cmd)
+        # horizontal diffusion
+        self.jedi_dict['soca_setcorscales'].execute()
+        self.jedi_dict['soca_parameters_diffusion_hz'].execute()
 
-    @logit(logger)
-    def vertical_diffusion(self: Task) -> None:
-        """Generate the vertical diffusion coefficients
-        """
-        # compute the vertical correlation scales based on the MLD
-        FileHandler({'copy': [[os.path.join(self.task_config.CALC_SCALE_EXEC),
-                               os.path.join(self.task_config.DATA, 'calc_scales.x')]]}).sync()
+        # vertical diffusion
         exec_cmd = Executable("python")
         exec_name = os.path.join(self.task_config.DATA, 'calc_scales.x')
         exec_cmd.add_default_arg(exec_name)
         exec_cmd.add_default_arg('soca_vtscales.yaml')
         mdau.run(exec_cmd)
 
-        # link the executable that computes the correlation scales, gdas_soca_error_covariance_toolbox.x,
-        # and prepare the command to run it
-        mdau.link_executable(self.task_config, 'gdas_soca_error_covariance_toolbox.x')
-        exec_cmd = Executable(self.task_config.APRUN_MARINEBMAT)
-        exec_name = os.path.join(self.task_config.DATA, 'gdas_soca_error_covariance_toolbox.x')
-        exec_cmd.add_default_arg(exec_name)
-        exec_cmd.add_default_arg('soca_parameters_diffusion_vt.yaml')
+        self.jedi_dict['soca_parameters_diffusion_vt'].execute()
 
-        # compute the coefficients of the diffusion operator
-        mdau.run(exec_cmd)
-
-    @logit(logger)
-    def ensemble_perturbations(self: Task) -> None:
-        """Generate the 3D ensemble of perturbation for the 3DEnVAR
-
-        This method will generate ensemble perturbations re-balanced w.r.t the
-        deterministic background.
-        This includes:
-        - computing a storing the unbalanced ensemble perturbations' statistics
-        - recentering the ensemble members around the deterministic background and
-          accounting for the nonlinear steric recentering
-        - saving the recentered ensemble statistics
-        """
-        mdau.link_executable(self.task_config, 'gdas_ens_handler.x')
-        exec_cmd = Executable(self.task_config.APRUN_MARINEBMAT)
-        exec_name = os.path.join(self.task_config.DATA, 'gdas_ens_handler.x')
-        exec_cmd.add_default_arg(exec_name)
-        exec_cmd.add_default_arg('soca_ensb.yaml')
-
-        # generate the ensemble perturbations
-        mdau.run(exec_cmd)
-
-    @logit(logger)
-    def hybrid_weight(self: Task) -> None:
-        """Generate the hybrid weights for the 3DEnVAR
-
-        This method will generate the 3D fields hybrid weights for the 3DEnVAR for each
-        variables.
-        TODO(G): Currently implemented for the specific case of the static ensemble members only
-        """
-        mdau.link_executable(self.task_config, 'gdas_socahybridweights.x')
-        exec_cmd = Executable(self.task_config.APRUN_MARINEBMAT)
-        exec_name = os.path.join(self.task_config.DATA, 'gdas_socahybridweights.x')
-        exec_cmd.add_default_arg(exec_name)
-        exec_cmd.add_default_arg('soca_ensweights.yaml')
-
-        # compute the ensemble weights
-        mdau.run(exec_cmd)
-
-    @logit(logger)
-    def execute(self: Task) -> None:
-        """Generate the full B-matrix
-
-        This method will generate the full B-matrix according to the configuration.
-        """
-        chdir(self.task_config.DATA)
-        self.gridgen()                 # TODO: This should be optional in case the geometry file was staged
-        self.variance_partitioning()
-        self.horizontal_diffusion()    # TODO: Make this optional once we've converged on an acceptable set of scales
-        self.vertical_diffusion()
         # hybrid EnVAR case
-        if self.task_config.DOHYBVAR == "YES" or self.task_config.NMEM_ENS > 2:
-            self.ensemble_perturbations()  # TODO: refactor this from the old scripts
-            self.hybrid_weight()           # TODO: refactor this from the old scripts
+        if self.task_config.DOHYBVAR_OCN == "YES" or self.task_config.NMEM_ENS >= 2:
+            self.jedi_dict['soca_ensb'].execute()
+            self.jedi_dict['soca_ensweights'].execute()
 
     @logit(logger)
     def finalize(self: Task) -> None:
@@ -278,6 +197,13 @@ class MarineBMat(Task):
         - keep the re-balanced ensemble perturbation files in DATAenspert
         - ...
 
+        Parameters
+        ----------
+        None
+
+        Returns
+        ----------
+        None
         """
         # Copy the soca grid if it was created
         grid_file = os.path.join(self.task_config.DATA, 'soca_gridspec.nc')
@@ -290,15 +216,10 @@ class MarineBMat(Task):
         logger.info(f"Copying the diffusion coefficient files to the ROTDIR")
         diffusion_coeff_list = []
         for diff_type in ['hz', 'vt']:
-            src = os.path.join(self.task_config.DATA, f"{diff_type}_ocean.nc")
+            src = os.path.join(self.task_config.DATAstaticb, f"{diff_type}_ocean.nc")
             dest = os.path.join(self.task_config.COMOUT_OCEAN_BMATRIX,
                                 f"{self.task_config.APREFIX}{diff_type}_ocean.nc")
             diffusion_coeff_list.append([src, dest])
-
-        src = os.path.join(self.task_config.DATA, f"hz_ice.nc")
-        dest = os.path.join(self.task_config.COMOUT_ICE_BMATRIX,
-                            f"{self.task_config.APREFIX}hz_ice.nc")
-        diffusion_coeff_list.append([src, dest])
 
         FileHandler({'copy': diffusion_coeff_list}).sync()
 
@@ -308,13 +229,17 @@ class MarineBMat(Task):
         window_end_iso = self.task_config.MARINE_WINDOW_END.strftime('%Y-%m-%dT%H:%M:%SZ')
 
         # ocean diag B
-        src = os.path.join(self.task_config.DATA, 'diagb', f"ocn.bkgerr_stddev.incr.{window_end_iso}.nc")
+        os.rename(os.path.join(self.task_config.DATAstaticb, f"ocn.bkgerr_stddev.incr.{window_end_iso}.nc"),
+                  os.path.join(self.task_config.DATAstaticb, f"ocn.bkgerr_stddev.nc"))
+        src = os.path.join(self.task_config.DATAstaticb, f"ocn.bkgerr_stddev.nc")
         dst = os.path.join(self.task_config.COMOUT_OCEAN_BMATRIX,
                            f"{self.task_config.APREFIX}ocean.bkgerr_stddev.nc")
         diagb_list.append([src, dst])
 
         # ice diag B
-        src = os.path.join(self.task_config.DATA, 'diagb', f"ice.bkgerr_stddev.incr.{window_end_iso}.nc")
+        os.rename(os.path.join(self.task_config.DATAstaticb, f"ice.bkgerr_stddev.incr.{window_end_iso}.nc"),
+                  os.path.join(self.task_config.DATAstaticb, f"ice.bkgerr_stddev.nc"))
+        src = os.path.join(self.task_config.DATAstaticb, f"ice.bkgerr_stddev.nc")
         dst = os.path.join(self.task_config.COMOUT_ICE_BMATRIX,
                            f"{self.task_config.APREFIX}ice.bkgerr_stddev.nc")
         diagb_list.append([src, dst])
@@ -322,7 +247,7 @@ class MarineBMat(Task):
         FileHandler({'copy': diagb_list}).sync()
 
         # Copy the ensemble perturbation diagnostics to the ROTDIR
-        if self.task_config.DOHYBVAR == "YES" or self.task_config.NMEM_ENS > 3:
+        if self.task_config.DOHYBVAR_OCN == "YES" or self.task_config.NMEM_ENS >= 2:
             window_middle_iso = self.task_config.MARINE_WINDOW_MIDDLE.strftime('%Y-%m-%dT%H:%M:%SZ')
             weight_list = []
             src = os.path.join(self.task_config.DATA, f"ocn.ens_weights.incr.{window_middle_iso}.nc")

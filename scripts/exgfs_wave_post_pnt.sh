@@ -252,7 +252,9 @@ source "${USHgfs}/preamble.sh"
                                ww3_outp_spec.inp.tmpl > ww3_outp.inp
 
     ${NLN} mod_def.$waveuoutpGRD mod_def.ww3
-    HMS="${cyc}0000"
+    #export OFFSET_START_HOUR=$( printf "%02d" ${half_assim} )
+    hh=$( printf "%02d" $(( cyc + OFFSET_START_HOUR )) )
+    HMS="${hh}0000"
     if [[ -f "${COMIN_WAVE_HISTORY}/${WAV_MOD_TAG}.out_pnt.${waveuoutpGRD}.${PDY}.${HMS}" ]]; then
       ${NLN} "${COMIN_WAVE_HISTORY}/${WAV_MOD_TAG}.out_pnt.${waveuoutpGRD}.${PDY}.${HMS}" \
         "./out_pnt.${waveuoutpGRD}"
@@ -269,18 +271,18 @@ source "${USHgfs}/preamble.sh"
     rm -f buoy_tmp.loc buoy_log.ww3 ww3_oup.inp
     ${NLN} ./out_pnt.${waveuoutpGRD} ./out_pnt.ww3
     ${NLN} ./mod_def.${waveuoutpGRD} ./mod_def.ww3
-    export pgm=ww3_outp;. prep_step
-    ${EXECgfs}/ww3_outp > buoy_lst.loc 2>&1
+
+    export pgm="${NET,,}_ww3_outp.x"
+    source prep_step
+
+    "${EXECgfs}/${pgm}" > buoy_lst.loc 2>&1
     export err=$?;err_chk
-
-
     if [ "$err" != '0' ] && [ ! -f buoy_log.ww3 ]
     then
-      pgm=wave_post
       set +x
       echo ' '
       echo '******************************************** '
-      echo '*** FATAL ERROR : ERROR IN ww3_outp *** '
+      echo "*** FATAL ERROR : ERROR IN ${pgm} *** "
       echo '******************************************** '
       echo ' '
       cat buoy_tmp.loc

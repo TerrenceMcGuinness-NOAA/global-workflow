@@ -6,8 +6,7 @@ import gzip
 import tarfile
 from logging import getLogger
 from pprint import pformat
-from typing import Optional, Dict, Any
-
+from typing import Any, Dict, List, Optional
 from wxflow import (AttrDict,
                     FileHandler,
                     add_to_datetime, to_fv3time, to_timedelta, to_YMDH,
@@ -24,20 +23,18 @@ class AtmAnalysis(Task):
     Class for JEDI-based global atm analysis tasks
     """
     @logit(logger, name="AtmAnalysis")
-    def __init__(self, config: Dict[str, Any], yaml_name: Optional[str] = None):
+    def __init__(self, config: Dict[str, Any]):
         """Constructor global atm analysis task
 
         This method will construct a global atm analysis task.
         This includes:
         - extending the task_config attribute AttrDict to include parameters required for this task
-        - instantiate the Jedi attribute object
+        - instantiate the Jedi attribute objects
 
         Parameters
         ----------
         config: Dict
             dictionary object containing task configuration
-        yaml_name: str, optional
-            name of YAML file for JEDI configuration
 
         Returns
         ----------
@@ -73,46 +70,17 @@ class AtmAnalysis(Task):
         # Extend task_config with local_dict
         self.task_config = AttrDict(**self.task_config, **local_dict)
 
-        # Create JEDI object
-        self.jedi = Jedi(self.task_config, yaml_name)
+        # Create dictionary of Jedi objects
+        expected_keys = ['atmanlvar', 'atmanlfv3inc']
+        self.jedi_dict = Jedi.get_jedi_dict(self.task_config.JEDI_CONFIG_YAML, self.task_config, expected_keys)
 
     @logit(logger)
-    def initialize_jedi(self):
-        """Initialize JEDI application
-
-        This method will initialize a JEDI application used in the global atm analysis.
-        This includes:
-        - generating and saving JEDI YAML config
-        - linking the JEDI executable
-
-        Parameters
-        ----------
-        None
-
-        Returns
-        ----------
-        None
-        """
-
-        # get JEDI-to-FV3 increment converter config and save to YAML file
-        logger.info(f"Generating JEDI YAML config: {self.jedi.yaml}")
-        self.jedi.set_config(self.task_config)
-        logger.debug(f"JEDI config:\n{pformat(self.jedi.config)}")
-
-        # save JEDI config to YAML file
-        logger.debug(f"Writing JEDI YAML config to: {self.jedi.yaml}")
-        save_as_yaml(self.jedi.config, self.jedi.yaml)
-
-        # link JEDI executable
-        logger.info(f"Linking JEDI executable {self.task_config.JEDIEXE} to {self.jedi.exe}")
-        self.jedi.link_exe(self.task_config)
-
-    @logit(logger)
-    def initialize_analysis(self) -> None:
+    def initialize(self) -> None:
         """Initialize a global atm analysis
 
         This method will initialize a global atm analysis.
         This includes:
+        - initialize JEDI applications
         - staging observation files
         - staging bias correction files
         - staging CRTM fix files
@@ -129,19 +97,33 @@ class AtmAnalysis(Task):
         ----------
         None
         """
-        super().initialize()
+
+        # initialize JEDI variational application
+        logger.info(f"Initializing JEDI variational DA application")
+        self.jedi_dict['atmanlvar'].initialize(self.task_config)
+
+        # initialize JEDI FV3 increment conversion application
+        logger.info(f"Initializing JEDI FV3 increment conversion application")
+        self.jedi_dict['atmanlfv3inc'].initialize(self.task_config)
 
         # stage observations
-        logger.info(f"Staging list of observation files generated from JEDI config")
-        obs_dict = self.jedi.get_obs_dict(self.task_config)
+        logger.info(f"Staging list of observation files")
+        obs_dict = self.jedi_dict['atmanlvar'].render_jcb(self.task_config, 'atm_obs_staging')
         FileHandler(obs_dict).sync()
         logger.debug(f"Observation files:\n{pformat(obs_dict)}")
 
         # stage bias corrections
-        logger.info(f"Staging list of bias correction files generated from JEDI config")
-        bias_dict = self.jedi.get_bias_dict(self.task_config)
-        FileHandler(bias_dict).sync()
-        logger.debug(f"Bias correction files:\n{pformat(bias_dict)}")
+        logger.info(f"Staging list of bias correction files")
+        bias_dict = self.jedi_dict['atmanlvar'].render_jcb(self.task_config, 'atm_bias_staging')
+        if bias_dict['copy'] is None:
+            logger.info(f"No bias correction files to stage")
+        else:
+            bias_dict['copy'] = Jedi.remove_redundant(bias_dict['copy'])
+            FileHandler(bias_dict).sync()
+            logger.debug(f"Bias correction files:\n{pformat(bias_dict)}")
+
+            # extract bias corrections
+            Jedi.extract_tar_from_filehandler_dict(bias_dict)
 
         # stage CRTM fix files
         logger.info(f"Staging CRTM fix files from {self.task_config.CRTM_FIX_YAML}")
@@ -186,29 +168,20 @@ class AtmAnalysis(Task):
         FileHandler({'mkdir': newdirs}).sync()
 
     @logit(logger)
-    def execute(self, aprun_cmd: str, jedi_args: Optional[str] = None) -> None:
-        """Run JEDI executable
-
-        This method will run JEDI executables for the global atm analysis
+    def execute(self, jedi_dict_key: str) -> None:
+        """Execute JEDI application of atm analysis
 
         Parameters
         ----------
-        aprun_cmd : str
-           Run command for JEDI application on HPC system
-        jedi_args : List
-           List of additional optional arguments for JEDI application
+        jedi_dict_key
+            key specifying particular Jedi object in self.jedi_dict
 
         Returns
         ----------
         None
         """
 
-        if jedi_args:
-            logger.info(f"Executing {self.jedi.exe} {' '.join(jedi_args)} {self.jedi.yaml}")
-        else:
-            logger.info(f"Executing {self.jedi.exe} {self.jedi.yaml}")
-
-        self.jedi.execute(self.task_config, aprun_cmd, jedi_args)
+        self.jedi_dict[jedi_dict_key].execute()
 
     @logit(logger)
     def finalize(self) -> None:
@@ -265,37 +238,34 @@ class AtmAnalysis(Task):
             }
             FileHandler(yaml_copy).sync()
 
-        # copy bias correction files to ROTDIR
-        logger.info("Copy bias correction files from DATA/ to COM/")
-        biasdir = os.path.join(self.task_config.DATA, 'bc')
-        biasls = os.listdir(biasdir)
-        biaslist = []
-        for bfile in biasls:
-            src = os.path.join(biasdir, bfile)
-            dest = os.path.join(self.task_config.COM_ATMOS_ANALYSIS, bfile)
-            biaslist.append([src, dest])
+        # path of output radiance bias correction tarfile
+        bfile = f"{self.task_config.APREFIX}rad_varbc_params.tar"
+        radtar = os.path.join(self.task_config.COM_ATMOS_ANALYSIS, bfile)
 
-        gprefix = f"{self.task_config.GPREFIX}"
-        gsuffix = f"{to_YMDH(self.task_config.previous_cycle)}" + ".txt"
-        aprefix = f"{self.task_config.APREFIX}"
-        asuffix = f"{to_YMDH(self.task_config.current_cycle)}" + ".txt"
-
-        logger.info(f"Copying {gprefix}*{gsuffix} from DATA/ to COM/ as {aprefix}*{asuffix}")
-        obsdir = os.path.join(self.task_config.DATA, 'obs')
-        obsls = os.listdir(obsdir)
-        for ofile in obsls:
-            if ofile.endswith(".txt"):
-                src = os.path.join(obsdir, ofile)
-                tfile = ofile.replace(gprefix, aprefix)
-                tfile = tfile.replace(gsuffix, asuffix)
-                dest = os.path.join(self.task_config.COM_ATMOS_ANALYSIS, tfile)
-                biaslist.append([src, dest])
-
-        bias_copy = {
-            'mkdir': [self.task_config.COM_ATMOS_ANALYSIS],
-            'copy': biaslist,
+        # rename and copy tlapse radiance bias correction files from obs to bc
+        tlapobs = glob.glob(os.path.join(self.task_config.DATA, 'obs', '*tlapse.txt'))
+        copylist = []
+        for tlapfile in tlapobs:
+            obsfile = os.path.basename(tlapfile).split('.', 2)
+            newfile = f"{self.task_config.APREFIX}{obsfile[2]}"
+            copylist.append([tlapfile, os.path.join(self.task_config.DATA, 'bc', newfile)])
+        tlapse_dict = {
+            'copy': copylist
         }
-        FileHandler(bias_copy).sync()
+        FileHandler(tlapse_dict).sync()
+
+        # get lists of radiance bias correction files to add to tarball
+        satlist = glob.glob(os.path.join(self.task_config.DATA, 'bc', '*satbias*nc'))
+        tlaplist = glob.glob(os.path.join(self.task_config.DATA, 'bc', '*tlapse.txt'))
+
+        # tar radiance bias correction files to ROTDIR
+        logger.info(f"Creating radiance bias correction tar file {radtar}")
+        with tarfile.open(radtar, 'w') as radbcor:
+            for satfile in satlist:
+                radbcor.add(satfile, arcname=os.path.basename(satfile))
+            for tlapfile in tlaplist:
+                radbcor.add(tlapfile, arcname=os.path.basename(tlapfile))
+            logger.info(f"Add {radbcor.getnames()}")
 
         # Copy FV3 atm increment to comrot directory
         logger.info("Copy UFS model readable atm increment file")
