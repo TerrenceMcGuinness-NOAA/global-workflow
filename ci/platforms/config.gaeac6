@@ -1,5 +1,3 @@
-#!/usr/bin/bash
-
 #########################################################################
 # config.gaeac6 - Platform-specific configuration for Gaea C6
 #
@@ -26,8 +24,8 @@ export JENKINS_AGENT_LAUNCH_DIR="${GFS_CI_ROOT}/Jenkins/agent"
 export JENKINS_WORK_DIR="${GFS_CI_ROOT}/Jenkins/workspace"
 
 # NOTE: JENKINS custom_workspace directory where CI jobs are run
+# and is defined in $HOMEgfs/ci/Jenkinsfile as custom_workspace
 # /gpfs/f6/drsa-precip3/proj-shared/global/CI
-# and is defined in $HOMEgfs/ci/Jenkinsfile
 
  
 #########################################################################
