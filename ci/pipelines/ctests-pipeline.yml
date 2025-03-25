@@ -1,0 +1,123 @@
+# Pipeline for running ctests
+stages:
+  - build
+  - run_ctests
+
+# Global variables
+variables:
+  BUILD: 'CTESTS'
+  GIT_CLONE_PATH: '$CI_BUILDS_DIR/${BUILD}/global-workflow'
+  HOMEGFS: $GIT_CLONE_PATH
+  GIT_DEPTH: 1
+  RUNNER_SCRIPT_TIMEOUT: 6h
+  RUNNER_AFTER_SCRIPT_TIMEOUT: 6h
+  # Default GitHub repo URL if not provided
+  GITHUB_REPO_URL: 'https://github.com/NOAA-EMC/global-workflow'
+  # Default PR number (0 means no PR, use default branch)
+  PR_NUMBER: '0'
+
+# Use GitHub CLI to clone the specific PR if PR_NUMBER is provided
+.clone_pr_template: &clone_pr
+  - |
+    if [ "${PR_NUMBER}" != "0" ]; then
+      echo "Cloning PR #${PR_NUMBER} from ${GITHUB_REPO_URL}"
+      
+      # Make sure the directory is clean
+      rm -rf ${HOMEGFS}
+      mkdir -p $(dirname ${HOMEGFS})
+      
+      # Clone the repo
+      cd $(dirname ${HOMEGFS})
+      gh repo clone ${GITHUB_REPO_URL} ${HOMEGFS} -- --depth 1
+      
+      # Fetch and checkout the PR
+      cd ${HOMEGFS}
+      gh pr checkout ${PR_NUMBER}
+      
+      # Initialize and update submodules recursively
+      echo "Initializing and updating submodules recursively"
+      git submodule update --init --recursive
+      
+      echo "Successfully checked out PR #${PR_NUMBER} with all submodules"
+    fi
+
+# Define two separate build jobs - one for PR and one for standard cloning
+# Only one will actually run based on whether PR_NUMBER is specified
+
+# Job for building with PR checkout
+build_for_ctests_pr:
+  variables:
+    GIT_STRATEGY: none  # Disable GitLab's git clone since we're using gh CLI
+  
+  stage: build
+  script:
+    # Clone PR using GitHub CLI
+    *clone_pr
+    - echo "Using build directory ${HOMEGFS} for PR ${PR_NUMBER}"
+    - cd ${HOMEGFS}
+    - ci/scripts/utils/ci_utils_wrapper.sh build_compute
+    - sorc/link_workflow.sh
+    - cd ${HOMEGFS}/ctests
+    - mkdir -p build
+    - cd build
+    - cmake ../..
+  parallel:
+    matrix:
+      - MACHINE: ["hera"]
+  tags:
+    - ${MACHINE}
+  rules:
+    - if: '$PR_NUMBER != "0"'
+      when: always
+
+# Job for standard build without PR
+build_for_ctests_standard:
+  variables:
+    GIT_STRATEGY: clone
+    GIT_SUBMODULE_STRATEGY: recursive
+  
+  stage: build
+  script:
+    - echo "Using standard build directory ${HOMEGFS}"
+    - cd ${HOMEGFS}
+    - ci/scripts/utils/ci_utils_wrapper.sh build_compute
+    - sorc/link_workflow.sh
+    - cd ${HOMEGFS}/ctests
+    - mkdir -p build
+    - cd build
+    - cmake ../..
+  parallel:
+    matrix:
+      - MACHINE: ["hera"]
+  tags:
+    - ${MACHINE}
+  rules:
+    - if: '$PR_NUMBER == "0"'
+      when: always
+
+ctests:
+  variables:
+    GIT_STRATEGY: none
+  stage: run_ctests
+  script:
+    - echo "Running ctests in ${HOMEGFS}/ctests"
+    - if [ "${PR_NUMBER}" != "0" ]; then
+    -   echo "Testing PR #${PR_NUMBER} from ${GITHUB_REPO_URL}"
+    - else
+    -   echo "Testing standard branch"
+    - fi
+    - cd ${HOMEGFS}/ctests/build
+    - ctest -R test_${CTEST}_setup
+    - ctest -R test_${CTEST}_stage
+    - ctest -R test_${CTEST}_execute
+  parallel:
+    matrix:
+      - CTEST: ["C48_ATM_gfs_fcst_seg0"]
+  tags:
+    - hera
+  dependencies:
+    - build_for_ctests_pr
+    - build_for_ctests_standard
+  rules:
+    - if: '$WEBHOOK_TRIGGER == "ctests"'
+      when: always
