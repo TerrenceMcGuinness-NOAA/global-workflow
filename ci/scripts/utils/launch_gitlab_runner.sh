@@ -94,7 +94,7 @@ if [[ "${1}" == "register" ]]; then
   ./gitlab-runner register -n -t "${GITLAB_RUNNER_TOKEN}" --url "${GITLAB_URL}" --executor shell --shell bash --builds-dir "${GITLAB_CI_BUILDS_DIR}" --custom_build_dir-enabled true --request-concurrency 24
   
   # Set the concurrent job limit in the GitLab runner config file
-  #sed -i 's/concurrent.*/concurrent = 24/' ~/.gitlab-runner/config.toml
+  sed -i 's/concurrent.*/concurrent = 24/' ~/.gitlab-runner/config.toml
 fi
 
 #########################################################################
