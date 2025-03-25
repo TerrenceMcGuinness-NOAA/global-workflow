@@ -46,8 +46,6 @@ cd "${GITLAB_RUNNER_DIR}" || exit 1
 # Set the log file name with the current date and time
 DATE=$(date +%Y%m%d%M) || true
 GITLAB_LOG="launched_gitlab_runner-${DATE}.log"
-# Set the GitLab runner name - this name will appear in the GitLab UI
-GITLAB_RUNNER_NAME="RDHPCS Gaea C6"
 rm -f "${LOG}"
 # Log the registration details
 echo "Registering GitLab Runner ${MACHINE_ID} on host ${host} at ${DATE}" >> "${GITLAB_LOG}"
@@ -96,7 +94,7 @@ if [[ "${1}" == "register" ]]; then
   ./gitlab-runner register -n -t "${GITLAB_RUNNER_TOKEN}" --url "${GITLAB_URL}" --executor shell --shell bash --builds-dir "${GITLAB_CI_BUILDS_DIR}" --custom_build_dir-enabled true --request-concurrency 24
   
   # Set the concurrent job limit in the GitLab runner config file
-  sed -i 's/concurrent.*/concurrent = 24/' ~/.gitlab-runner/config.toml
+  #sed -i 's/concurrent.*/concurrent = 24/' ~/.gitlab-runner/config.toml
 fi
 
 #########################################################################
