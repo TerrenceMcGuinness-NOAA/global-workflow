@@ -94,6 +94,7 @@ if [[ "${1}" == "register" ]]; then
   
   # Set the concurrent job limit in the GitLab runner config file
   sed -i 's/concurrent.*/concurrent = 24/' ~/.gitlab-runner/config.toml
+  exit 0
 fi
 
 #########################################################################
@@ -115,6 +116,7 @@ if [[ "${1}" == "run" ]]; then
   
   # Display the current contents of the log file
   cat "${GITLAB_LOG}"
+  exit 0
 fi
 
 #########################################################################
