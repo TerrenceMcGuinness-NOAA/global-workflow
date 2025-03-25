@@ -31,6 +31,7 @@ jobs:
       - name: Trigger GitLab Pipeline
         run: |
           curl --request POST \
+            --token "${{ secrets.GITLAB_TRIGGER_TOKEN }}" \
             --header "Content-Type: application/json" \
             --header "X-Gitlab-Token: ${{ secrets.GITLAB_WEBHOOK_TOKEN }}" \
             --data '{
