@@ -44,12 +44,9 @@ source "${HOMEGFS_}/ci/platforms/config.${MACHINE_ID}"
 cd "${GITLAB_RUNNER_DIR}" || exit 1
 
 # Set the log file name with the current date and time
-DATE=$(date +%Y%m%d%M) || true
+DATE=$(date +%Y-%m%d%M) || true
 GITLAB_LOG="launched_gitlab_runner-${DATE}.log"
 rm -f "${LOG}"
-# Log the registration details
-echo "Registering GitLab Runner ${MACHINE_ID} on host ${host} at ${DATE}" >> "${GITLAB_LOG}"
-echo "with runner name: ${GITLAB_RUNNER_NAME}" >> "${GITLAB_LOG}"
 
 #########################################################################
 # GitLab Token Handling
@@ -83,6 +80,8 @@ fi
 #########################################################################
 
 if [[ "${1}" == "register" ]]; then
+  echo "Registering GitLab Runner ${MACHINE_ID} on host ${host} at ${DATE}" >> "${GITLAB_LOG}"
+  echo "with runner name: ${GITLAB_RUNNER_NAME}" >> "${GITLAB_LOG}"
   # Register the GitLab runner with the following parameters:
   # -n: Run in non-interactive mode
   # -t: Registration token from GitLab
