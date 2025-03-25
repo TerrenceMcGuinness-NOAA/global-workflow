@@ -45,7 +45,7 @@ cd "${GITLAB_RUNNER_DIR}" || exit 1
 
 # Set the log file name with the current date and time
 DATE=$(date +%Y-%m%d%M) || true
-GITLAB_LOG="launched_gitlab_runner-${DATE}.log"
+GITLAB_LOG="${PWD}/launched_gitlab_runner-${DATE}.log"
 rm -f "${LOG}"
 
 #########################################################################
@@ -80,6 +80,7 @@ fi
 #########################################################################
 
 if [[ "${1}" == "register" ]]; then
+
   echo "Registering GitLab Runner ${MACHINE_ID} on host ${host} at ${DATE}" >> "${GITLAB_LOG}"
   echo "with runner name: ${GITLAB_RUNNER_NAME}" >> "${GITLAB_LOG}"
   # Register the GitLab runner with the following parameters:
@@ -102,19 +103,11 @@ fi
 #########################################################################
 
 if [[ "${1}" == "run" ]]; then
-  # Construct the command to run the GitLab runner
-  # nohup: Run the command immune to hangups
   # --working-directory: Directory where the runner will store its working files (from config.gaeac6)
   COMMAND="nohup ./gitlab-runner run --working-directory ${GITLAB_CI_BUILDS_DIR}"
-  # --user ${USER}"  # This line is commented out in the original script
-  
-  # Print the command and log file location
-  echo -e "Running gitlab-runner with the command:\n${COMMAND}\nsee log ${PWD}/${GITLAB_LOG}"
-  
-  # Run the command in the background and redirect output to the log file
-  nohup "${COMMAND}" >> "${GITLAB_LOG}" 2>&1 &
-  
-  # Display the current contents of the log file
+  echo -e "Running gitlab-runner with the command:\n${COMMAND}\nsee log ${GITLAB_LOG}"
+  echo -e "Running gitlab-runner with the command:${COMMAND}" >& "${GITLAB_LOG}"
+  ${COMMAND} >> "${GITLAB_LOG}" 2>&1 &
   cat "${GITLAB_LOG}"
   exit 0
 fi
