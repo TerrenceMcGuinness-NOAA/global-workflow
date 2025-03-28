@@ -12,6 +12,7 @@ export GFS_CI_ROOT="/ncrc/proj/nggps_emc/${USER}/GFS_CI_CD"
 # Used by create_experiment.py for setting up test cases
 export ICSDIR_ROOT=/gpfs/f6/bil-fire8/world-shared/global/glopara/data/ICSDIR
 
+
 #########################################################################
 # Jenkins configuration settings
 #########################################################################
