@@ -32,7 +32,8 @@ build:
     matrix:
       - MACHINE: ["gaeac6"]
   tags:
-    - ${MACHINE}
+    - development
+    - EMC
 
 
 # Create experiments stage from a fixed list of cases in $HOMEGFS/ci/cases/pr
@@ -48,7 +49,8 @@ setup_experiments:
     matrix:
       - caseName: ["C48_ATM", "C48mx500_3DVarAOWCDA", "C48mx500_hybAOWCDA", "C48_S2SWA_gefs", "C48_S2SW", "C96_atm3DVar", "C96C48_hybatmDA", "C96C48_hybatmaerosnowDA"]
   tags:
-    - gaeac6
+    - development
+    - EMC
   dependencies:
     - build
 
@@ -66,6 +68,7 @@ run_tests:
     matrix:
        - caseName: ["C48_ATM", "C48mx500_3DVarAOWCDA", "C48mx500_hybAOWCDA", "C48_S2SWA_gefs", "C48_S2SW", "C96_atm3DVar", "C96C48_hybatmDA", "C96C48_hybatmaerosnowDA"]
   tags:
-    - gaeac6
+    - development
+    - EMC
   dependencies:
     - setup_experiments
