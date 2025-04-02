@@ -6,7 +6,7 @@ stages:
 
 # Global variables
 variables:
-  BUILD: 'TODAY'
+  BUILD: '${CI_PIPELINE_ID}'
   GIT_CLONE_PATH: '$CI_BUILDS_DIR/${BUILD}/global-workflow'
   HOMEGFS: $GIT_CLONE_PATH
   RUNTESTS_DIR: $CI_BUILDS_DIR/${BUILD}/RUNTESTS
@@ -30,7 +30,7 @@ build:
   # the setup and run_tests stages 2D matrices
   parallel:
     matrix:
-      - MACHINE: ["gaeac6"]
+      - MACHINE: hera
   tags:
     - development
     - EMC
