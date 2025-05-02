@@ -26,133 +26,76 @@
   extends: .base_config
   stage: create_experiments
   script: |
-    # Trick to force GitLab to respect exit codes on all systems
-    TEST_RESULT_FILE="/tmp/test_result_${CI_JOB_ID}"
-    echo "0" > $TEST_RESULT_FILE
+    echo "=== Checking shell configuration ==="
     
-    echo "Using build directory ${GW_HOMEgfs}"
-    source ${GW_HOMEgfs}/dev/ush/gw_setup.sh
-    module load cmake
-    cd ${GW_HOMEgfs}/dev/ctests/build
-    echo "Running CTests with label: ${CTEST} in ${PWD}"
+    # Check for trap commands in the current shell
+    echo "Current trap settings:"
+    trap -p
     
-    # Check if tests exist
-    num=$(ctest -N -L ${CTEST} | grep "Total Tests" | awk '{print $3}' || echo "0")
-    if [ "$num" -eq 0 ]; then
-      echo "No tests found with label: ${CTEST}"
-      echo "1" > $TEST_RESULT_FILE
-    else
-      # Run the tests
-      ctest -L ${CTEST} --output-junit result.xml --output-on-failure
-      CTEST_EXIT=$?
-      
-      if [ $CTEST_EXIT -ne 0 ]; then
-        echo "CTest command failed with exit code: $CTEST_EXIT"
-        echo "1" > $TEST_RESULT_FILE
+    # Check for trap commands in shell startup files
+    echo "=== Content of shell startup files ==="
+    for file in ~/.bashrc ~/.bash_profile ~/.profile /etc/bashrc /etc/profile /etc/bash.bashrc; do
+      if [ -f "$file" ]; then
+        echo "--- Contents of $file ---"
+        grep -i "trap\|EXIT\|return\|exit" "$file" || echo "No exit handling in $file"
       fi
-      
-      # Double-check result XML for failures
-      if [ -f result.xml ]; then
-        failures=$(grep -c "failures=\"[1-9][0-9]*\"" result.xml || echo "0")
-        errors=$(grep -c "errors=\"[1-9][0-9]*\"" result.xml || echo "0")
-        
-        if [ "$failures" -gt 0 ] || [ "$errors" -gt 0 ]; then
-          echo "Test failures detected in JUnit report: Failures=$failures, Errors=$errors"
-          echo "1" > $TEST_RESULT_FILE
-        fi
-      fi
-    fi
+    done
     
-    # Final check of test result regardless of previous error handling
-    if [ "$(cat $TEST_RESULT_FILE)" != "0" ]; then
-      echo "==========================================================="
-      echo "ERROR: Tests failed! See log for details."
-      echo "==========================================================="
-      rm -f $TEST_RESULT_FILE
-      
-      # These approaches will be tried in sequence to ensure GitLab sees the failure
-      
-      # 1. Try using bash 'false' builtin which should set $? to 1
-      false
-      
-      # 2. If we're still running, try to make GitLab see non-zero status with command substitution
-      $(exit 1)
-      
-      # 3. Last resort - use a command that will definitely fail
-      cd /directory_that_does_not_exist_anywhere
-    else
-      echo "==========================================================="
-      echo "SUCCESS: All CTests passed!"
-      echo "==========================================================="
-      rm -f $TEST_RESULT_FILE
-    fi
+    # Test basic exit code propagation
+    echo "=== Testing exit code propagation ==="
+    (exit 1) && echo "Exit code was lost" || echo "Exit code was preserved"
+    
+    # Check if set -e is active or any other shell options
+    echo "=== Current shell options ==="
+    echo "Current set options: $-"
+    shopt
+    
+    # List environment variables that might affect behavior
+    echo "=== Environment variables that might affect shell behavior ==="
+    env | grep -i "bash\|shell\|exit"
+    
+    # Force failure to see if it propagates to GitLab
+    echo "=== Now forcing a failure to check GitLab reporting ==="
+    (echo "This command will exit with status 1"; exit 1)
   needs:
     - build-${machine}
 
+# Main template for CTest execution jobs
 .run_ctests_template:
   extends: .base_config
   stage: run_tests
   script: |
-    # Trick to force GitLab to respect exit codes on all systems
-    TEST_RESULT_FILE="/tmp/test_result_${CI_JOB_ID}"
-    echo "0" > $TEST_RESULT_FILE
+    echo "=== Checking shell configuration ==="
     
-    echo "Using build directory ${GW_HOMEgfs}"
-    source ${GW_HOMEgfs}/dev/ush/gw_setup.sh
-    module load cmake
-    cd ${GW_HOMEgfs}/dev/ctests/build
-    echo "Running CTests with label: ${CTEST} in ${PWD}"
+    # Check for trap commands in the current shell
+    echo "Current trap settings:"
+    trap -p
     
-    # Check if tests exist
-    num=$(ctest -N -L ${CTEST} | grep "Total Tests" | awk '{print $3}' || echo "0")
-    if [ "$num" -eq 0 ]; then
-      echo "No tests found with label: ${CTEST}"
-      echo "1" > $TEST_RESULT_FILE
-    else
-      # Run the tests
-      ctest -L ${CTEST} --output-junit result.xml --output-on-failure
-      CTEST_EXIT=$?
-      
-      if [ $CTEST_EXIT -ne 0 ]; then
-        echo "CTest command failed with exit code: $CTEST_EXIT"
-        echo "1" > $TEST_RESULT_FILE
+    # Check for trap commands in shell startup files
+    echo "=== Content of shell startup files ==="
+    for file in ~/.bashrc ~/.bash_profile ~/.profile /etc/bashrc /etc/profile /etc/bash.bashrc; do
+      if [ -f "$file" ]; then
+        echo "--- Contents of $file ---"
+        grep -i "trap\|EXIT\|return\|exit" "$file" || echo "No exit handling in $file"
       fi
-      
-      # Double-check result XML for failures
-      if [ -f result.xml ]; then
-        failures=$(grep -c "failures=\"[1-9][0-9]*\"" result.xml || echo "0")
-        errors=$(grep -c "errors=\"[1-9][0-9]*\"" result.xml || echo "0")
-        
-        if [ "$failures" -gt 0 ] || [ "$errors" -gt 0 ]; then
-          echo "Test failures detected in JUnit report: Failures=$failures, Errors=$errors"
-          echo "1" > $TEST_RESULT_FILE
-        fi
-      fi
-    fi
+    done
     
-    # Final check of test result regardless of previous error handling
-    if [ "$(cat $TEST_RESULT_FILE)" != "0" ]; then
-      echo "==========================================================="
-      echo "ERROR: Tests failed! See log for details."
-      echo "==========================================================="
-      rm -f $TEST_RESULT_FILE
-      
-      # These approaches will be tried in sequence to ensure GitLab sees the failure
-      
-      # 1. Try using bash 'false' builtin which should set $? to 1
-      false
-      
-      # 2. If we're still running, try to make GitLab see non-zero status with command substitution
-      $(exit 1)
-      
-      # 3. Last resort - use a command that will definitely fail
-      cd /directory_that_does_not_exist_anywhere
-    else
-      echo "==========================================================="
-      echo "SUCCESS: All CTests passed!"
-      echo "==========================================================="
-      rm -f $TEST_RESULT_FILE
-    fi
+    # Test basic exit code propagation
+    echo "=== Testing exit code propagation ==="
+    (exit 1) && echo "Exit code was lost" || echo "Exit code was preserved"
+    
+    # Check if set -e is active or any other shell options
+    echo "=== Current shell options ==="
+    echo "Current set options: $-"
+    shopt
+    
+    # List environment variables that might affect behavior
+    echo "=== Environment variables that might affect shell behavior ==="
+    env | grep -i "bash\|shell\|exit"
+    
+    # Force failure to see if it propagates to GitLab
+    echo "=== Now forcing a failure to check GitLab reporting ==="
+    (echo "This command will exit with status 1"; exit 1)
   artifacts:
     when: always
     paths:
