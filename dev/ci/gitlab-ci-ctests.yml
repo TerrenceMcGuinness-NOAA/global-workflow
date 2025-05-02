@@ -66,10 +66,12 @@
   extends: .base_config
   stage: run_tests
   variables:
-    FF_ENABLE_BASH_EXIT_CODE_CHECK: true
+    FF_ENABLE_BASH_EXIT_CODE_CHECK: "true"
   script: |
     echo "Testing exit code handling with FF_ENABLE_BASH_EXIT_CODE_CHECK=true"
     # This should cause the job to fail
     exit 1
-  allow_failure: true
+  rules:
+    - allow_failure: true
+  needs:
     - create_ctests-${machine}
