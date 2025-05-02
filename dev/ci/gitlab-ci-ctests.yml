@@ -56,44 +56,37 @@
   extends: .base_config
   stage: run_tests
   script: |
-    echo "Using build directory ${GW_HOMEgfs}"
-    source ${GW_HOMEgfs}/dev/ush/gw_setup.sh
-    module load cmake
-    cd ${GW_HOMEgfs}/dev/ctests/build
-    echo "Running CTests with label: ${CTEST} in ${PWD}"
-    num=$(ctest -N | grep "Total Tests" | awk "{print \$3}")
-    [ "$num" -gt 0 ] || { echo "No tests found"; exit 1; }
-    ctest -L ${CTEST} --output-junit result.xml --stop-on-failure --output-on-failure
-    ctest_status=$?
-
-    # Check the JUnit XML file for failures explicitly
-    if [ -f result.xml ]; then
-      # Count failures in the JUnit XML
-      failures=$(grep -c "failures=\"[1-9][0-9]*\"" result.xml || true)
-      errors=$(grep -c "errors=\"[1-9][0-9]*\"" result.xml || true)
-
-      # If there are failures or errors in the JUnit report, fail the job
-      if [ "$failures" -gt 0 ] || [ "$errors" -gt 0 ] || [ $ctest_status -ne 0 ]; then
-        echo "==========================================================="
-        echo "ERROR: Test failures detected in JUnit report or CTest exit code: $ctest_status"
-        echo "Failures: $failures, Errors: $errors"
-        echo "==========================================================="
-        exit 1  # Force exit code 1 for GitLab to recognize the failure
-      else
-        echo "==========================================================="
-        echo "SUCCESS: All CTests passed"
-        echo "==========================================================="
+    echo "=== Checking shell configuration ==="
+    
+    # Check for trap commands in the current shell
+    echo "Current trap settings:"
+    trap -p
+    
+    # Check for trap commands in shell startup files
+    echo "=== Content of shell startup files ==="
+    for file in ~/.bashrc ~/.bash_profile ~/.profile /etc/bashrc /etc/profile /etc/bash.bashrc; do
+      if [ -f "$file" ]; then
+        echo "--- Contents of $file ---"
+        grep -i "trap\|EXIT\|return\|exit" "$file" || echo "No exit handling in $file"
       fi
-    else
-      echo "ERROR: JUnit result file not found. Checking CTest exit code only."
-      # Fall back to just checking the ctest exit code if XML not found
-      if [ $ctest_status -ne 0 ]; then
-        echo "==========================================================="
-        echo "ERROR: One or more CTests failed with exit code $ctest_status"
-        echo "==========================================================="
-        exit 1  # Force exit code 1 for GitLab
-      fi
-    fi
+    done
+    
+    # Test basic exit code propagation
+    echo "=== Testing exit code propagation ==="
+    (exit 1) && echo "Exit code was lost" || echo "Exit code was preserved"
+    
+    # Check if set -e is active or any other shell options
+    echo "=== Current shell options ==="
+    echo "Current set options: $-"
+    shopt
+    
+    # List environment variables that might affect behavior
+    echo "=== Environment variables that might affect shell behavior ==="
+    env | grep -i "bash\|shell\|exit"
+    
+    # Force failure to see if it propagates to GitLab
+    echo "=== Now forcing a failure to check GitLab reporting ==="
+    (echo "This command will exit with status 1"; exit 1)
   artifacts:
     when: always
     paths:
