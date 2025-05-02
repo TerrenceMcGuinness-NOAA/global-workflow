@@ -26,13 +26,31 @@
   extends: .base_config
   stage: create_experiments
   script: |
-    echo "=== Checking shell configuration ==="
+    # Check GitLab runner process information
+    echo "=== GitLab Runner Process Info ==="
+    ps aux | grep -i gitlab-runner
     
-    # Check for trap commands in the current shell
+    # Try to locate the configuration
+    echo "=== GitLab Runner Configuration ==="
+    if [ -f $HOME/.gitlab-runner/config.toml ]; then
+      echo "Found GitLab Runner configuration at $HOME/.gitlab-runner/config.toml"
+      cat $HOME/.gitlab-runner/config.toml
+    else
+      echo "GitLab Runner configuration not found at $HOME/.gitlab-runner/config.toml"
+    fi
+
+    # Check shell configuration differences
+    echo "=== Shell Configuration ==="
+    echo "SHELL=$SHELL"
+    echo "0=$0"
+    echo "BASH_VERSION=$BASH_VERSION"
     echo "Current trap settings:"
     trap -p
-    
     # Check for trap commands in shell startup files
+    # List environment variables that might affect behavior
+    echo "=== Environment variables that might affect shell behavior ==="
+    env | grep -i "bash\|shell\|exit"
+
     echo "=== Content of shell startup files ==="
     for file in ~/.bashrc ~/.bash_profile ~/.profile /etc/bashrc /etc/profile /etc/bash.bashrc; do
       if [ -f "$file" ]; then
@@ -40,23 +58,6 @@
         grep -i "trap\|EXIT\|return\|exit" "$file" || echo "No exit handling in $file"
       fi
     done
-    
-    # Test basic exit code propagation
-    echo "=== Testing exit code propagation ==="
-    (exit 1) && echo "Exit code was lost" || echo "Exit code was preserved"
-    
-    # Check if set -e is active or any other shell options
-    echo "=== Current shell options ==="
-    echo "Current set options: $-"
-    shopt
-    
-    # List environment variables that might affect behavior
-    echo "=== Environment variables that might affect shell behavior ==="
-    env | grep -i "bash\|shell\|exit"
-    
-    # Force failure to see if it propagates to GitLab
-    echo "=== Now forcing a failure to check GitLab reporting ==="
-    (echo "This command will exit with status 1"; exit 1)
   needs:
     - build-${machine}
 
@@ -65,43 +66,13 @@
   extends: .base_config
   stage: run_tests
   script: |
-    echo "=== Checking shell configuration ==="
-    
-    # Check for trap commands in the current shell
-    echo "Current trap settings:"
-    trap -p
-    
-    # Check for trap commands in shell startup files
-    echo "=== Content of shell startup files ==="
-    for file in ~/.bashrc ~/.bash_profile ~/.profile /etc/bashrc /etc/profile /etc/bash.bashrc; do
-      if [ -f "$file" ]; then
-        echo "--- Contents of $file ---"
-        grep -i "trap\|EXIT\|return\|exit" "$file" || echo "No exit handling in $file"
-      fi
-    done
-    
-    # Test basic exit code propagation
-    echo "=== Testing exit code propagation ==="
-    (exit 1) && echo "Exit code was lost" || echo "Exit code was preserved"
-    
-    # Check if set -e is active or any other shell options
-    echo "=== Current shell options ==="
-    echo "Current set options: $-"
-    shopt
-    
-    # List environment variables that might affect behavior
-    echo "=== Environment variables that might affect shell behavior ==="
-    env | grep -i "bash\|shell\|exit"
-    
-    # Force failure to see if it propagates to GitLab
-    echo "=== Now forcing a failure to check GitLab reporting ==="
-    (echo "This command will exit with status 1"; exit 1)
-  artifacts:
-    when: always
-    paths:
-      - ${GW_HOMEgfs}/dev/ctests/build/result.xml
-      - ${GW_HOMEgfs}/dev/ctests/build/Testing/Temporary/LastTest.log
-    reports:
-      junit: ${GW_HOMEgfs}/dev/ctests/build/result.xml
+      # Bypass any profile files
+      /bin/bash --noprofile --norc -c '
+      echo "Running in clean shell environment"
+      false  # This should fail
+      echo "Exit code: $?"
+      echo "Forcing final failure"
+      exit 1
+      '
   needs:
     - create_ctests-${machine}
