@@ -65,14 +65,11 @@
 .run_ctests_template:
   extends: .base_config
   stage: run_tests
+  variables:
+    FF_ENABLE_BASH_EXIT_CODE_CHECK: "true"
   script: |
-      # Bypass any profile files
-      /bin/bash --noprofile --norc -c '
-      echo "Running in clean shell environment"
-      false  # This should fail
-      echo "Exit code: $?"
-      echo "Forcing final failure"
-      exit 1
-      '
-  needs:
+    echo "Testing exit code handling with FF_ENABLE_BASH_EXIT_CODE_CHECK=true"
+    # This should cause the job to fail
+    exit 1
+  allow_failure: true
     - create_ctests-${machine}
