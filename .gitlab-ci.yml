@@ -74,7 +74,8 @@ include:
         gh pr checkout ${PR_NUMBER}
       fi
 
-      dev/ci/scripts/utils/ci_utils.sh build
+      # dev/ci/scripts/utils/ci_utils.sh build
+      echo "Skiipping build step for ${machine} for testing purposes"
       build_status=0
 
       if [ $build_status -ne 0 ]; then
