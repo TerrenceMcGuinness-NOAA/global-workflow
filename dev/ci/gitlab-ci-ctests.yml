@@ -67,7 +67,7 @@
   stage: run_tests
   variables:
     FF_ENABLE_BASH_EXIT_CODE_CHECK: true
-  script: |
+  script:
     - echo "Testing exit code handling with FF_ENABLE_BASH_EXIT_CODE_CHECK=true"
     - exit 1
   allow_failure: false
