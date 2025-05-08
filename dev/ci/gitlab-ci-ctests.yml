@@ -70,7 +70,6 @@
   script: |
     - echo "Testing exit code handling with FF_ENABLE_BASH_EXIT_CODE_CHECK=true"
     - exit 1
-  rules:
-    - allow_failure: false
+  allow_failure: false
   needs:
     - create_ctests-${machine}
