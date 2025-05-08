@@ -68,8 +68,10 @@
   variables:
     FF_ENABLE_BASH_EXIT_CODE_CHECK: "true"
   script:
-    - echo "just false"
-    - false
+    - echo "before exit"
+    - exit 1
+    - echo "after exit"
+
   allow_failure: false
   needs:
     - create_ctests-${machine}

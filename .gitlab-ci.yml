@@ -64,6 +64,7 @@ include:
   stage: build
   script:
     - |
+      exit 1
       echo "Setting up build environment for ${machine}"
       echo "Using build directory ${GW_HOMEgfs}"
       git submodule status
