@@ -48,9 +48,6 @@
       exit 1
     fi
     echo "CTests have been created and configured successfully"
-  needs:
-    - job: build-${machine}
-      optional: true
 
 # Main template for CTest execution jobs
 .run_ctests_template:
@@ -106,6 +103,3 @@
       - ${GIT_CLONE_PATH}/dev/ctests/build/Testing/Temporary/LastTest.log
     reports:
       junit: ${GIT_CLONE_PATH}/dev/ctests/build/result.xml
-  needs:
-    - job: create_ctests-${machine}
-      optional: true
