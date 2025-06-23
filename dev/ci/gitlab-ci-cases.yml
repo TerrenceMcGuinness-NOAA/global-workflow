@@ -26,7 +26,8 @@
       "${GW_HOMEgfs}/dev/ci/scripts/utils/ci_utils.sh" create_experiment "${GW_HOMEgfs}/dev/ci/cases/pr/${caseName}.yaml" "${DATE}"
       exit $?
   needs:
-    - build-${machine}
+    - job: build-${machine}
+      optional: true
 
 # Template for test execution jobs
 .run_tests_template:
@@ -49,7 +50,8 @@
         echo "================================================================================"
       fi
   needs:
-    - setup_experiments-${machine}
+    - job: setup_experiments-${machine}
+      optional: true
 
 .finalize_template:
   extends: .base_config
@@ -86,4 +88,5 @@
         echo "Skipping directory rename and cleanup for non-scheduled pipeline."
       fi
   needs:
-    - run_tests-${machine}
+    - job: run_tests-${machine}
+      optional: true

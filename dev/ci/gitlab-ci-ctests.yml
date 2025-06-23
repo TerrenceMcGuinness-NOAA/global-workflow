@@ -49,7 +49,8 @@
     fi
     echo "CTests have been created and configured successfully"
   needs:
-    - build-${machine}
+    - job: build-${machine}
+      optional: true
 
 # Main template for CTest execution jobs
 .run_ctests_template:
@@ -106,4 +107,5 @@
     reports:
       junit: ${GIT_CLONE_PATH}/dev/ctests/build/result.xml
   needs:
-    - create_ctests-${machine}
+    - job: create_ctests-${machine}
+      optional: true
