@@ -15,7 +15,8 @@
 
 ## Production Compatibility
 - NEVER use Unicode emoji characters in code, scripts, or output
-- Use ASCII-only alternatives for visual indicators/
+- Use ASCII-only alternatives for visual indicators with in code scripts
+- Use any available formatting tools when creating stand alone documentation
 
 ## Code Quality
 - Ensure code is clean, well-commented, and follows best practices
