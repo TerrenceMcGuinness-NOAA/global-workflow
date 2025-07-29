@@ -8,6 +8,10 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SCRIPT_NAME="$(basename "${0}")"
 
+# MCP Server directory structure configuration
+# Relative path from target repository root to MCP server RUN directory
+MCP_RUN_SUBDIR="dev/ci/scripts/utils/Copilot/mcp_server_node/RUN"
+
 # Node.js MCP files to manage
 MCP_NODE_FILES=(
     "mcp-server.js"
@@ -129,30 +133,38 @@ check_source_files() {
 install_mcp_files() {
     local target_repo="$1"
     local installed_count=0
-    local backed_up_count=0
+    local backed_up_run_dir=false
     
-    print_status "${BLUE}" "Installing Node.js MCP server files to: ${target_repo}"
+    # Define the MCP server subdirectory path
+    local mcp_run_dir="${target_repo}/${MCP_RUN_SUBDIR}"
+    
+    print_status "${BLUE}" "Installing Node.js MCP server files to: ${mcp_run_dir}"
     
     validate_target_repo "${target_repo}" "install"
     check_source_files
     
-    # Create .vscode directory if needed
+    # Backup existing RUN directory if it exists and has files
+    if [[ -d "${mcp_run_dir}" ]] && [[ $(find "${mcp_run_dir}" -type f | wc -l) -gt 0 ]]; then
+        local backup_dir="${mcp_run_dir}.backup.$(date +%Y%m%d_%H%M%S)"
+        print_status "${YELLOW}" "Backing up existing RUN directory..."
+        cp -r "${mcp_run_dir}" "${backup_dir}"
+        print_status "${YELLOW}" "    Backed up: ${mcp_run_dir} -> ${backup_dir}"
+        backed_up_run_dir=true
+    fi
+    
+    # Create MCP server directory structure (this will create all parent dirs too)
+    mkdir -p "${mcp_run_dir}"
     mkdir -p "${target_repo}/.vscode"
     
     for file in "${MCP_NODE_FILES[@]}"; do
         local source_file="${SCRIPT_DIR}/${file}"
-        local target_file="${target_repo}/${file}"
-        local target_dir="$(dirname "${target_file}")"
         
-        # Create target directory if needed
-        mkdir -p "${target_dir}"
-        
-        # Backup existing file if it exists
-        if [[ -f "${target_file}" ]]; then
-            local backup_file="${target_file}.backup.$(date +%Y%m%d_%H%M%S)"
-            cp "${target_file}" "${backup_file}"
-            print_status "${YELLOW}" "    Backed up existing: ${file} -> $(basename "${backup_file}")"
-            backed_up_count=$((backed_up_count + 1))
+        # Handle .vscode files differently - they go to the repo root
+        if [[ "${file}" == .vscode/* ]]; then
+            local target_file="${target_repo}/${file}"
+        else
+            # All other files go to the RUN subdirectory
+            local target_file="${mcp_run_dir}/${file}"
         fi
         
         # Copy the file and preserve permissions
@@ -166,22 +178,22 @@ install_mcp_files() {
     # Update the VS Code settings with the correct path
     local settings_file="${target_repo}/.vscode/settings-node.json"
     if [[ -f "${settings_file}" ]]; then
-        # Replace the cwd path with the actual target repo path
-        sed -i "s|\"cwd\": \"[^\"]*\"|\"cwd\": \"${target_repo}\"|g" "${settings_file}"
-        print_status "${BLUE}" "    Updated VS Code settings with correct path"
+        # Replace the cwd path to point to the MCP RUN subdirectory using VS Code workspace variable
+        sed -i "s|\${workspaceFolder}|\${workspaceFolder}/${MCP_RUN_SUBDIR}|g" "${settings_file}"
+        print_status "${BLUE}" "    Updated VS Code settings with correct MCP RUN directory path"
     fi
     
     print_status "${GREEN}" ""
     print_status "${GREEN}" "Installation complete!"
     print_status "${GREEN}" "    Files installed: ${installed_count}"
-    if [[ ${backed_up_count} -gt 0 ]]; then
-        print_status "${YELLOW}" "    Files backed up: ${backed_up_count}"
+    if [[ "${backed_up_run_dir}" == "true" ]]; then
+        print_status "${YELLOW}" "    Previous RUN directory backed up"
     fi
     print_status "${GREEN}" ""
     print_status "${GREEN}" "Next steps:"
     print_status "${GREEN}" "    1. Restart VS Code in the target repository"
-    print_status "${GREEN}" "    2. Test the MCP server: cd ${target_repo} && ./start-mcp-server-node.sh test"
-    print_status "${GREEN}" "    3. Read the documentation: ${target_repo}/MCP_SERVER_README.md"
+    print_status "${GREEN}" "    2. Test the MCP server: cd ${mcp_run_dir} && ./start-mcp-server-node.sh test"
+    print_status "${GREEN}" "    3. Read the documentation: ${mcp_run_dir}/MCP_SERVER_node-js_README.md"
 }
 
 # Function to remove MCP files
@@ -190,12 +202,21 @@ remove_mcp_files() {
     local removed_count=0
     local not_found_count=0
     
-    print_status "${BLUE}" "Removing Node.js MCP server files from: ${target_repo}"
+    # Define the MCP server subdirectory path
+    local mcp_run_dir="${target_repo}/${MCP_RUN_SUBDIR}"
+    
+    print_status "${BLUE}" "Removing Node.js MCP server files from: ${mcp_run_dir}"
     
     validate_target_repo "${target_repo}" "remove"
     
     for file in "${MCP_NODE_FILES[@]}"; do
-        local target_file="${target_repo}/${file}"
+        # Handle .vscode files differently - they are in the repo root
+        if [[ "${file}" == .vscode/* ]]; then
+            local target_file="${target_repo}/${file}"
+        else
+            # All other files are in the RUN subdirectory
+            local target_file="${mcp_run_dir}/${file}"
+        fi
         
         if [[ -f "${target_file}" ]]; then
             rm -f "${target_file}"
@@ -207,10 +228,10 @@ remove_mcp_files() {
         fi
     done
     
-    # Remove node_modules and package-lock.json if they exist
-    if [[ -d "${target_repo}/node_modules" ]]; then
+    # Remove node_modules if it exists in the RUN directory
+    if [[ -d "${mcp_run_dir}/node_modules" ]]; then
         print_status "${BLUE}" "    Removing node_modules directory..."
-        rm -rf "${target_repo}/node_modules"
+        rm -rf "${mcp_run_dir}/node_modules"
         print_status "${GREEN}" "    Removed: node_modules/"
     fi
 
@@ -252,7 +273,10 @@ list_mcp_files() {
 check_target_files() {
     local target_repo="$1"
     
-    print_status "${BLUE}" "Checking Node.js MCP files in: ${target_repo}"
+    # Define the MCP server subdirectory path
+    local mcp_run_dir="${target_repo}/${MCP_RUN_SUBDIR}"
+    
+    print_status "${BLUE}" "Checking Node.js MCP files in: ${mcp_run_dir}"
     
     if [[ ! -d "${target_repo}" ]]; then
         print_status "${RED}" "ERROR: Target repository does not exist: ${target_repo}"
@@ -262,10 +286,30 @@ check_target_files() {
     echo
     
     for file in "${MCP_NODE_FILES[@]}"; do
-        local target_file="${target_repo}/${file}"
+        local source_file="${SCRIPT_DIR}/${file}"
+        
+        # Handle .vscode files differently - they are in the repo root
+        if [[ "${file}" == .vscode/* ]]; then
+            local target_file="${target_repo}/${file}"
+        else
+            # All other files are in the RUN subdirectory
+            local target_file="${mcp_run_dir}/${file}"
+        fi
+        
         if [[ -f "${target_file}" ]]; then
             local size=$(stat -c%s "${target_file}" 2>/dev/null || echo "unknown")
-            print_status "${GREEN}" "    [EXISTS] ${file} (${size} bytes)"
+            
+            # Check if source file exists and compare with target
+            if [[ -f "${source_file}" ]]; then
+                if ! diff -q "${source_file}" "${target_file}" >/dev/null 2>&1; then
+                    print_status "${YELLOW}" "    [DIFFER] ${file} (${size} bytes)"
+                else
+                    print_status "${GREEN}" "    [EXISTS] ${file} (${size} bytes)"
+                fi
+            else
+                # Source file doesn't exist, just show EXISTS
+                print_status "${GREEN}" "    [EXISTS] ${file} (${size} bytes)"
+            fi
         else
             print_status "${YELLOW}" "    [MISSING] ${file}"
         fi
@@ -276,9 +320,12 @@ check_target_files() {
 diff_target_files() {
     local target_repo="$1"
     
+    # Define the MCP server subdirectory path
+    local mcp_run_dir="${target_repo}/${MCP_RUN_SUBDIR}"
+    
     print_status "${BLUE}" "Comparing Node.js MCP files between source and target:"
     print_status "${BLUE}" "Source: ${SCRIPT_DIR}"
-    print_status "${BLUE}" "Target: ${target_repo}"
+    print_status "${BLUE}" "Target: ${mcp_run_dir}"
     
     if [[ ! -d "${target_repo}" ]]; then
         print_status "${RED}" "ERROR: Target repository does not exist: ${target_repo}"
@@ -290,7 +337,14 @@ diff_target_files() {
     
     for file in "${MCP_NODE_FILES[@]}"; do
         local source_file="${SCRIPT_DIR}/${file}"
-        local target_file="${target_repo}/${file}"
+        
+        # Handle .vscode files differently - they are in the repo root
+        if [[ "${file}" == .vscode/* ]]; then
+            local target_file="${target_repo}/${file}"
+        else
+            # All other files are in the RUN subdirectory
+            local target_file="${mcp_run_dir}/${file}"
+        fi
         
         if [[ ! -f "${source_file}" ]]; then
             print_status "${RED}" "    [SOURCE MISSING] ${file}"
@@ -329,9 +383,12 @@ diff_target_files() {
 copyback_mcp_files() {
     local target_repo="$1"
     
+    # Define the MCP server subdirectory path
+    local mcp_run_dir="${target_repo}/${MCP_RUN_SUBDIR}"
+    
     print_status "${BLUE}" "Copy back Node.js MCP files from target to source directory"
     print_status "${BLUE}" "Source: ${SCRIPT_DIR}"
-    print_status "${BLUE}" "Target: ${target_repo}"
+    print_status "${BLUE}" "Target: ${mcp_run_dir}"
     
     if [[ ! -d "${target_repo}" ]]; then
         print_status "${RED}" "ERROR: Target repository does not exist: ${target_repo}"
@@ -346,7 +403,14 @@ copyback_mcp_files() {
     print_status "${BLUE}" "Analyzing files to copy back:"
     
     for file in "${MCP_NODE_FILES[@]}"; do
-        local target_file="${target_repo}/${file}"
+        # Handle .vscode files differently - they are in the repo root
+        if [[ "${file}" == .vscode/* ]]; then
+            local target_file="${target_repo}/${file}"
+        else
+            # All other files are in the RUN subdirectory
+            local target_file="${mcp_run_dir}/${file}"
+        fi
+        
         local source_file="${SCRIPT_DIR}/${file}"
         
         if [[ -f "${target_file}" ]]; then
@@ -407,7 +471,14 @@ copyback_mcp_files() {
     local copied_count=0
     
     for file in "${MCP_NODE_FILES[@]}"; do
-        local target_file="${target_repo}/${file}"
+        # Handle .vscode files differently - they are in the repo root
+        if [[ "${file}" == .vscode/* ]]; then
+            local target_file="${target_repo}/${file}"
+        else
+            # All other files are in the RUN subdirectory
+            local target_file="${mcp_run_dir}/${file}"
+        fi
+        
         local source_file="${SCRIPT_DIR}/${file}"
         local source_dir="$(dirname "${source_file}")"
         
