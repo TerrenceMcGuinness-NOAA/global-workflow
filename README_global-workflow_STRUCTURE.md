@@ -1,208 +1,216 @@
-# 🌍 NOAA Global Workflow - System Architecture & Structure
+# 🌍 NOAA Global Workflow
+## System Architecture & Structure
 
 <div align="center">
 
-[![Workflow Status](https://img.shields.io/badge/Status-Operational-green.svg)](https://github.com/NOAA-EMC/global-workflow)
-[![Systems](https://img.shields.io/badge/HPC%20Systems-6-blue.svg)](#supported-hpc-systems)
-[![Jobs](https://img.shields.io/badge/Jobs-88-orange.svg)](#job-execution-layer)
-[![Scripts](https://img.shields.io/badge/Scripts-83-purple.svg)](#implementation-layer)
-[![MCP Server](https://img.shields.io/badge/MCP%20Server-Node.js-brightgreen.svg)](#mcp-integration)
-[![License](https://img.shields.io/badge/License-Public%20Domain-blue.svg)](LICENSE.md)
+![Global Workflow Banner](https://img.shields.io/badge/NOAA-Global%20Workflow-003366?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJMMTMuMDkgOC4yNkwyMCA5TDEzLjA5IDE1Ljc0TDEyIDIyTDEwLjkxIDE1Ljc0TDQgOUwxMC45MSA4LjI2TDEyIDJaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K)
+
+[![🔧 Status](https://img.shields.io/badge/Status-✅%20Operational-28a745?style=for-the-badge&logoWidth=20)](https://github.com/NOAA-EMC/global-workflow)
+[![🖥️ Systems](https://img.shields.io/badge/HPC%20Systems-6%20Active-0066cc?style=for-the-badge&logoWidth=20)](#supported-hpc-systems)
+[![⚙️ Jobs](https://img.shields.io/badge/Jobs-88%20Scripts-6f42c1?style=for-the-badge&logoWidth=20)](#job-execution-layer)
+[![📜 Scripts](https://img.shields.io/badge/Scripts-83%20Files-fd7e14?style=for-the-badge&logoWidth=20)](#implementation-layer)
+[![🤖 AI](https://img.shields.io/badge/AI-MCP%20Ready-17a2b8?style=for-the-badge&logoWidth=20)](#mcp-integration)
 
 </div>
 
-> **🌟 NOAA's Operational Weather Prediction System**  
-> *Managing GFS, GDAS, and GEFS for global weather forecasting with advanced AI integration*
+---
 
-<details>
-<summary>🚀 <strong>Quick Facts</strong></summary>
+<div align="center">
 
-| Metric | Value | Description |
-|--------|-------|-------------|
-| 🌍 **Global Coverage** | 100% | Complete Earth atmosphere & ocean |
-| ⚡ **Update Frequency** | 6 hours | 00Z, 06Z, 12Z, 18Z cycles |
-| 📊 **Resolution** | 13km | Global atmospheric grid |
-| 🎯 **Forecast Range** | 16 days | Extended weather prediction |
-| 💾 **Daily Data** | ~500TB | Operational data volume |
-| 🖥️ **HPC Systems** | 6 active | Multi-cloud & on-premise |
+### 🌟 **Advanced Weather Prediction System**
+*Orchestrating global forecasting with cutting-edge AI integration*
 
-</details>
+<img src="https://img.shields.io/badge/Department%20of%20Commerce-National%20Oceanic%20and%20Atmospheric%20Administration-003366?style=flat-square&logoWidth=15" />
+
+</div>
 
 ---
 
-## 📋 Table of Contents
+## 📊 **System Overview**
 
-<details>
-<summary>📚 <strong>Navigation Menu</strong></summary>
+<div align="center">
 
-- [🎯 System Overview](#-system-overview)
-- [🏗️ Architecture Diagrams](#️-architecture-diagrams)
-  - [System Flow Diagram](#system-flow-diagram)
-  - [Component Interaction](#component-interaction)
-- [📁 Directory Structure](#-directory-structure)
-  - [Execution Layer](#-execution-layer-core-operations)
-  - [Configuration Layer](#️-configuration-layer-system-setup)
-  - [Development Layer](#️-development-layer-source--build)
-- [🔄 Workflow Processing Flow](#-workflow-processing-flow)
-- [💻 Technology Stack](#-technology-stack)
-- [🖥️ Supported HPC Systems](#️-supported-hpc-systems)
-- [📊 System Metrics](#-system-metrics)
-- [🤖 MCP Integration](#-mcp-integration)
-- [🚀 Getting Started](#-getting-started)
+<table>
+<tr>
+<td align="center" width="20%">
+<img src="https://img.shields.io/badge/🌍-Global%20Coverage-003366?style=flat-square&logoWidth=20" /><br/>
+<strong>100% Earth</strong><br/>
+<sub>Complete atmosphere & ocean</sub>
+</td>
+<td align="center" width="20%">
+<img src="https://img.shields.io/badge/⚡-Update%20Cycle-0066cc?style=flat-square&logoWidth=20" /><br/>
+<strong>6 Hours</strong><br/>
+<sub>00Z, 06Z, 12Z, 18Z</sub>
+</td>
+<td align="center" width="20%">
+<img src="https://img.shields.io/badge/📊-Resolution-28a745?style=flat-square&logoWidth=20" /><br/>
+<strong>13km Global</strong><br/>
+<sub>High-resolution grid</sub>
+</td>
+<td align="center" width="20%">
+<img src="https://img.shields.io/badge/🎯-Forecast%20Range-6f42c1?style=flat-square&logoWidth=20" /><br/>
+<strong>16 Days</strong><br/>
+<sub>Extended prediction</sub>
+</td>
+<td align="center" width="20%">
+<img src="https://img.shields.io/badge/💾-Daily%20Data-dc3545?style=flat-square&logoWidth=20" /><br/>
+<strong>~500TB</strong><br/>
+<sub>Operational volume</sub>
+</td>
+</tr>
+</table>
 
-</details>
+</div>
 
 ---
 
-## 🎯 System Overview
+## 🧭 **Navigation**
 
-The **Global Workflow** is NOAA's sophisticated operational weather prediction system that orchestrates three major forecasting systems:
+<div align="center">
+
+| Section | Description | Links |
+|---------|-------------|-------|
+| **🎯 Core Systems** | Forecast models & capabilities | [GFS](#-core-forecast-systems) • [GDAS](#-core-forecast-systems) • [GEFS](#-core-forecast-systems) |
+| **🏗️ Architecture** | System design & workflows | [Diagrams](#️-architecture-diagrams) • [Flow](#-workflow-processing-flow) |
+| **📁 Structure** | Directory organization | [Execution](#-execution-layer-core-operations) • [Config](#️-configuration-layer-system-setup) |
+| **💻 Technology** | Models & infrastructure | [Stack](#-technology-stack) • [HPC](#️-supported-hpc-systems) |
+| **🤖 AI Integration** | MCP Server & Copilot | [Setup](#-mcp-integration) • [Tools](#-mcp-integration) |
+| **🚀 Getting Started** | Installation & setup | [Prerequisites](#-getting-started) • [Installation](#-getting-started) |
+
+</div>
+
+---
+
+## 🎯 **Core Forecast Systems**
+
+<div align="center">
+
+### 🌟 **Three Integrated Prediction Systems**
+
+<table>
+<tr>
+<th align="center" width="33%">
+<img src="https://img.shields.io/badge/🌍-GFS-003366?style=for-the-badge&logoWidth=25" /><br/>
+<strong>Global Forecast System</strong>
+</th>
+<th align="center" width="33%">
+<img src="https://img.shields.io/badge/🔍-GDAS-0066cc?style=for-the-badge&logoWidth=25" /><br/>
+<strong>Global Data Assimilation</strong>
+</th>
+<th align="center" width="33%">
+<img src="https://img.shields.io/badge/🎲-GEFS-28a745?style=for-the-badge&logoWidth=25" /><br/>
+<strong>Global Ensemble System</strong>
+</th>
+</tr>
+<tr>
+<td align="center">
+🎯 <strong>Deterministic forecasting</strong><br/>
+🌡️ Temperature & precipitation<br/>
+🗺️ Weather maps & guidance<br/>
+📈 Single best-guess prediction
+</td>
+<td align="center">
+🔬 <strong>Analysis & quality control</strong><br/>
+🛰️ Observation processing<br/>
+📊 Background field generation<br/>
+🧠 Data fusion & validation
+</td>
+<td align="center">
+📊 <strong>Probabilistic forecasting</strong><br/>
+🎯 Uncertainty quantification<br/>
+🌪️ Risk assessment & alerts<br/>
+📈 31-member ensemble
+</td>
+</tr>
+</table>
+
+</div>
+
+---
+
+## 🏗️ **Architecture Diagrams**
+
+### System Integration Flow
+
+<div align="center">
+
+```mermaid
+flowchart TB
+    subgraph "📥 DATA SOURCES"
+        direction TB
+        A[🛰️ Satellite<br/>Observations]
+        B[🌊 Ocean<br/>Buoys]
+        C[🏔️ Surface<br/>Stations]
+        D[✈️ Aircraft<br/>Reports]
+    end
+    
+    subgraph "🔄 PROCESSING CORE"
+        direction TB
+        E[📋 Data Ingestion<br/>& Quality Control]
+        F[🧠 Data Assimilation<br/>GSI/JEDI]
+        G[🌍 Model Integration<br/>UFS/FV3]
+        H[📊 Post Processing<br/>& Products]
+    end
+    
+    subgraph "📤 OUTPUTS"
+        direction TB
+        I[🗺️ Weather<br/>Maps]
+        J[📈 Forecast<br/>Data]
+        K[📱 Mobile<br/>Apps]
+        L[🌐 Weather.gov]
+    end
+    
+    subgraph "🖥️ HPC INFRASTRUCTURE"
+        direction LR
+        M[🏔️ Hera]
+        N[🌊 Orion]
+        O[💪 Hercules]
+        P[🖥️ WCOSS2]
+    end
+    
+    A & B & C & D --> E
+    E --> F --> G --> H
+    H --> I & J & K & L
+    
+    M & N & O & P -.-> G
+    
+    style E fill:#e8f4f8
+    style F fill:#f0e8f8
+    style G fill:#f8f4e8
+    style H fill:#e8f8f0
+    style M fill:#ffeaa7
+    style N fill:#74b9ff
+    style O fill:#fd79a8
+    style P fill:#fdcb6e
+```
+
+</div>
+
+### Component Interactions
 
 <div align="center">
 
 ```mermaid
 graph TB
-    subgraph "🌍 NOAA Global Workflow System"
-        subgraph "🎯 Core Systems"
-            GFS[🌍 GFS<br/>Global Forecast System<br/>Deterministic Forecasts]
-            GDAS[🔍 GDAS<br/>Global Data Assimilation<br/>Analysis & Quality Control]
-            GEFS[🎲 GEFS<br/>Global Ensemble System<br/>Probabilistic Forecasts]
-        end
-        
-        subgraph "🏗️ Infrastructure"
-            HPC[🖥️ HPC Systems<br/>6 Active Systems]
-            Rocoto[🔄 Rocoto<br/>Workflow Engine]
-            MCP[🤖 MCP Server<br/>AI Integration]
-        end
-        
-        subgraph "📊 Data Flow"
-            Input[📥 Observations<br/>Satellite, Surface, etc.]
-            Output[📤 Products<br/>Forecasts, Graphics, etc.]
-        end
+    subgraph "🌍 EARTH SYSTEM COMPONENTS"
+        ATM[🌪️ Atmosphere<br/>UFS/FV3<br/>13km Resolution]
+        OCN[🌊 Ocean<br/>MOM6<br/>0.25° Resolution]
+        ICE[🧊 Sea Ice<br/>CICE6<br/>Dynamic Model]
+        WAV[🌊 Waves<br/>WW3<br/>Multi-grid]
+        LND[🏔️ Land<br/>Noah-MP<br/>Surface Model]
     end
     
-    Input --> GDAS
-    GDAS --> GFS
-    GDAS --> GEFS
-    GFS --> Output
-    GEFS --> Output
-    
-    HPC --> GFS
-    HPC --> GDAS
-    HPC --> GEFS
-    Rocoto --> GFS
-    Rocoto --> GDAS
-    Rocoto --> GEFS
-    MCP --> GFS
-    MCP --> GDAS
-    MCP --> GEFS
-    
-    style GFS fill:#e1f5fe
-    style GDAS fill:#f3e5f5
-    style GEFS fill:#fff3e0
-    style MCP fill:#e8f5e8
-```
-
-</div>
-
-### 🌟 **System Capabilities**
-
-| System | Purpose | 🎯 Focus | 📈 Output |
-|---------|---------|----------|-----------|
-| **🌍 GFS** | Deterministic Forecasting | Single best-guess forecast | Weather maps, temperature, precipitation |
-| **🔍 GDAS** | Data Assimilation | Combines observations with models | Analysis fields, quality control |
-| **🎲 GEFS** | Ensemble Forecasting | Uncertainty quantification | Probability forecasts, risk assessment |
-
----
-
-## 🏗️ Architecture Diagrams
-
-### System Flow Diagram
-
-<div align="center">
-
-```mermaid
-flowchart LR
-    subgraph "📥 INPUT SOURCES"
-        A[🛰️ Satellite Data]
-        B[🌊 Ocean Buoys]
-        C[🏔️ Surface Stations]
-        D[✈️ Aircraft Reports]
-        E[🎈 Radiosondes]
+    subgraph "🧠 ANALYSIS SYSTEMS"
+        GSI[🔬 GSI<br/>3D-Var<br/>Operational]
+        JEDI[🚀 JEDI<br/>4D-Var<br/>Next-Gen]
+        ENS[📊 EnKF<br/>Ensemble<br/>LETKF]
     end
     
-    subgraph "🔄 PROCESSING PIPELINE"
-        F[📋 Data Ingestion]
-        G[🔍 Quality Control]
-        H[🧠 Data Assimilation<br/>GSI/JEDI]
-        I[🌍 Model Integration<br/>UFS/FV3]
-        J[� Post Processing]
-    end
-    
-    subgraph "📤 OUTPUT PRODUCTS"
-        K[�️ Weather Maps]
-        L[📈 Forecasts]
-        M[� GRIB2 Files]
-        N[📡 BUFR Data]
-        O[� Web Products]
-    end
-    
-    subgraph "🖥️ HPC INFRASTRUCTURE"
-        P[�️ Hera]
-        Q[🌊 Orion]
-        R[💪 Hercules]
-        S[🖥️ WCOSS2]
-        T[☁️ Cloud Systems]
-    end
-    
-    A & B & C & D & E --> F
-    F --> G --> H --> I --> J
-    J --> K & L & M & N & O
-    
-    P & Q & R & S & T -.-> I
-    
-    style F fill:#e3f2fd
-    style H fill:#f3e5f5
-    style I fill:#fff3e0
-    style J fill:#e8f5e8
-```
-
-</div>
-
-### Component Interaction
-
-<div align="center">
-
-```mermaid
-graph TD
-    subgraph "🌍 Earth System Components"
-        ATM[🌪️ Atmosphere<br/>UFS/FV3]
-        OCN[🌊 Ocean<br/>MOM6]
-        ICE[🧊 Sea Ice<br/>CICE]
-        WAV[🌊 Waves<br/>WW3]
-        LND[🏔️ Land<br/>Noah-MP]
-    end
-    
-    subgraph "🧠 Analysis Systems"
-        GSI[🔬 GSI<br/>3D-Var]
-        JEDI[🚀 JEDI<br/>4D-Var]
-        LETKF[📊 LETKF<br/>Ensemble]
-    end
-    
-    subgraph "� Workflow Management"
-        ROCOTO[� Rocoto<br/>XML Engine]
+    subgraph "⚙️ WORKFLOW ENGINE"
+        ROC[🔄 Rocoto<br/>XML Scheduler]
         ECF[📋 ECF<br/>Job Templates]
-        JOBS[💼 Job Scripts<br/>88 Jobs]
+        JOB[💼 Job Scripts<br/>88 Total]
     end
-    
-    subgraph "� AI Integration"
-        MCP[🧠 MCP Server<br/>Node.js]
-        COPILOT[🚀 GitHub Copilot<br/>AI Assistant]
-    end
-    
-    GSI --> ATM
-    JEDI --> ATM & OCN
-    LETKF --> ATM
     
     ATM <--> OCN
     ATM <--> ICE
@@ -210,685 +218,718 @@ graph TD
     ATM <--> LND
     OCN <--> ICE
     
-    ROCOTO --> JOBS
-    ECF --> JOBS
-    JOBS --> GSI & JEDI & LETKF
+    GSI --> ATM
+    JEDI --> ATM & OCN
+    ENS --> ATM
     
-    MCP --> COPILOT
-    COPILOT -.-> ROCOTO & JOBS
+    ROC --> JOB
+    ECF --> JOB
+    JOB --> GSI & JEDI & ENS
     
-    style ATM fill:#e1f5fe
+    style ATM fill:#e3f2fd
     style OCN fill:#e0f2f1
-    style MCP fill:#f1f8e9
-    style ROCOTO fill:#fce4ec
+    style GSI fill:#fff3e0
+    style ROC fill:#fce4ec
 ```
 
 </div>
 
 ---
 
-## 📁 Directory Structure
+## 📁 **Directory Structure**
 
-### 🔧 **Execution Layer** (Core Operations)
+### 🎯 **Organized by Function**
 
-```
-global-workflow/
-├── 📋 jobs/           [88 scripts] ← Job orchestration scripts
-│   ├── JGDAS_*        ← Data assimilation jobs
-│   ├── JGFS_*         ← Forecast system jobs
-│   └── JGLOBAL_*      ← Global infrastructure jobs
-│
-├── 📜 scripts/        [83 scripts] ← Implementation logic
-│   ├── exglobal_*     ← Main execution scripts
-│   ├── exgdas_*       ← Analysis scripts
-│   └── exgfs_*        ← Forecast scripts
-│
-└── 🛠️ ush/            [81 files]   ← Utility functions
-    ├── bash utilities
-    ├── python modules
-    └── shared functions
-```
+<div align="center">
 
-### ⚙️ **Configuration Layer** (System Setup)
+<table>
+<tr>
+<th align="center" width="50%">
+<img src="https://img.shields.io/badge/🔧-EXECUTION%20LAYER-003366?style=for-the-badge" /><br/>
+<em>Core Operations</em>
+</th>
+<th align="center" width="50%">
+<img src="https://img.shields.io/badge/⚙️-CONFIGURATION%20LAYER-0066cc?style=for-the-badge" /><br/>
+<em>System Setup</em>
+</th>
+</tr>
+<tr>
+<td>
 
 ```
-├── 🎛️ parm/           [18 subdirs] ← Parameter files & configs
-│   ├── 📄 *.yaml      [9 configs]  ← Main configuration files
-│   ├── 🌊 wave/       ← Wave model parameters
-│   ├── 🧪 chem/       ← Chemistry configurations
-│   ├── 🌍 ufs/        ← UFS model settings
-│   ├── 📊 gdas/       ← GDAS parameters
-│   ├── 📮 post/       ← Post-processing configs
-│   └── 📦 archive/    ← Archival settings
-│
-├── 🌐 env/            ← HPC system environments
-│   ├── HERA.env       ← Hera system config
-│   ├── ORION.env      ← Orion system config
-│   ├── HERCULES.env   ← Hercules system config
-│   ├── WCOSS2.env     ← WCOSS2 system config
-│   ├── GAEAC5.env     ← GAEAC5 system config
-│   └── GAEAC6.env     ← GAEAC6 system config
-│
-└── 🔧 modulefiles/    ← Environment modules
+📋 jobs/           [88 scripts]
+├── JGDAS_*        ← Analysis jobs
+├── JGFS_*         ← Forecast jobs
+└── JGLOBAL_*      ← Infrastructure jobs
+
+📜 scripts/        [83 scripts]
+├── exglobal_*     ← Main execution
+├── exgdas_*       ← Analysis scripts
+└── exgfs_*        ← Forecast scripts
+
+🛠️ ush/            [81 files]
+├── bash utilities
+├── python modules
+└── shared functions
 ```
 
-### 🏗️ **Development Layer** (Source & Build)
+</td>
+<td>
 
 ```
-├── 💻 sorc/           [11 subdirs] ← Source code repositories
-│   ├── UFS model components
-│   ├── GSI analysis system
-│   ├── Utilities and tools
-│   └── Third-party libraries
-│
-├── 🚀 dev/            [9 subdirs]  ← Development tools
-│   ├── ci/            ← Continuous integration
-│   ├── test/          ← Testing framework
-│   └── workflow/      ← Workflow development
-│
-├── 📚 docs/           [6 subdirs]  ← Documentation
-│   ├── build/         ← Sphinx documentation
-│   ├── source/        ← Documentation source
-│   └── archive/       ← Historical docs
-│
-└── 📦 versions/       ← Version control & dependencies
+🎛️ parm/           [18 subdirs]
+├── 📄 *.yaml      [9 configs]
+├── 🌊 wave/       ← Wave parameters
+├── 🧪 chem/       ← Chemistry configs
+└── 🌍 ufs/        ← UFS settings
+
+🌐 env/            [6 systems]
+├── HERA.env       ← Development
+├── ORION.env      ← Backup ops
+├── HERCULES.env   ← Next-gen
+├── WCOSS2.env     ← Operations
+├── GAEAC5.env     ← AWS Cloud
+└── GAEAC6.env     ← Azure Cloud
 ```
 
-### 🔄 **Workflow Management Layer** (Orchestration)
+</td>
+</tr>
+</table>
+
+</div>
+
+### 🏗️ **Development & Build Structure**
+
+<div align="center">
+
+<table>
+<tr>
+<th align="center" width="50%">
+<img src="https://img.shields.io/badge/💻-DEVELOPMENT%20LAYER-28a745?style=for-the-badge" /><br/>
+<em>Source & Build</em>
+</th>
+<th align="center" width="50%">
+<img src="https://img.shields.io/badge/🔄-WORKFLOW%20LAYER-6f42c1?style=for-the-badge" /><br/>
+<em>Orchestration</em>
+</th>
+</tr>
+<tr>
+<td>
 
 ```
-├── 🎼 ecf/            [5 subdirs]  ← ECF/Rocoto workflow
-│   ├── scripts/       ← ECF script templates
-│   ├── defs/          ← Workflow definitions (XML)
-│   ├── include/       ← Common includes
-│   └── setup_ecf_links.sh
-│
-├── 🎯 exec/           ← Compiled executables
-│   ├── Model binaries
-│   ├── Analysis tools
-│   └── Utility programs
-│
-├── 📊 fix/            [4 subdirs]  ← Fixed data files
-│   ├── Reference tables
-│   ├── Climatology data
-│   └── Lookup tables
-│
-└── 📈 gempak/         [5 subdirs]  ← GEMPAK graphics
-    ├── Dictionaries
-    ├── Tables
-    └── Graphics templates
+💻 sorc/           [11 subdirs]
+├── UFS model components
+├── GSI analysis system
+├── Utilities and tools
+└── Third-party libraries
+
+🚀 dev/            [9 subdirs]
+├── ci/            ← CI/CD
+├── test/          ← Testing
+└── workflow/      ← Development
+
+📚 docs/           [6 subdirs]
+├── build/         ← Sphinx docs
+├── source/        ← Doc source
+└── archive/       ← Historical
 ```
+
+</td>
+<td>
+
+```
+🎼 ecf/            [5 subdirs]
+├── scripts/       ← ECF templates
+├── defs/          ← XML definitions
+└── include/       ← Common includes
+
+🎯 exec/           ← Executables
+├── Model binaries
+├── Analysis tools
+└── Utility programs
+
+📊 fix/            [4 subdirs]
+├── Reference tables
+├── Climatology data
+└── Lookup tables
+```
+
+</td>
+</tr>
+</table>
+
+</div>
 
 ---
 
-## 🔄 Workflow Processing Flow
+## 🔄 **Workflow Processing Flow**
 
 <div align="center">
+
+### ⏰ **6-Hour Operational Cycle**
 
 ```mermaid
 gantt
-    title 🕐 6-Hour Operational Cycle Timeline
+    title 🕐 Complete Processing Timeline
     dateFormat HH:mm
     axisFormat %H:%M
     
-    section 📥 Data Prep
-    Fetch Observations    :active, data1, 00:00, 00:30
-    Quality Control       :data2, after data1, 00:20
-    Background Prep       :data3, 00:15, 00:45
+    section 📥 Data Ingestion
+    Observation Collection    :active, data1, 00:00, 00:30
+    Quality Control          :data2, 00:15, 00:45
+    Background Preparation   :data3, 00:20, 00:50
     
-    section 🧠 Analysis
-    GSI 3D-Var           :analysis1, 00:45, 01:30
-    JEDI 4D-Var          :analysis2, 01:00, 02:00
-    Ensemble Analysis     :analysis3, 01:15, 02:15
+    section 🧠 Analysis Phase
+    GSI 3D-Var Analysis     :analysis1, 00:45, 01:30
+    JEDI 4D-Var Analysis    :analysis2, 01:00, 02:00
+    Ensemble Analysis       :analysis3, 01:15, 02:15
     
-    section 🌍 Forecast
-    Atmospheric Model     :forecast1, 02:15, 04:00
-    Ocean Model          :forecast2, 02:30, 04:15
-    Coupled Integration   :forecast3, 02:45, 04:30
+    section 🌍 Model Integration
+    Atmospheric Forecast    :forecast1, 02:15, 04:00
+    Ocean Model Integration :forecast2, 02:30, 04:15
+    Coupled System Run      :forecast3, 02:45, 04:30
     
-    section 📊 Products
-    Post Processing      :post1, 04:30, 05:15
-    Graphics Generation  :post2, 04:45, 05:30
-    Distribution         :post3, 05:15, 06:00
+    section 📊 Product Generation
+    Post Processing         :post1, 04:30, 05:15
+    Graphics Generation     :post2, 04:45, 05:30
+    Data Distribution       :post3, 05:15, 06:00
 ```
 
 </div>
 
-### 🎯 **Processing Stages**
-
-<details>
-<summary>📥 <strong>STAGE 1: Data Preparation</strong></summary>
-
-```mermaid
-flowchart TD
-    A[🛰️ Satellite Data] --> D[🔍 Quality Control]
-    B[🌊 Surface Observations] --> D
-    C[✈️ Aircraft Reports] --> D
-    D --> E[📊 Data Formatting]
-    E --> F[💾 Staging for Analysis]
-    
-    style D fill:#fff3e0
-    style F fill:#e8f5e8
-```
-
-**Key Activities:**
-- 🔍 Observation quality control and filtering
-- 📊 Data format standardization (BUFR, GRIB2)
-- �️ Temporal and spatial organization
-- ⚡ Real-time processing requirements
-
-</details>
-
-<details>
-<summary>🧠 <strong>STAGE 2: Data Assimilation</strong></summary>
-
-```mermaid
-flowchart LR
-    subgraph "Analysis Methods"
-        A[🔬 GSI 3D-Var]
-        B[🚀 JEDI 4D-Var]
-        C[📊 EnKF/LETKF]
-    end
-    
-    D[📥 Observations] --> A & B & C
-    E[🌍 Background] --> A & B & C
-    A --> F[📊 Analysis Fields]
-    B --> F
-    C --> F
-    F --> G[✅ Quality Assessment]
-    
-    style A fill:#e3f2fd
-    style B fill:#f3e5f5
-    style C fill:#fff3e0
-```
-
-**Mathematical Foundation:**
-- **3D-Var:** $J = \frac{1}{2}(x-x_b)^T B^{-1} (x-x_b) + \frac{1}{2}(y-H(x))^T R^{-1} (y-H(x))$
-- **4D-Var:** Extends 3D-Var over time window
-- **EnKF:** Uses ensemble covariances for background error
-
-</details>
-
-<details>
-<summary>🌍 <strong>STAGE 3: Model Integration</strong></summary>
-
-```mermaid
-graph TB
-    subgraph "🌍 Earth System Model"
-        subgraph "Atmosphere"
-            A[🌪️ UFS/FV3<br/>Dynamics]
-            B[☁️ Physics<br/>Schemes]
-        end
-        subgraph "Ocean"
-            C[🌊 MOM6<br/>Circulation]
-            D[🌡️ Thermodynamics]
-        end
-        subgraph "Ice & Waves"
-            E[🧊 CICE<br/>Sea Ice]
-            F[🌊 WW3<br/>Wave Model]
-        end
-        subgraph "Land"
-            G[🏔️ Noah-MP<br/>Land Surface]
-        end
-    end
-    
-    A <--> C
-    A <--> E
-    A <--> F
-    A <--> G
-    C <--> E
-    
-    style A fill:#e1f5fe
-    style C fill:#e0f2f1
-    style E fill:#f3e5f5
-    style G fill:#fff3e0
-```
-
-</details>
-
-<details>
-<summary>📊 <strong>STAGE 4: Post-Processing</strong></summary>
-
-**Output Generation Pipeline:**
-1. 🎯 **Interpolation** - Grid-to-grid transformations
-2. 📊 **Diagnostics** - Derived variables calculation
-3. 🗺️ **Graphics** - Automated chart generation
-4. � **Formatting** - GRIB2, NetCDF, BUFR encoding
-5. 🌐 **Distribution** - Web services and data delivery
-
-</details>
-
-<details>
-<summary>📦 <strong>STAGE 5: Archive & Distribution</strong></summary>
-
-```mermaid
-flowchart TD
-    A[📊 Model Output] --> B{🔍 Quality Check}
-    B -->|✅ Pass| C[📦 Archive Storage]
-    B -->|❌ Fail| D[🚨 Alert & Rerun]
-    C --> E[🌐 Public Distribution]
-    C --> F[💾 Long-term Storage]
-    E --> G[📱 Mobile Apps]
-    E --> H[🌐 Weather.gov]
-    E --> I[� NWS Offices]
-    
-    style B fill:#fff3e0
-    style C fill:#e8f5e8
-    style E fill:#e3f2fd
-```
-
-</details>
-
----
-
-## 💻 Technology Stack
-
-### 🧠 **Core Models & Analysis**
-| Component | Purpose | Technology |
-|-----------|---------|------------|
-| **UFS/FV3** | Atmospheric Model | Finite Volume Cubed-Sphere |
-| **GSI** | 3D-Var Data Assimilation | Gridpoint Statistical Interpolation |
-| **JEDI** | 4D-Var Data Assimilation | Joint Effort for Data Assimilation |
-| **MOM6** | Ocean Model | Modular Ocean Model v6 |
-| **CICE** | Sea Ice Model | Community Ice CodE |
-| **WW3** | Wave Model | WaveWatch III |
-
-### 🔧 **Infrastructure & Tools**
-| Component | Purpose | Implementation |
-|-----------|---------|----------------|
-| **Rocoto** | Workflow Engine | XML-based job scheduling |
-| **ECF** | Job Templates | ECMWF's ecFlow system |
-| **GEMPAK** | Graphics | Meteorological graphics package |
-| **MCP Server** | AI Integration | Model Context Protocol |
-
-### 💾 **Data Formats & Standards**
-- **GRIB2** - Gridded meteorological data
-- **BUFR** - Binary Universal Form for data Representation
-- **NetCDF** - Network Common Data Form
-- **HDF5** - Hierarchical Data Format
-
----
-
-## 🖥️ Supported HPC Systems
-
-```
-┌─── NOAA RDHPCS ───┐  ┌─── Cloud Systems ───┐  ┌─── NCEP Operations ───┐
-│                   │  │                     │  │                       │
-│ 🏔️  Hera         │  │ ☁️  GAEAC5         │  │ 🖥️  WCOSS2           │
-│   • Development   │  │   • AWS Cloud      │  │   • Operations        │
-│   • Testing       │  │   • Parallel Ops   │  │   • Primary Backup    │
-│   • Research      │  │                    │  │                       │
-│                   │  │ ☁️  GAEAC6         │  │                       │
-│ 🌊 Orion         │  │   • Azure Cloud    │  │                       │
-│   • Development   │  │   • Parallel Ops   │  │                       │
-│   • Backup Ops    │  │                    │  │                       │
-│                   │  └─────────────────────┘  │                       │
-│ 💪 Hercules       │                           │                       │
-│   • Replacement   │                           │                       │
-│   • for Hera      │                           │                       │
-│                   │                           │                       │
-└───────────────────┘                           └───────────────────────┘
-```
-
-### 🎯 **System Characteristics**
-
-| System | Purpose | Cores | Memory | Storage |
-|--------|---------|-------|--------|---------|
-| **Hera** | Development | 40,000+ | 192 TB | 26 PB |
-| **Orion** | Backup Ops | 36,000+ | 188 TB | 23 PB |
-| **Hercules** | Next-Gen | 50,000+ | 256 TB | 30 PB |
-| **WCOSS2** | Operations | 28,000+ | 156 TB | 20 PB |
-| **GAEAC5** | Cloud Ops | Elastic | Elastic | Elastic |
-| **GAEAC6** | Cloud Ops | Elastic | Elastic | Elastic |
-
----
-
-## 📊 System Metrics
-
-### 📈 **Workflow Scale**
-```
-    Jobs & Scripts Distribution
-    
-    📋 Jobs (88)          📜 Scripts (83)       🛠️ Utilities (81)
-    ┌─────────────┐       ┌─────────────┐       ┌─────────────┐
-    │ JGDAS_: 35  │       │ exgdas_: 28 │       │ Bash: 45    │
-    │ JGFS_:  31  │       │ exgfs_:  25 │       │ Python: 36  │
-    │ JGLOBAL_: 22│       │ exglobal_:30│       │ Other: 0    │
-    └─────────────┘       └─────────────┘       └─────────────┘
-```
-
-### 🎯 **Configuration Complexity**
-```
-    Parameter Files & Configs
-    
-    📄 YAML Configs (9)    🎛️ Parm Subdirs (18)   🌐 Environments (6)
-    ┌─────────────┐       ┌─────────────┐        ┌─────────────┐
-    │ Main config │       │ Model parms │        │ HPC systems │
-    │ System cfg  │       │ Post-proc   │        │ Cloud env   │
-    │ Experiment  │       │ Archive cfg │        │ Development │
-    └─────────────┘       └─────────────┘        └─────────────┘
-```
-
-### ⚡ **Performance Characteristics**
-- **Forecast Resolution**: 13 km global, 3 km CONUS
-- **Cycle Frequency**: Every 6 hours
-- **Forecast Length**: 384 hours (16 days) for GFS
-- **Ensemble Members**: 31 for GEFS
-- **Data Volume**: ~500 TB per day
-- **Processing Time**: ~3 hours per cycle
-
----
-
-## 🤖 MCP Integration
+### 🎯 **Processing Stages Detail**
 
 <div align="center">
 
-### 🧠 **Model Context Protocol Server**
-
-[![Node.js](https://img.shields.io/badge/Runtime-Node.js%2022-brightgreen.svg)](https://nodejs.org/)
-[![MCP SDK](https://img.shields.io/badge/MCP%20SDK-0.5.0-blue.svg)](https://github.com/modelcontextprotocol/python-sdk)
-[![GitHub Copilot](https://img.shields.io/badge/GitHub-Copilot%20Ready-purple.svg)](https://github.com/features/copilot)
+<table>
+<tr>
+<th width="25%">📥 <strong>Data Prep</strong></th>
+<th width="25%">🧠 <strong>Analysis</strong></th>
+<th width="25%">🌍 <strong>Forecast</strong></th>
+<th width="25%">📊 <strong>Products</strong></th>
+</tr>
+<tr>
+<td align="center">
+🛰️ Satellite data<br/>
+🌊 Ocean observations<br/>
+✈️ Aircraft reports<br/>
+🔍 Quality control<br/>
+📊 Format conversion
+</td>
+<td align="center">
+🔬 GSI 3D-Var<br/>
+🚀 JEDI 4D-Var<br/>
+📊 Ensemble analysis<br/>
+🧠 Background fusion<br/>
+✅ Validation checks
+</td>
+<td align="center">
+🌪️ Atmospheric model<br/>
+🌊 Ocean circulation<br/>
+🧊 Sea ice dynamics<br/>
+🌊 Wave modeling<br/>
+🏔️ Land surface
+</td>
+<td align="center">
+🗺️ Weather maps<br/>
+📈 Forecast grids<br/>
+📊 Statistical products<br/>
+🌐 Web graphics<br/>
+📱 Mobile formats
+</td>
+</tr>
+</table>
 
 </div>
 
-The Global Workflow includes an advanced **Model Context Protocol (MCP) Server** that provides AI-powered assistance through GitHub Copilot integration.
+---
 
-<details>
-<summary>🚀 <strong>MCP Server Capabilities</strong></summary>
+## 💻 **Technology Stack**
 
-```mermaid
-graph LR
-    subgraph "🤖 MCP Server Architecture"
-        A[🧠 Node.js MCP Server<br/>@modelcontextprotocol/sdk]
-        B[🔍 Workflow Analysis]
-        C[📊 System Information]
-        D[🛠️ Job Management]
-    end
-    
-    subgraph "🎯 AI Tools"
-        E[📋 list_job_scripts<br/>88 workflow jobs]
-        F[🌍 get_workflow_structure<br/>System overview]
-        G[🖥️ get_system_configs<br/>HPC environments]
-        H[📖 explain_workflow_component<br/>Technical details]
-    end
-    
-    subgraph "🚀 Integration Points"
-        I[💻 VS Code<br/>Editor Integration]
-        J[🤖 GitHub Copilot<br/>AI Assistant]
-        K[📝 Documentation<br/>Context-aware help]
-    end
-    
-    A --> E & F & G & H
-    E & F & G & H --> I
-    I --> J --> K
-    
-    style A fill:#e8f5e8
-    style J fill:#f3e5f5
-    style K fill:#e3f2fd
-```
+<div align="center">
 
-**Available Tools:**
-- 🔍 **`get_workflow_structure`** - Complete system architecture analysis
-- 📋 **`list_job_scripts`** - Enumerate all 88 workflow jobs with descriptions
-- 🖥️ **`get_system_configs`** - HPC system configurations (Hera, Orion, etc.)
-- 📖 **`explain_workflow_component`** - Detailed component explanations
+### 🧠 **Core Scientific Models**
 
-</details>
+<table>
+<tr>
+<th align="center" width="33%">
+<img src="https://img.shields.io/badge/🌍-ATMOSPHERIC-003366?style=for-the-badge" />
+</th>
+<th align="center" width="33%">
+<img src="https://img.shields.io/badge/🌊-OCEANIC-0066cc?style=for-the-badge" />
+</th>
+<th align="center" width="33%">
+<img src="https://img.shields.io/badge/🧠-ANALYSIS-28a745?style=for-the-badge" />
+</th>
+</tr>
+<tr>
+<td align="center">
+<strong>UFS/FV3</strong><br/>
+<sub>Finite Volume Cubed-Sphere</sub><br/>
+<sub>13km Global Resolution</sub><br/>
+<sub>Unified Forecast System</sub>
+</td>
+<td align="center">
+<strong>MOM6</strong><br/>
+<sub>Modular Ocean Model v6</sub><br/>
+<sub>0.25° Resolution</sub><br/>
+<sub>Coupled Ocean-Ice</sub>
+</td>
+<td align="center">
+<strong>GSI/JEDI</strong><br/>
+<sub>3D/4D Variational</sub><br/>
+<sub>Ensemble Kalman Filter</sub><br/>
+<sub>Advanced Data Fusion</sub>
+</td>
+</tr>
+</table>
 
-<details>
-<summary>⚡ <strong>Performance Metrics</strong></summary>
+### 🔧 **Infrastructure Components**
+
+<table>
+<tr>
+<th align="center" width="25%">
+<img src="https://img.shields.io/badge/⚙️-WORKFLOW-6f42c1?style=for-the-badge" />
+</th>
+<th align="center" width="25%">
+<img src="https://img.shields.io/badge/📊-GRAPHICS-fd7e14?style=for-the-badge" />
+</th>
+<th align="center" width="25%">
+<img src="https://img.shields.io/badge/💾-DATA-17a2b8?style=for-the-badge" />
+</th>
+<th align="center" width="25%">
+<img src="https://img.shields.io/badge/🤖-AI-dc3545?style=for-the-badge" />
+</th>
+</tr>
+<tr>
+<td align="center">
+<strong>Rocoto</strong><br/>
+<sub>XML-based Scheduling</sub><br/>
+<strong>ECF</strong><br/>
+<sub>Job Templates</sub>
+</td>
+<td align="center">
+<strong>GEMPAK</strong><br/>
+<sub>Weather Graphics</sub><br/>
+<strong>Python</strong><br/>
+<sub>Modern Visualization</sub>
+</td>
+<td align="center">
+<strong>GRIB2</strong><br/>
+<sub>Gridded Data</sub><br/>
+<strong>NetCDF/HDF5</strong><br/>
+<sub>Scientific Formats</sub>
+</td>
+<td align="center">
+<strong>MCP Server</strong><br/>
+<sub>Model Context Protocol</sub><br/>
+<strong>GitHub Copilot</strong><br/>
+<sub>AI Integration</sub>
+</td>
+</tr>
+</table>
+
+</div>
+
+---
+
+## 🖥️ **Supported HPC Systems**
+
+<div align="center">
+
+### 🌐 **Multi-Platform Infrastructure**
+
+<table>
+<tr>
+<th align="center" width="33%">
+<img src="https://img.shields.io/badge/🔬-NOAA%20RDHPCS-003366?style=for-the-badge" /><br/>
+<em>Research & Development</em>
+</th>
+<th align="center" width="33%">
+<img src="https://img.shields.io/badge/☁️-CLOUD%20SYSTEMS-0066cc?style=for-the-badge" /><br/>
+<em>Parallel Operations</em>
+</th>
+<th align="center" width="33%">
+<img src="https://img.shields.io/badge/🖥️-NCEP%20OPERATIONS-28a745?style=for-the-badge" /><br/>
+<em>Production Systems</em>
+</th>
+</tr>
+<tr>
+<td>
+
+**🏔️ Hera**
+- Development & Testing
+- 40,000+ cores
+- 192 TB memory
+
+**🌊 Orion**
+- Backup Operations
+- 36,000+ cores
+- 188 TB memory
+
+**💪 Hercules**
+- Next-Generation
+- 50,000+ cores
+- 256 TB memory
+
+</td>
+<td>
+
+**☁️ GAEAC5**
+- AWS Cloud Platform
+- Elastic resources
+- Parallel operations
+
+**☁️ GAEAC6**
+- Azure Cloud Platform
+- Elastic scaling
+- Backup capability
+
+</td>
+<td>
+
+**🖥️ WCOSS2**
+- Primary Operations
+- 28,000+ cores
+- 156 TB memory
+
+**Production Ready**
+- 24/7 Operations
+- High Availability
+- Disaster Recovery
+
+</td>
+</tr>
+</table>
+
+</div>
+
+---
+
+## 🤖 **MCP Integration**
+
+<div align="center">
+
+### 🧠 **AI-Powered Development Assistant**
+
+[![Node.js](https://img.shields.io/badge/Runtime-Node.js%2022-68bc71?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![MCP](https://img.shields.io/badge/MCP%20SDK-0.5.0-4285f4?style=for-the-badge)](https://github.com/modelcontextprotocol/python-sdk)
+[![Copilot](https://img.shields.io/badge/GitHub-Copilot%20Ready-6f42c1?style=for-the-badge&logo=github&logoColor=white)](https://github.com/features/copilot)
+
+</div>
+
+### 🛠️ **Available AI Tools**
+
+<div align="center">
+
+<table>
+<tr>
+<th align="center" width="25%">
+<img src="https://img.shields.io/badge/🔍-ANALYSIS-003366?style=for-the-badge" />
+</th>
+<th align="center" width="25%">
+<img src="https://img.shields.io/badge/📋-INVENTORY-0066cc?style=for-the-badge" />
+</th>
+<th align="center" width="25%">
+<img src="https://img.shields.io/badge/🖥️-SYSTEMS-28a745?style=for-the-badge" />
+</th>
+<th align="center" width="25%">
+<img src="https://img.shields.io/badge/📖-DOCUMENTATION-6f42c1?style=for-the-badge" />
+</th>
+</tr>
+<tr>
+<td align="center">
+<strong>get_workflow_structure</strong><br/>
+<sub>Complete system architecture</sub><br/>
+<sub>Component relationships</sub>
+</td>
+<td align="center">
+<strong>list_job_scripts</strong><br/>
+<sub>88 workflow jobs catalog</sub><br/>
+<sub>Detailed descriptions</sub>
+</td>
+<td align="center">
+<strong>get_system_configs</strong><br/>
+<sub>HPC environment details</sub><br/>
+<sub>6 system configurations</sub>
+</td>
+<td align="center">
+<strong>explain_component</strong><br/>
+<sub>Technical deep dives</sub><br/>
+<sub>Context-aware help</sub>
+</td>
+</tr>
+</table>
+
+</div>
+
+### ⚡ **Performance Metrics**
+
+<div align="center">
 
 | Metric | Value | Description |
 |--------|-------|-------------|
 | 🚀 **Response Time** | ~0.009s | Tool invocation latency |
 | 📊 **Context Depth** | Full repository | Complete workflow knowledge |
-| 🔧 **Tool Count** | 4 active | Specialized workflow tools |
 | 🌍 **System Coverage** | 6 HPC systems | Multi-platform support |
 | 📋 **Job Knowledge** | 88 jobs | Complete workflow catalog |
 
-</details>
-
-<details>
-<summary>🛠️ <strong>Installation & Usage</strong></summary>
-
-```bash
-# Install Node.js MCP Server
-cd /path/to/global-workflow
-./install_mcp_node.sh install /path/to/target-repo
-
-# Test MCP Server
-./start-mcp-server-node.sh test
-
-# VS Code Integration
-# Restart VS Code to activate MCP server
-# GitHub Copilot will automatically use workflow context
-```
-
-**Example Copilot Interactions:**
-> 💬 "What does the JGDAS_ATMOS_ANALYSIS_DIAG job do?"  
-> 🤖 *Copilot provides detailed analysis based on MCP context*
-
-> 💬 "Show me the Hera system configuration"  
-> 🤖 *Copilot references env/HERA.env with MCP-provided details*
-
-> 💬 "How does the GSI data assimilation work?"  
-> 🤖 *Copilot explains GSI with workflow-specific context*
-
-</details>
+</div>
 
 ---
 
-## 🚀 Getting Started
+## 🚀 **Getting Started**
 
 <div align="center">
 
-### 🎯 **Quick Start Guide**
+### 🎯 **Quick Setup Guide**
 
 </div>
 
-<details>
-<summary>🔧 <strong>Prerequisites & System Requirements</strong></summary>
+### 1️⃣ **Prerequisites**
 
-### 💻 **Development Environment**
+<div align="center">
 
-| Component | Version | Purpose |
-|-----------|---------|---------|
-| 🐧 **Linux** | RHEL 8+ / Ubuntu 20+ | Operating System |
-| 🔧 **Git** | 2.25+ | Version Control |
-| 🏗️ **CMake** | 3.20+ | Build System |
-| 🧮 **Fortran** | Intel 2021+ / GCC 11+ | Model Compilation |
-| 🔗 **MPI** | OpenMPI 4+ / Intel MPI | Parallel Processing |
-| 📊 **NetCDF** | 4.8+ | Data I/O |
-| 💾 **HDF5** | 1.12+ | Scientific Data |
+<table>
+<tr>
+<th align="center" width="33%">
+<img src="https://img.shields.io/badge/💻-SYSTEM-003366?style=for-the-badge" />
+</th>
+<th align="center" width="33%">
+<img src="https://img.shields.io/badge/🔧-DEVELOPMENT-0066cc?style=for-the-badge" />
+</th>
+<th align="center" width="33%">
+<img src="https://img.shields.io/badge/🤖-AI%20TOOLS-28a745?style=for-the-badge" />
+</th>
+</tr>
+<tr>
+<td align="center">
+🐧 <strong>Linux RHEL 8+</strong><br/>
+💾 <strong>500GB+ Storage</strong><br/>
+🖥️ <strong>32GB+ Memory</strong><br/>
+⚡ <strong>8+ CPU Cores</strong>
+</td>
+<td align="center">
+🔧 <strong>Git 2.25+</strong><br/>
+🏗️ <strong>CMake 3.20+</strong><br/>
+🧮 <strong>Intel/GCC Fortran</strong><br/>
+🔗 <strong>MPI Library</strong>
+</td>
+<td align="center">
+🟢 <strong>Node.js 18+</strong><br/>
+🟣 <strong>VS Code</strong><br/>
+🤖 <strong>GitHub Copilot</strong><br/>
+📦 <strong>npm 8+</strong>
+</td>
+</tr>
+</table>
 
-### 🤖 **AI Integration (Optional)**
-- 🟢 **Node.js** 18+ (for MCP Server)
-- 🟣 **VS Code** with GitHub Copilot
-- 🔵 **npm** 8+ (Package Management)
+</div>
 
-</details>
+### 2️⃣ **Installation Steps**
 
-<details>
-<summary>📦 <strong>Installation Steps</strong></summary>
-
-### 1️⃣ **Repository Setup**
 ```bash
-# Clone with all submodules
+# 1. Clone Repository
 git clone --recursive https://github.com/NOAA-EMC/global-workflow.git
 cd global-workflow
 
-# If already cloned, update submodules
-git submodule update --init --recursive
-```
-
-### 2️⃣ **Environment Configuration**
-```bash
-# Choose your HPC system
+# 2. Configure Environment (choose your system)
 source env/HERA.env      # For Hera
 source env/ORION.env     # For Orion  
 source env/HERCULES.env  # For Hercules
-source env/WCOSS2.env    # For WCOSS2
-```
 
-### 3️⃣ **Build System**
-```bash
-# Configure build
-cmake -S . -B build \
-    -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_INSTALL_PREFIX=./install
-
-# Compile (parallel build)
+# 3. Build System
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --parallel 8
-
-# Install executables
 cmake --install build
-```
 
-### 4️⃣ **MCP Server Setup (AI Integration)**
-```bash
-# Install Node.js MCP Server
+# 4. Setup AI Integration
 ./install_mcp_node.sh install $(pwd)
-
-# Install dependencies
 npm install
-
-# Test integration
 ./start-mcp-server-node.sh test
 ```
 
-</details>
+### 3️⃣ **Validation**
 
-<details>
-<summary>🧪 <strong>Testing & Validation</strong></summary>
+<div align="center">
 
-### ✅ **System Tests**
+<table>
+<tr>
+<th align="center" width="50%">
+<img src="https://img.shields.io/badge/✅-SYSTEM%20TESTS-28a745?style=for-the-badge" />
+</th>
+<th align="center" width="50%">
+<img src="https://img.shields.io/badge/🤖-AI%20VALIDATION-6f42c1?style=for-the-badge" />
+</th>
+</tr>
+<tr>
+<td>
+
 ```bash
 # Basic functionality
 ./test-copilot-integration.py
 
-# Component tests
-cd dev/test
-./run_tests.sh
+# Component tests  
+cd dev/test && ./run_tests.sh
 
-# MCP Server validation
-echo '{"jsonrpc": "2.0", "id": 1, "method": "tools/list"}' | \
-./start-mcp-server-node.sh start 2>/dev/null
+# System resources
+free -h && df -h
 ```
 
-### 📊 **Performance Validation**
+</td>
+<td>
+
 ```bash
-# Check system resources
-free -h                    # Memory
-df -h                      # Disk space
-nproc                      # CPU cores
+# MCP Server test
+./start-mcp-server-node.sh test
 
-# Benchmark MCP response time
-time ./start-mcp-server-node.sh test
+# Tool availability
+echo '{"jsonrpc": "2.0", "id": 1, 
+"method": "tools/list"}' | \
+./start-mcp-server-node.sh start
 ```
 
-</details>
-
-<details>
-<summary>🎯 <strong>Next Steps</strong></summary>
-
-### 🚀 **Development Workflow**
-1. 📖 **Read Documentation** - Explore `docs/source/`
-2. 🧪 **Run Examples** - Try sample configurations
-3. 🔧 **Configure Experiment** - Set up your research case
-4. 🤖 **Use AI Assistant** - Leverage GitHub Copilot with MCP
-5. 🌐 **Join Community** - Participate in discussions
-
-### 📚 **Learning Resources**
-- 🎓 **UFS Documentation** - [ufs-weather-model.readthedocs.io](https://ufs-weather-model.readthedocs.io/)
-- 🧠 **GSI User Guide** - Data assimilation techniques
-- 🌊 **MOM6 Documentation** - Ocean modeling
-- 🤖 **MCP Protocol** - AI integration patterns
-
-</details>
-
----
-
-## 🔗 Related Documentation & Resources
-
-<div align="center">
-
-### 📚 **Documentation Hub**
-
-</div>
-
-| 📖 Resource | 🎯 Purpose | 🔗 Link |
-|-------------|------------|---------|
-| � **User Guide** | Complete workflow documentation | [`docs/source/index.rst`](docs/source/index.rst) |
-| 🔧 **Developer Guide** | Contributing and development | [`docs/source/development.rst`](docs/source/development.rst) |
-| ⚙️ **System Setup** | HPC configuration details | [`docs/source/setup.rst`](docs/source/setup.rst) |
-| 🤖 **MCP Server Guide** | AI integration documentation | [`MCP_SERVER_README.md`](MCP_SERVER_README.md) |
-| 📊 **Performance Guide** | Optimization and tuning | [`docs/source/performance.rst`](docs/source/performance.rst) |
-| 🧪 **Testing Guide** | Validation and CI/CD | [`dev/test/README.md`](dev/test/README.md) |
-
-### 🌐 **External Resources**
-
-<div align="center">
-
-[![UFS](https://img.shields.io/badge/UFS-Weather%20Model-blue.svg)](https://ufs-weather-model.readthedocs.io/)
-[![GSI](https://img.shields.io/badge/GSI-Data%20Assimilation-green.svg)](https://dtcenter.org/community-code/gridpoint-statistical-interpolation-gsi)
-[![JEDI](https://img.shields.io/badge/JEDI-Framework-purple.svg)](https://jedi-docs.jcsda.org/)
-[![MOM6](https://img.shields.io/badge/MOM6-Ocean%20Model-cyan.svg)](https://mom6.readthedocs.io/)
+</td>
+</tr>
+</table>
 
 </div>
 
 ---
 
-## 📞 Support & Community
+## 📚 **Documentation & Resources**
+
+<div align="center">
+
+### 📖 **Comprehensive Documentation Hub**
+
+<table>
+<tr>
+<th align="center" width="33%">
+<img src="https://img.shields.io/badge/📘-USER%20GUIDES-003366?style=for-the-badge" />
+</th>
+<th align="center" width="33%">
+<img src="https://img.shields.io/badge/🔧-DEVELOPER%20DOCS-0066cc?style=for-the-badge" />
+</th>
+<th align="center" width="33%">
+<img src="https://img.shields.io/badge/🌐-EXTERNAL%20LINKS-28a745?style=for-the-badge" />
+</th>
+</tr>
+<tr>
+<td align="center">
+📖 <strong>Complete User Guide</strong><br/>
+<sub>docs/source/index.rst</sub><br/><br/>
+⚙️ <strong>System Setup</strong><br/>
+<sub>docs/source/setup.rst</sub><br/><br/>
+📊 <strong>Performance Guide</strong><br/>
+<sub>docs/source/performance.rst</sub>
+</td>
+<td align="center">
+🔧 <strong>Developer Guide</strong><br/>
+<sub>docs/source/development.rst</sub><br/><br/>
+🤖 <strong>MCP Server Guide</strong><br/>
+<sub>MCP_SERVER_README.md</sub><br/><br/>
+🧪 <strong>Testing Guide</strong><br/>
+<sub>dev/test/README.md</sub>
+</td>
+<td align="center">
+🌍 <strong>UFS Weather Model</strong><br/>
+<sub>ufs-weather-model.readthedocs.io</sub><br/><br/>
+🔬 <strong>GSI Documentation</strong><br/>
+<sub>dtcenter.org/gsi</sub><br/><br/>
+🚀 <strong>JEDI Framework</strong><br/>
+<sub>jedi-docs.jcsda.org</sub>
+</td>
+</tr>
+</table>
+
+</div>
+
+---
+
+## 📞 **Support & Community**
 
 <div align="center">
 
 ### 🤝 **Get Help & Contribute**
 
+<table>
+<tr>
+<th align="center" width="25%">
+<img src="https://img.shields.io/badge/🐛-BUG%20REPORTS-dc3545?style=for-the-badge" />
+</th>
+<th align="center" width="25%">
+<img src="https://img.shields.io/badge/💬-DISCUSSIONS-6f42c1?style=for-the-badge" />
+</th>
+<th align="center" width="25%">
+<img src="https://img.shields.io/badge/📖-DOCUMENTATION-17a2b8?style=for-the-badge" />
+</th>
+<th align="center" width="25%">
+<img src="https://img.shields.io/badge/🎓-TRAINING-fd7e14?style=for-the-badge" />
+</th>
+</tr>
+<tr>
+<td align="center">
+<strong>GitHub Issues</strong><br/>
+<sub>Report problems</sub><br/>
+<sub>Track fixes</sub><br/>
+<sub>Feature requests</sub>
+</td>
+<td align="center">
+<strong>GitHub Discussions</strong><br/>
+<sub>Community Q&A</sub><br/>
+<sub>Share ideas</sub><br/>
+<sub>Best practices</sub>
+</td>
+<td align="center">
+<strong>Read the Docs</strong><br/>
+<sub>Comprehensive guides</sub><br/>
+<sub>API references</sub><br/>
+<sub>Tutorials</sub>
+</td>
+<td align="center">
+<strong>NOAA EMC</strong><br/>
+<sub>Official training</sub><br/>
+<sub>Workshops</sub><br/>
+<sub>Certification</sub>
+</td>
+</tr>
+</table>
+
 </div>
 
-<details>
-<summary>🆘 <strong>Support Channels</strong></summary>
+### 🤝 **Contributing Guidelines**
 
-| 🎯 Need | 🔗 Where to Go | 📝 Description |
-|---------|----------------|-----------------|
-| 🐛 **Bug Reports** | [GitHub Issues](https://github.com/NOAA-EMC/global-workflow/issues) | Report problems and track fixes |
-| 💬 **Discussions** | [GitHub Discussions](https://github.com/NOAA-EMC/global-workflow/discussions) | Community Q&A and ideas |
-| 📖 **Documentation** | [Read the Docs](https://global-workflow.readthedocs.io/) | Comprehensive guides |
-| 🎓 **Training** | [NOAA EMC](https://www.emc.ncep.noaa.gov/) | Official training materials |
+<div align="center">
 
-</details>
+| Step | Action | Description |
+|------|--------|-------------|
+| 1️⃣ | 🍴 **Fork** | Create your own repository copy |
+| 2️⃣ | 🌿 **Branch** | Create feature branch from develop |
+| 3️⃣ | 💻 **Code** | Make changes following standards |
+| 4️⃣ | 🧪 **Test** | Validate changes thoroughly |
+| 5️⃣ | 📤 **Submit** | Create pull request with details |
 
-<details>
-<summary>🤝 <strong>Contributing</strong></summary>
-
-We welcome contributions! Here's how to get started:
-
-1. 🍴 **Fork** the repository
-2. 🌿 **Create** a feature branch
-3. 💻 **Make** your changes
-4. 🧪 **Test** thoroughly  
-5. 📤 **Submit** a pull request
-
-### 👥 **Code of Conduct**
-- ✅ Be respectful and inclusive
-- 🧪 Test your changes
-- 📝 Document new features
-- 🔍 Follow coding standards
-
-</details>
+</div>
 
 ---
 
 <div align="center">
 
-## 🌍 **Powering Global Weather Prediction Since 2019** 🌍
+## 🌍 **Powering Global Weather Prediction** 🌍
 
-[![NOAA](https://img.shields.io/badge/NOAA-National%20Weather%20Service-blue.svg)](https://www.weather.gov/)
-[![EMC](https://img.shields.io/badge/EMC-Environmental%20Modeling%20Center-green.svg)](https://www.emc.ncep.noaa.gov/)
-[![License](https://img.shields.io/badge/License-Public%20Domain-blue.svg)](LICENSE.md)
+<img src="https://img.shields.io/badge/Since%202019-Operational%20Excellence-003366?style=for-the-badge&logoWidth=20" />
+
+[![NOAA](https://img.shields.io/badge/NOAA-National%20Weather%20Service-003366?style=flat-square&logoWidth=15)](https://www.weather.gov/)
+[![EMC](https://img.shields.io/badge/EMC-Environmental%20Modeling%20Center-0066cc?style=flat-square&logoWidth=15)](https://www.emc.ncep.noaa.gov/)
+[![License](https://img.shields.io/badge/License-Public%20Domain-28a745?style=flat-square&logoWidth=15)](LICENSE.md)
+
+---
 
 ### ⭐ **If this project helps you, please give it a star!** ⭐
 
-*Last updated: July 28, 2025 | Version: Node.js MCP Enhanced*
+<sub>*Last updated: July 28, 2025 | Version: Enhanced Node.js MCP Integration*</sub>
+
+<img src="https://img.shields.io/badge/Department%20of%20Commerce-National%20Oceanic%20and%20Atmospheric%20Administration%20|%20NOAA.gov-003366?style=flat-square&logoWidth=15" />
 
 </div>
