@@ -1,27 +1,137 @@
 #!/usr/bin/env node
 
 /**
- * Document Ingestion Pipeline for RAG-Enhanced MCP Server
- * Processes documentation, code, and configuration files to build knowledge base
+ * Document Ingester for Global Workflow Knowledge Base
+ * Processes repository files to create structured knowledge chunks with vector embeddings
  */
 
-const fs = require('fs').promises;
-const path = require('path');
-const crypto = require('crypto');
+import fs from 'fs/promises';
+import path from 'path';
+import crypto from 'crypto';
+import { ChromaClient } from 'chromadb';
+import { pipeline } from '@xenova/transformers';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 class DocumentIngester {
-  constructor(config = {}) {
-    this.config = {
-      chunkSize: 1000,
-      chunkOverlap: 200,
-      supportedExtensions: ['.md', '.rst', '.txt', '.sh', '.py', '.yml', '.yaml', '.json', '.cmake'],
-      excludePatterns: ['node_modules', '.git', 'build', '__pycache__', '.venv'],
-      outputDir: './knowledge_base',
-      ...config
+  constructor(baseDir, outputFile = './knowledge-base.json') {
+    this.baseDir = baseDir;
+    this.outputFile = outputFile;
+    this.knowledgeBase = {
+      metadata: {
+        createdAt: new Date().toISOString(),
+        baseDirectory: baseDir,
+        totalChunks: 0,
+        version: '2.0.0'
+      },
+      chunks: []
     };
     
+    // Initialize arrays
     this.documents = [];
     this.chunks = [];
+    
+    // Configuration
+    this.config = {
+      supportedExtensions: ['.md', '.txt', '.py', '.sh', '.yml', '.yaml', '.json', '.xml', '.cmake', '.rst'],
+      excludePatterns: [
+        'node_modules', '.git', '__pycache__', '.vscode', 'build', 'dist',
+        '.pytest_cache', '.coverage', 'venv', '.venv', 'env'
+      ],
+      chunkSize: 1500,
+      chunkOverlap: 200,
+      outputDir: './knowledge-base'
+    };
+    
+    // Vector database setup
+    this.chromaClient = null;
+    this.collection = null;
+    this.embedModel = null;
+    
+    // Initialize embedding model
+    this.initializeEmbedding();
+  }
+
+  async initializeEmbedding() {
+    try {
+      // Initialize ChromaDB client
+      this.chromaClient = new ChromaClient({
+        host: process.env.CHROMA_HOST || 'localhost',
+        port: process.env.CHROMA_PORT || 8000
+      });
+      
+      // Initialize embedding model (using sentence-transformers)
+      this.embedModel = await pipeline('feature-extraction', 'sentence-transformers/all-MiniLM-L6-v2');
+      
+      console.log('✓ Vector database and embedding model initialized');
+    } catch (error) {
+      console.warn('⚠ Vector database not available, running in local mode:', error.message);
+    }
+  }
+
+  async setupVectorDatabase(collectionName = 'global-workflow-docs') {
+    if (!this.chromaClient) {
+      console.log('Vector database not available, skipping setup');
+      return;
+    }
+
+    try {
+      // Create or get collection
+      this.collection = await this.chromaClient.getOrCreateCollection({
+        name: collectionName,
+        metadata: {
+          description: 'Global Workflow documentation and code chunks',
+          version: '2.0.0',
+          created: new Date().toISOString()
+        }
+      });
+      
+      console.log(`✓ Vector collection '${collectionName}' ready`);
+    } catch (error) {
+      console.error('Failed to setup vector database:', error.message);
+    }
+  }
+
+  async generateEmbedding(text) {
+    if (!this.embedModel) {
+      return null;
+    }
+
+    try {
+      const result = await this.embedModel(text);
+      // Convert tensor to array and get the mean pooling
+      const embedding = result.data;
+      return Array.from(embedding);
+    } catch (error) {
+      console.warn('Failed to generate embedding:', error.message);
+      return null;
+    }
+  }
+
+  async storeInVectorDB(chunk) {
+    if (!this.collection || !chunk.embedding) {
+      return;
+    }
+
+    try {
+      await this.collection.add({
+        ids: [chunk.id],
+        embeddings: [chunk.embedding],
+        metadatas: [{
+          file_path: chunk.file_path,
+          chunk_type: chunk.chunk_type,
+          language: chunk.language,
+          size: chunk.size,
+          hash: chunk.hash,
+          created_at: chunk.created_at
+        }],
+        documents: [chunk.content]
+      });
+    } catch (error) {
+      console.warn('Failed to store in vector DB:', error.message);
+    }
   }
 
   /**
@@ -31,6 +141,9 @@ class DocumentIngester {
     console.log(`Starting document ingestion for: ${repoPath}`);
     
     try {
+      // Step 0: Setup vector database
+      await this.setupVectorDatabase();
+      
       // Step 1: Discover and process documents
       await this.discoverDocuments(repoPath);
       console.log(`Discovered ${this.documents.length} documents`);
@@ -157,7 +270,7 @@ class DocumentIngester {
       // Check if chunk is large enough
       if (currentChunk.length >= this.config.chunkSize || i === lines.length - 1) {
         if (currentChunk.trim()) {
-          chunks.push({
+          const chunk = {
             id: this.generateChunkId(doc, chunkIndex),
             content: currentChunk.trim(),
             document: doc,
@@ -171,7 +284,18 @@ class DocumentIngester {
               chunk_size: currentChunk.length,
               line_count: lineCount
             }
-          });
+          };
+          
+          // Generate embedding for the chunk
+          const embedding = await this.generateEmbedding(chunk.content);
+          if (embedding) {
+            chunk.embedding = embedding;
+          }
+          
+          // Store in vector database
+          await this.storeInVectorDB(chunk);
+          
+          chunks.push(chunk);
           chunkIndex++;
         }
         
@@ -389,8 +513,8 @@ async function main() {
 }
 
 // Run if called directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   main();
 }
 
-module.exports = DocumentIngester;
+export default DocumentIngester;

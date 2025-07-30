@@ -5,21 +5,21 @@
  * Extends the basic MCP server with Retrieval-Augmented Generation capabilities
  */
 
-const { Server } = require("@modelcontextprotocol/sdk/server/index.js");
-const { StdioServerTransport } = require("@modelcontextprotocol/sdk/server/stdio.js");
-const {
+import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import {
   CallToolRequestSchema,
   ErrorCode,
   ListToolsRequestSchema,
   McpError,
-} = require("@modelcontextprotocol/sdk/types.js");
+} from "@modelcontextprotocol/sdk/types.js";
 
-const fs = require('fs').promises;
-const path = require('path');
+import fs from 'fs/promises';
+import path from 'path';
 
-// Import RAG components (these would be installed via npm)
-// const { ChromaClient } = require('chromadb');
-// const { OpenAI } = require('openai');
+// Import RAG components
+import { ChromaClient } from 'chromadb';
+import { pipeline } from '@xenova/transformers';
 
 class RAGEnhancedMCPServer {
   constructor() {
@@ -33,11 +33,48 @@ class RAGEnhancedMCPServer {
     });
 
     // Initialize vector database connection
-    // this.chromaClient = new ChromaClient();
-    // this.openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    this.chromaClient = new ChromaClient({
+      host: process.env.CHROMA_HOST || 'localhost',
+      port: process.env.CHROMA_PORT || 8000
+    });
+    this.collection = null;
+    this.embedModel = null;
+    
+    // Initialize components
+    this.initializeRAG();
     
     this.setupTools();
     this.setupHandlers();
+  }
+
+  async initializeRAG() {
+    try {
+      // Initialize embedding model
+      this.embedModel = await pipeline('feature-extraction', 'sentence-transformers/all-MiniLM-L6-v2');
+      
+      // Get or create collection
+      this.collection = await this.chromaClient.getOrCreateCollection({
+        name: 'global-workflow-docs'
+      });
+      
+      console.error('✓ RAG components initialized successfully');
+    } catch (error) {
+      console.error('⚠ RAG initialization failed:', error.message);
+    }
+  }
+
+  async generateEmbedding(text) {
+    if (!this.embedModel) {
+      throw new Error('Embedding model not initialized');
+    }
+
+    try {
+      const result = await this.embedModel(text);
+      return Array.from(result.data);
+    } catch (error) {
+      console.error('Failed to generate embedding:', error.message);
+      throw error;
+    }
   }
 
   setupTools() {
@@ -266,53 +303,187 @@ class RAGEnhancedMCPServer {
 
   // RAG-enhanced tool implementations
   async searchDocumentation(query, docType = "all", maxResults = 5) {
-    // TODO: Implement vector similarity search
-    // 1. Generate embedding for query
-    // 2. Search vector database
-    // 3. Retrieve relevant document chunks
-    // 4. Rank and return results
+    try {
+      if (!this.collection) {
+        throw new Error('Vector database not initialized');
+      }
 
-    // Placeholder implementation
-    return {
-      content: [
-        {
-          type: "text",
-          text: `RAG Documentation Search Results for: "${query}"\n\n` +
-                `Document Type: ${docType}\n` +
-                `Max Results: ${maxResults}\n\n` +
-                `[This would return semantically similar documentation chunks]\n\n` +
-                `TODO: Implement actual vector similarity search with:\n` +
-                `- Query embedding generation\n` +
-                `- Vector database search\n` +
-                `- Result ranking and filtering\n` +
-                `- Context-aware response generation`
-        }
-      ],
-    };
+      // Generate embedding for query
+      const queryEmbedding = await this.generateEmbedding(query);
+      
+      // Build metadata filter if docType is specified
+      let whereClause = {};
+      if (docType !== "all") {
+        whereClause = { type: docType };
+      }
+
+      // Search vector database
+      const results = await this.collection.query({
+        queryEmbeddings: [queryEmbedding],
+        nResults: maxResults,
+        where: Object.keys(whereClause).length > 0 ? whereClause : undefined
+      });
+
+      // Format results
+      let responseText = `# Documentation Search Results\n\n`;
+      responseText += `**Query:** "${query}"\n`;
+      responseText += `**Document Type:** ${docType}\n`;
+      responseText += `**Results Found:** ${results.documents[0].length}\n\n`;
+
+      if (results.documents[0].length === 0) {
+        responseText += `No matching documents found. Try:\n`;
+        responseText += `- Using different keywords\n`;
+        responseText += `- Broadening your search terms\n`;
+        responseText += `- Checking if documentation has been ingested\n`;
+      } else {
+        results.documents[0].forEach((doc, index) => {
+          const metadata = results.metadatas[0][index];
+          const distance = results.distances[0][index];
+          const similarity = (1 - distance) * 100;
+          
+          responseText += `## Result ${index + 1} (${similarity.toFixed(1)}% match)\n`;
+          responseText += `**Source:** ${metadata.file_path}\n`;
+          responseText += `**Type:** ${metadata.chunk_type}\n`;
+          responseText += `**Language:** ${metadata.language}\n\n`;
+          responseText += `**Content:**\n\`\`\`\n${doc}\n\`\`\`\n\n`;
+        });
+      }
+
+      return {
+        content: [{ type: "text", text: responseText }],
+      };
+    } catch (error) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Error searching documentation: ${error.message}\n\n` +
+                  `Please ensure:\n` +
+                  `- Vector database is running\n` +
+                  `- Documents have been ingested\n` +
+                  `- Network connectivity is available`
+          }
+        ],
+      };
+    }
   }
 
   async explainWithContext(component, contextLevel = "intermediate", includeExamples = true) {
-    // TODO: Implement RAG-enhanced explanation
-    // 1. Retrieve relevant documentation for component
-    // 2. Find related code examples
-    // 3. Generate comprehensive explanation
-    // 4. Include usage patterns and best practices
+    try {
+      if (!this.collection) {
+        throw new Error('Vector database not initialized');
+      }
 
-    return {
-      content: [
-        {
-          type: "text",
-          text: `Enhanced Explanation for: ${component}\n\n` +
-                `Context Level: ${contextLevel}\n` +
-                `Include Examples: ${includeExamples}\n\n` +
-                `[This would provide RAG-enhanced explanations with:\n` +
-                `- Retrieved documentation context\n` +
-                `- Relevant code examples\n` +
-                `- Best practices and usage patterns\n` +
-                `- Related components and dependencies]`
+      // Search for relevant context about the component
+      const contextQueries = [
+        `${component} documentation`,
+        `${component} configuration`,
+        `${component} usage examples`,
+        `how to use ${component}`,
+        `${component} workflow`
+      ];
+
+      let allResults = [];
+      
+      // Gather context from multiple queries
+      for (const query of contextQueries) {
+        try {
+          const queryEmbedding = await this.generateEmbedding(query);
+          const results = await this.collection.query({
+            queryEmbeddings: [queryEmbedding],
+            nResults: 3
+          });
+          
+          if (results.documents[0].length > 0) {
+            allResults.push(...results.documents[0].map((doc, index) => ({
+              content: doc,
+              metadata: results.metadatas[0][index],
+              distance: results.distances[0][index]
+            })));
+          }
+        } catch (error) {
+          console.error(`Error querying for ${query}:`, error.message);
         }
-      ],
-    };
+      }
+
+      // Remove duplicates and sort by relevance
+      const uniqueResults = allResults
+        .filter((result, index, self) => 
+          index === self.findIndex(r => r.content === result.content)
+        )
+        .sort((a, b) => a.distance - b.distance)
+        .slice(0, 8);
+
+      // Generate comprehensive explanation
+      let explanation = `# ${component} - Comprehensive Explanation\n\n`;
+      explanation += `**Context Level:** ${contextLevel}\n`;
+      explanation += `**Include Examples:** ${includeExamples ? 'Yes' : 'No'}\n\n`;
+
+      if (uniqueResults.length === 0) {
+        explanation += `## No Context Found\n\n`;
+        explanation += `No documentation or examples found for "${component}". This could mean:\n\n`;
+        explanation += `- The component name may be misspelled\n`;
+        explanation += `- Documentation hasn't been ingested yet\n`;
+        explanation += `- The component might be referenced by a different name\n\n`;
+        explanation += `Try searching for related terms or check the available components.`;
+      } else {
+        explanation += `## Overview\n\n`;
+        explanation += `Based on the available documentation, here's what we know about ${component}:\n\n`;
+
+        // Group results by type
+        const byType = {};
+        uniqueResults.forEach(result => {
+          const type = result.metadata.chunk_type || 'general';
+          if (!byType[type]) byType[type] = [];
+          byType[type].push(result);
+        });
+
+        // Present organized explanation
+        Object.keys(byType).forEach(type => {
+          explanation += `### ${type.charAt(0).toUpperCase() + type.slice(1)} Information\n\n`;
+          
+          byType[type].forEach((result, index) => {
+            const similarity = ((1 - result.distance) * 100).toFixed(1);
+            explanation += `**Source:** ${result.metadata.file_path} (${similarity}% relevance)\n\n`;
+            
+            if (includeExamples || contextLevel === 'advanced') {
+              explanation += `\`\`\`${result.metadata.language || 'text'}\n`;
+              explanation += `${result.content.substring(0, 500)}${result.content.length > 500 ? '...' : ''}\n`;
+              explanation += `\`\`\`\n\n`;
+            } else {
+              explanation += `${result.content.substring(0, 200)}${result.content.length > 200 ? '...' : ''}\n\n`;
+            }
+          });
+        });
+
+        // Add usage recommendations
+        explanation += `## Usage Recommendations\n\n`;
+        if (contextLevel === 'basic') {
+          explanation += `For basic usage of ${component}, refer to the documentation above. `;
+          explanation += `Start with the configuration examples and follow the provided patterns.\n\n`;
+        } else if (contextLevel === 'advanced') {
+          explanation += `For advanced usage, consider:\n`;
+          explanation += `- Reviewing all configuration options in the source files\n`;
+          explanation += `- Understanding dependencies and workflow integration\n`;
+          explanation += `- Checking system-specific implementations\n`;
+          explanation += `- Following best practices from operational procedures\n\n`;
+        }
+      }
+
+      return {
+        content: [{ type: "text", text: explanation }],
+      };
+    } catch (error) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Error generating explanation: ${error.message}\n\n` +
+                  `Please ensure the RAG system is properly initialized and try again.`
+          }
+        ],
+      };
+    }
   }
 
   async findSimilarCode(codeSnippet, language = "any", similarityThreshold = 0.7) {
