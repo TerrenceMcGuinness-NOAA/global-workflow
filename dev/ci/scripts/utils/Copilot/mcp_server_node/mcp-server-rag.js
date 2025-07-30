@@ -39,10 +39,10 @@ class RAGEnhancedMCPServer {
     });
     this.collection = null;
     this.embedModel = null;
-    
+
     // Initialize components
     this.initializeRAG();
-    
+
     this.setupTools();
     this.setupHandlers();
   }
@@ -51,12 +51,12 @@ class RAGEnhancedMCPServer {
     try {
       // Initialize embedding model
       this.embedModel = await pipeline('feature-extraction', 'sentence-transformers/all-MiniLM-L6-v2');
-      
+
       // Get or create collection
       this.collection = await this.chromaClient.getOrCreateCollection({
         name: 'global-workflow-docs'
       });
-      
+
       console.error('✓ RAG components initialized successfully');
     } catch (error) {
       console.error('⚠ RAG initialization failed:', error.message);
@@ -310,7 +310,7 @@ class RAGEnhancedMCPServer {
 
       // Generate embedding for query
       const queryEmbedding = await this.generateEmbedding(query);
-      
+
       // Build metadata filter if docType is specified
       let whereClause = {};
       if (docType !== "all") {
@@ -340,7 +340,7 @@ class RAGEnhancedMCPServer {
           const metadata = results.metadatas[0][index];
           const distance = results.distances[0][index];
           const similarity = (1 - distance) * 100;
-          
+
           responseText += `## Result ${index + 1} (${similarity.toFixed(1)}% match)\n`;
           responseText += `**Source:** ${metadata.file_path}\n`;
           responseText += `**Type:** ${metadata.chunk_type}\n`;
@@ -384,7 +384,7 @@ class RAGEnhancedMCPServer {
       ];
 
       let allResults = [];
-      
+
       // Gather context from multiple queries
       for (const query of contextQueries) {
         try {
@@ -393,7 +393,7 @@ class RAGEnhancedMCPServer {
             queryEmbeddings: [queryEmbedding],
             nResults: 3
           });
-          
+
           if (results.documents[0].length > 0) {
             allResults.push(...results.documents[0].map((doc, index) => ({
               content: doc,
@@ -408,7 +408,7 @@ class RAGEnhancedMCPServer {
 
       // Remove duplicates and sort by relevance
       const uniqueResults = allResults
-        .filter((result, index, self) => 
+        .filter((result, index, self) =>
           index === self.findIndex(r => r.content === result.content)
         )
         .sort((a, b) => a.distance - b.distance)
@@ -441,11 +441,11 @@ class RAGEnhancedMCPServer {
         // Present organized explanation
         Object.keys(byType).forEach(type => {
           explanation += `### ${type.charAt(0).toUpperCase() + type.slice(1)} Information\n\n`;
-          
+
           byType[type].forEach((result, index) => {
             const similarity = ((1 - result.distance) * 100).toFixed(1);
             explanation += `**Source:** ${result.metadata.file_path} (${similarity}% relevance)\n\n`;
-            
+
             if (includeExamples || contextLevel === 'advanced') {
               explanation += `\`\`\`${result.metadata.language || 'text'}\n`;
               explanation += `${result.content.substring(0, 500)}${result.content.length > 500 ? '...' : ''}\n`;

@@ -32,11 +32,11 @@ def check_mcp_server_status(verbose=False):
     try:
         if verbose:
             print("🧪 Testing Node.js MCP server startup capability...")
-        
+
         # Test if the server can start (using test mode which exits cleanly)
-        result = subprocess.run(['./start-mcp-server-node.sh', 'test'], 
+        result = subprocess.run(['./start-mcp-server-node.sh', 'test'],
                               capture_output=True, text=True, timeout=10)
-        
+
         if result.returncode == 0:
             if verbose:
                 print("✅ Node.js MCP server startup test passed")
@@ -66,31 +66,31 @@ def check_vscode_settings(verbose=False):
         if verbose:
             print(f"❌ Could not find repository root: {e}")
         return False
-    
+
     settings_files = [
         repo_root / ".vscode" / "settings.json",
         repo_root / ".vscode" / "settings-node.json"
     ]
-    
+
     if verbose:
         print(f"🔍 Looking for VS Code settings in: {repo_root}")
-    
+
     settings_file = None
     for file_path in settings_files:
         if file_path.exists():
             settings_file = file_path
             break
-    
+
     if not settings_file:
         if verbose:
             print(f"❌ No .vscode/settings.json or .vscode/settings-node.json found in {repo_root}")
             print(f"   Checked files: {[str(f) for f in settings_files]}")
         return False
-    
+
     try:
         with open(settings_file) as f:
             settings = json.load(f)
-        
+
         if "mcpServers" in settings:
             mcp_servers = settings["mcpServers"]
             if verbose:
@@ -113,11 +113,11 @@ def test_mcp_server_startup(verbose=False):
     try:
         if verbose:
             print("🧪 Testing MCP server startup...")
-        
+
         # Run the test command
-        result = subprocess.run(['./start-mcp-server-node.sh', 'test'], 
+        result = subprocess.run(['./start-mcp-server-node.sh', 'test'],
                               capture_output=True, text=True, timeout=10)
-        
+
         if result.returncode == 0:
             if verbose:
                 print("✅ MCP server startup test passed")
@@ -141,20 +141,20 @@ def run_comprehensive_test(verbose=False):
     """Run comprehensive MCP server tests"""
     print("🚀 Running Node.js MCP Server Integration Tests")
     print("=" * 50)
-    
+
     tests = [
         ("MCP Server Startup Test", check_mcp_server_status),
         ("VS Code Configuration", check_vscode_settings),
         ("Server Functionality Test", test_mcp_server_startup),
     ]
-    
+
     passed = 0
     total = len(tests)
-    
+
     for test_name, test_func in tests:
         if verbose:
             print(f"\n📋 Testing: {test_name}")
-        
+
         try:
             if test_func(verbose):
                 passed += 1
@@ -166,7 +166,7 @@ def run_comprehensive_test(verbose=False):
         except Exception as e:
             if not verbose:
                 print(f"❌ {test_name}: ERROR - {e}")
-    
+
     print(f"\n📊 Test Results: {passed}/{total} tests passed")
 
     if passed == total:
@@ -178,29 +178,29 @@ def run_comprehensive_test(verbose=False):
 def test_nodejs_mcp_workflow_knowledge():
     """
     Test function to verify Copilot knows about our workflow via Node.js MCP server
-    
+
     The Node.js MCP server provides richer context than the Python version,
     including detailed job analysis and performance monitoring integration.
-    
+
     When you start typing comments or code here, GitHub Copilot should
     be able to suggest content based on the enhanced global workflow context
     provided by our Node.js MCP server.
     """
-    
+
     # Ask Copilot to complete these comments with workflow-specific knowledge:
-    
+
     # The JGDAS jobs are responsible for...
-    
+
     # The main systems supported by this workflow are...
-    
+
     # The Rocoto workflow engine is used to...
-    
+
     # The rocotometrics performance monitoring shows...
-    
+
     # Common job patterns in this workflow include...
-    
+
     # The Node.js MCP server enhancement provides...
-    
+
     pass
 
 def example_nodejs_mcp_workflow_setup():
@@ -208,44 +208,44 @@ def example_nodejs_mcp_workflow_setup():
     Example function where Copilot should suggest workflow-related code
     enhanced by the Node.js MCP server context
     """
-    
+
     # Copilot should know about the systems available:
     systems = [
         # Copilot should suggest: "hera", "orion", "hercules", "wcoss2", etc.
     ]
-    
+
     # Copilot should know about the job types:
     job_types = [
         # Copilot should suggest: "JGDAS_", "JGFS_", "JGLOBAL_", etc.
     ]
-    
+
     # Node.js MCP server should provide enhanced component knowledge:
     workflow_components = [
         # Copilot should suggest: "GSI", "UFS", "MOM6", "CICE", "WW3", etc.
     ]
-    
+
     # Performance monitoring tools:
     monitoring_tools = [
         # Copilot should suggest: "rocotometrics", "rocotostat", etc.
     ]
-    
+
     return systems, job_types, workflow_components, monitoring_tools
 
 def test_nodejs_mcp_server_features():
     """
     Test specific Node.js MCP server enhanced features
     """
-    
+
     # Test if Copilot knows about the Node.js server improvements:
-    
+
     # The Node.js MCP server uses the official SDK which provides...
-    
+
     # Performance improvements in the Node.js version include...
-    
+
     # The enhanced workflow structure information includes...
-    
+
     # Installation differences between Python and Node.js versions...
-    
+
     pass
 
 def main():
@@ -304,7 +304,7 @@ Examples:
     print("For comprehensive testing, run:")
     print("  ./test-copilot-integration.py test --verbose")
     print()
-    
+
     test_nodejs_mcp_workflow_knowledge()
     example_nodejs_mcp_workflow_setup()
     test_nodejs_mcp_server_features()

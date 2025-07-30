@@ -105,16 +105,16 @@ function createServer() {
       switch (name) {
         case 'get_workflow_structure':
           return await getWorkflowStructure(args?.component);
-        
+
         case 'list_job_scripts':
           return await listJobScripts();
-        
+
         case 'get_system_configs':
           return await getSystemConfigs(args?.system);
-        
+
         case 'explain_workflow_component':
           return await explainWorkflowComponent(args?.component);
-        
+
         default:
           throw new Error(`Unknown tool: ${name}`);
       }
@@ -143,7 +143,7 @@ Global Workflow - NOAA's Operational Weather Prediction System
 
 Key Components:
 - Jobs: Batch job scripts for various workflow tasks
-- Scripts: Shell scripts that implement job functionality  
+- Scripts: Shell scripts that implement job functionality
 - USH: Utility shell scripts and common functions
 - Parm: Parameter files and configuration templates
 - Fix: Fixed input data files and tables
@@ -158,7 +158,7 @@ Workflow Management:
     jobs: `
 Job Scripts (jobs/ directory):
 - JGDAS_* : GDAS (Global Data Assimilation System) jobs
-- JGFS_* : GFS (Global Forecast System) jobs  
+- JGFS_* : GFS (Global Forecast System) jobs
 - JGEFS_* : GEFS (Global Ensemble Forecast System) jobs
 - Each job sets up environment and calls corresponding script
 `,
@@ -177,8 +177,8 @@ Configuration Files (parm/ directory):
 `
   };
 
-  const content = component && structure[component] 
-    ? structure[component] 
+  const content = component && structure[component]
+    ? structure[component]
     : structure.overview;
 
   return {
@@ -203,7 +203,7 @@ async function listJobScripts() {
       .sort();
 
     const jobList = jobScripts.map(job => `- ${job}`).join('\n');
-    
+
     return {
       content: [
         {
@@ -237,12 +237,12 @@ async function getSystemConfigs(system) {
     gaeac6: 'NOAA Cloud - Azure-based compute environment'
   };
 
-  const info = system && systemInfo[system] 
+  const info = system && systemInfo[system]
     ? systemInfo[system]
     : 'Available systems: ' + Object.keys(systemInfo).join(', ');
 
   const configPath = system ? `env/${system.toUpperCase()}.env` : 'env/';
-  
+
   return {
     content: [
       {
@@ -269,13 +269,13 @@ async function explainWorkflowComponent(component) {
     gfs: 'Global Forecast System - deterministic forecast system'
   };
 
-  const explanation = explanations[component?.toLowerCase()] || 
+  const explanation = explanations[component?.toLowerCase()] ||
     `Component "${component}" not found. Available components: ${Object.keys(explanations).join(', ')}`;
 
   return {
     content: [
       {
-        type: 'text', 
+        type: 'text',
         text: explanation
       }
     ]

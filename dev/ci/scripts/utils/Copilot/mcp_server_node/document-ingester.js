@@ -28,11 +28,11 @@ class DocumentIngester {
       },
       chunks: []
     };
-    
+
     // Initialize arrays
     this.documents = [];
     this.chunks = [];
-    
+
     // Configuration
     this.config = {
       supportedExtensions: ['.md', '.txt', '.py', '.sh', '.yml', '.yaml', '.json', '.xml', '.cmake', '.rst'],
@@ -44,12 +44,12 @@ class DocumentIngester {
       chunkOverlap: 200,
       outputDir: './knowledge-base'
     };
-    
+
     // Vector database setup
     this.chromaClient = null;
     this.collection = null;
     this.embedModel = null;
-    
+
     // Initialize embedding model
     this.initializeEmbedding();
   }
@@ -61,10 +61,10 @@ class DocumentIngester {
         host: process.env.CHROMA_HOST || 'localhost',
         port: process.env.CHROMA_PORT || 8000
       });
-      
+
       // Initialize embedding model (using sentence-transformers)
       this.embedModel = await pipeline('feature-extraction', 'sentence-transformers/all-MiniLM-L6-v2');
-      
+
       console.log('✓ Vector database and embedding model initialized');
     } catch (error) {
       console.warn('⚠ Vector database not available, running in local mode:', error.message);
@@ -87,7 +87,7 @@ class DocumentIngester {
           created: new Date().toISOString()
         }
       });
-      
+
       console.log(`✓ Vector collection '${collectionName}' ready`);
     } catch (error) {
       console.error('Failed to setup vector database:', error.message);
@@ -139,28 +139,28 @@ class DocumentIngester {
    */
   async ingestRepository(repoPath) {
     console.log(`Starting document ingestion for: ${repoPath}`);
-    
+
     try {
       // Step 0: Setup vector database
       await this.setupVectorDatabase();
-      
+
       // Step 1: Discover and process documents
       await this.discoverDocuments(repoPath);
       console.log(`Discovered ${this.documents.length} documents`);
-      
+
       // Step 2: Process documents into chunks
       await this.processDocuments();
       console.log(`Generated ${this.chunks.length} text chunks`);
-      
+
       // Step 3: Extract metadata
       await this.extractMetadata();
-      
+
       // Step 4: Save knowledge base
       await this.saveKnowledgeBase();
-      
+
       console.log('Document ingestion completed successfully');
       return this.chunks;
-      
+
     } catch (error) {
       console.error('Error during document ingestion:', error);
       throw error;
@@ -172,16 +172,16 @@ class DocumentIngester {
    */
   async discoverDocuments(dirPath, relativePath = '') {
     const entries = await fs.readdir(dirPath, { withFileTypes: true });
-    
+
     for (const entry of entries) {
       const fullPath = path.join(dirPath, entry.name);
       const relPath = path.join(relativePath, entry.name);
-      
+
       // Skip excluded patterns
       if (this.shouldExclude(relPath)) {
         continue;
       }
-      
+
       if (entry.isDirectory()) {
         await this.discoverDocuments(fullPath, relPath);
       } else if (entry.isFile()) {
@@ -203,7 +203,7 @@ class DocumentIngester {
    * Check if path should be excluded
    */
   shouldExclude(relativePath) {
-    return this.config.excludePatterns.some(pattern => 
+    return this.config.excludePatterns.some(pattern =>
       relativePath.includes(pattern)
     );
   }
@@ -213,7 +213,7 @@ class DocumentIngester {
    */
   classifyDocument(relativePath, extension) {
     const pathLower = relativePath.toLowerCase();
-    
+
     if (pathLower.includes('/docs/') || pathLower.includes('/documentation/')) {
       return 'documentation';
     } else if (pathLower.includes('/jobs/')) {
@@ -262,11 +262,11 @@ class DocumentIngester {
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
-      
+
       // Add line to current chunk
       currentChunk += line + '\n';
       lineCount++;
-      
+
       // Check if chunk is large enough
       if (currentChunk.length >= this.config.chunkSize || i === lines.length - 1) {
         if (currentChunk.trim()) {
@@ -285,26 +285,26 @@ class DocumentIngester {
               line_count: lineCount
             }
           };
-          
+
           // Generate embedding for the chunk
           const embedding = await this.generateEmbedding(chunk.content);
           if (embedding) {
             chunk.embedding = embedding;
           }
-          
+
           // Store in vector database
           await this.storeInVectorDB(chunk);
-          
+
           chunks.push(chunk);
           chunkIndex++;
         }
-        
+
         // Create overlap for next chunk
         const overlapLines = Math.min(
           Math.floor(this.config.chunkOverlap / (currentChunk.length / lineCount)),
           lineCount
         );
-        
+
         if (overlapLines > 0 && i < lines.length - 1) {
           const overlapContent = lines.slice(i - overlapLines + 1, i + 1).join('\n') + '\n';
           currentChunk = overlapContent;
@@ -315,7 +315,7 @@ class DocumentIngester {
         }
       }
     }
-    
+
     return chunks;
   }
 
@@ -337,16 +337,16 @@ class DocumentIngester {
     for (const chunk of this.chunks) {
       // Extract component information
       chunk.metadata.component = this.extractComponent(chunk.document.relativePath);
-      
+
       // Extract workflow phase
       chunk.metadata.workflow_phase = this.extractWorkflowPhase(chunk.content, chunk.document.relativePath);
-      
+
       // Extract system references
       chunk.metadata.systems = this.extractSystemReferences(chunk.content);
-      
+
       // Extract dependencies
       chunk.metadata.dependencies = this.extractDependencies(chunk.content, chunk.document.type);
-      
+
       // Add timestamp
       chunk.metadata.ingested_at = new Date().toISOString();
     }
@@ -358,13 +358,13 @@ class DocumentIngester {
   extractComponent(relativePath) {
     const components = ['gdas', 'gfs', 'wave', 'aero', 'ocean', 'ice', 'ufs', 'rocoto'];
     const pathLower = relativePath.toLowerCase();
-    
+
     for (const component of components) {
       if (pathLower.includes(component)) {
         return component;
       }
     }
-    
+
     return 'general';
   }
 
@@ -379,18 +379,18 @@ class DocumentIngester {
       'prep': ['prep', 'preparation', 'initial', 'setup'],
       'archive': ['archive', 'backup', 'storage']
     };
-    
+
     const contentLower = content.toLowerCase();
     const pathLower = relativePath.toLowerCase();
-    
+
     for (const [phase, keywords] of Object.entries(phases)) {
-      if (keywords.some(keyword => 
+      if (keywords.some(keyword =>
         contentLower.includes(keyword) || pathLower.includes(keyword)
       )) {
         return phase;
       }
     }
-    
+
     return 'general';
   }
 
@@ -400,14 +400,14 @@ class DocumentIngester {
   extractSystemReferences(content) {
     const systems = ['hera', 'orion', 'hercules', 'wcoss2', 'gaeac5', 'gaeac6'];
     const found = [];
-    
+
     const contentLower = content.toLowerCase();
     for (const system of systems) {
       if (contentLower.includes(system)) {
         found.push(system);
       }
     }
-    
+
     return found;
   }
 
@@ -416,7 +416,7 @@ class DocumentIngester {
    */
   extractDependencies(content, docType) {
     const dependencies = [];
-    
+
     if (docType === 'job_script') {
       // Extract job dependencies from Rocoto XML or job scripts
       const jobMatches = content.match(/JGDAS_\w+|JGFS_\w+/g);
@@ -424,7 +424,7 @@ class DocumentIngester {
         dependencies.push(...jobMatches);
       }
     }
-    
+
     if (docType === 'script') {
       // Extract script dependencies
       const scriptMatches = content.match(/source\s+[\w\/\.\-]+|\.[\w\/\.\-]+/g);
@@ -432,7 +432,7 @@ class DocumentIngester {
         dependencies.push(...scriptMatches);
       }
     }
-    
+
     return [...new Set(dependencies)]; // Remove duplicates
   }
 
@@ -442,20 +442,20 @@ class DocumentIngester {
   async saveKnowledgeBase() {
     // Create output directory
     await fs.mkdir(this.config.outputDir, { recursive: true });
-    
+
     // Save chunks
     const chunksFile = path.join(this.config.outputDir, 'chunks.json');
     await fs.writeFile(chunksFile, JSON.stringify(this.chunks, null, 2));
-    
+
     // Save document index
     const docsFile = path.join(this.config.outputDir, 'documents.json');
     await fs.writeFile(docsFile, JSON.stringify(this.documents, null, 2));
-    
+
     // Save metadata summary
     const summary = this.generateSummary();
     const summaryFile = path.join(this.config.outputDir, 'summary.json');
     await fs.writeFile(summaryFile, JSON.stringify(summary, null, 2));
-    
+
     console.log(`Knowledge base saved to: ${this.config.outputDir}`);
   }
 
@@ -466,20 +466,20 @@ class DocumentIngester {
     const typeCount = {};
     const componentCount = {};
     const systemCount = {};
-    
+
     for (const chunk of this.chunks) {
       // Count by type
       typeCount[chunk.metadata.type] = (typeCount[chunk.metadata.type] || 0) + 1;
-      
+
       // Count by component
       componentCount[chunk.metadata.component] = (componentCount[chunk.metadata.component] || 0) + 1;
-      
+
       // Count by system
       for (const system of chunk.metadata.systems) {
         systemCount[system] = (systemCount[system] || 0) + 1;
       }
     }
-    
+
     return {
       ingestion_date: new Date().toISOString(),
       total_documents: this.documents.length,
@@ -496,12 +496,12 @@ class DocumentIngester {
 async function main() {
   const args = process.argv.slice(2);
   const repoPath = args[0] || process.cwd();
-  
+
   console.log('Global Workflow Document Ingestion Pipeline');
   console.log('==========================================');
-  
+
   const ingester = new DocumentIngester();
-  
+
   try {
     await ingester.ingestRepository(repoPath);
     console.log('\nIngestion completed successfully!');

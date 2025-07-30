@@ -9,7 +9,7 @@ This is a separate Node.js MCP server system that provides enhanced context to G
 ## Files
 
 - **`mcp-server.js`** - Main Node.js MCP server implementation
-- **`package.json`** - Node.js dependencies and project configuration  
+- **`package.json`** - Node.js dependencies and project configuration
 - **`package-lock.json`** - Locked dependency versions
 - **`node_modules/`** - Installed Node.js dependencies
 - **`start-mcp-server-node.sh`** - Startup and testing script
@@ -41,7 +41,7 @@ This is a separate Node.js MCP server system that provides enhanced context to G
 The Node.js MCP server provides these tools:
 
 - **`get_workflow_structure`** - Get the structure and overview of the global workflow system
-- **`list_job_scripts`** - List all available job scripts in the workflow  
+- **`list_job_scripts`** - List all available job scripts in the workflow
 - **`get_system_configs`** - Get configuration information for different HPC systems
 - **`explain_workflow_component`** - Explain specific workflow components (enhanced feature)
 
@@ -53,7 +53,7 @@ You can test the MCP server manually:
 # Test tools list
 echo '{"method": "tools/list", "id": 1}' | node mcp-server.js
 
-# Test workflow structure  
+# Test workflow structure
 echo '{"method": "tools/call", "params": {"name": "get_workflow_structure", "arguments": {}}, "id": 2}' | node mcp-server.js
 ```
 

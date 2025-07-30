@@ -18,7 +18,7 @@ class SimpleDocumentProcessor {
     this.baseDir = baseDir;
     this.documents = [];
     this.chunks = [];
-    
+
     this.config = {
       supportedExtensions: ['.md', '.txt', '.py', '.sh', '.yml', '.yaml', '.json', '.xml', '.cmake', '.rst'],
       excludePatterns: [
@@ -32,25 +32,25 @@ class SimpleDocumentProcessor {
 
   async processRepository(repoPath) {
     console.log(`Processing repository: ${repoPath}`);
-    
+
     try {
       await this.discoverDocuments(repoPath);
       console.log(`Found ${this.documents.length} documents`);
-      
+
       // Limit to first few files for testing
       const limitedDocs = this.documents.slice(0, this.config.maxFiles);
       console.log(`Processing first ${limitedDocs.length} documents`);
-      
+
       await this.processDocuments(limitedDocs);
       console.log(`Generated ${this.chunks.length} chunks`);
-      
+
       await this.saveKnowledgeBase();
-      
+
       return {
         documents: this.documents.length,
         chunks: this.chunks.length
       };
-      
+
     } catch (error) {
       console.error('Processing failed:', error.message);
       throw error;
@@ -59,18 +59,18 @@ class SimpleDocumentProcessor {
 
   async discoverDocuments(dirPath, relativePath = '', depth = 0) {
     if (depth > 3) return; // Limit recursion depth
-    
+
     try {
       const entries = await fs.readdir(dirPath, { withFileTypes: true });
-      
+
       for (const entry of entries) {
         const fullPath = path.join(dirPath, entry.name);
         const relPath = path.join(relativePath, entry.name);
-        
+
         if (this.shouldExclude(relPath)) {
           continue;
         }
-        
+
         if (entry.isDirectory()) {
           await this.discoverDocuments(fullPath, relPath, depth + 1);
         } else if (entry.isFile()) {
@@ -92,21 +92,21 @@ class SimpleDocumentProcessor {
   }
 
   shouldExclude(relativePath) {
-    return this.config.excludePatterns.some(pattern => 
+    return this.config.excludePatterns.some(pattern =>
       relativePath.includes(pattern)
     );
   }
 
   classifyDocument(relativePath, extension) {
     const pathLower = relativePath.toLowerCase();
-    
+
     if (pathLower.includes('readme') || pathLower.includes('doc')) return 'documentation';
     if (pathLower.includes('job') || pathLower.includes('script')) return 'workflow';
     if (pathLower.includes('config') || pathLower.includes('parm')) return 'configuration';
     if (extension === '.py') return 'python_script';
     if (extension === '.sh') return 'shell_script';
     if (extension === '.yml' || extension === '.yaml') return 'yaml_config';
-    
+
     return 'general';
   }
 
@@ -133,7 +133,7 @@ class SimpleDocumentProcessor {
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
       currentChunk += line + '\\n';
-      
+
       if (currentChunk.length >= this.config.chunkSize || i === lines.length - 1) {
         if (currentChunk.trim()) {
           chunks.push({
@@ -153,7 +153,7 @@ class SimpleDocumentProcessor {
         currentChunk = '';
       }
     }
-    
+
     return chunks;
   }
 
@@ -168,29 +168,29 @@ class SimpleDocumentProcessor {
   async saveKnowledgeBase() {
     const outputDir = './simple-knowledge-base';
     await fs.mkdir(outputDir, { recursive: true });
-    
+
     const summary = {
       createdAt: new Date().toISOString(),
       totalDocuments: this.documents.length,
       totalChunks: this.chunks.length,
       config: this.config
     };
-    
+
     await fs.writeFile(
       path.join(outputDir, 'chunks.json'),
       JSON.stringify(this.chunks, null, 2)
     );
-    
+
     await fs.writeFile(
       path.join(outputDir, 'documents.json'),
       JSON.stringify(this.documents, null, 2)
     );
-    
+
     await fs.writeFile(
       path.join(outputDir, 'summary.json'),
       JSON.stringify(summary, null, 2)
     );
-    
+
     console.log(`Knowledge base saved to: ${outputDir}`);
   }
 
@@ -198,11 +198,11 @@ class SimpleDocumentProcessor {
   searchChunks(query, maxResults = 5) {
     const queryLower = query.toLowerCase();
     const results = [];
-    
+
     for (const chunk of this.chunks) {
       const contentLower = chunk.content.toLowerCase();
       let score = 0;
-      
+
       // Simple keyword matching
       const queryWords = queryLower.split(/\\s+/);
       for (const word of queryWords) {
@@ -210,7 +210,7 @@ class SimpleDocumentProcessor {
           score += 1;
         }
       }
-      
+
       if (score > 0) {
         results.push({
           ...chunk,
@@ -218,7 +218,7 @@ class SimpleDocumentProcessor {
         });
       }
     }
-    
+
     return results
       .sort((a, b) => b.score - a.score)
       .slice(0, maxResults);
@@ -229,23 +229,23 @@ class SimpleDocumentProcessor {
 async function main() {
   const processor = new SimpleDocumentProcessor();
   const repoPath = path.join(__dirname, '../../../../../..');
-  
+
   try {
     const result = await processor.processRepository(repoPath);
     console.log('\\n✓ Processing completed:');
     console.log(`  - Documents: ${result.documents}`);
     console.log(`  - Chunks: ${result.chunks}`);
-    
+
     // Test simple search
     console.log('\\n=== Testing Simple Search ===');
     const searchResults = processor.searchChunks('workflow job script');
     console.log(`Found ${searchResults.length} matching chunks`);
-    
+
     searchResults.slice(0, 3).forEach((result, index) => {
       console.log(`\\n${index + 1}. ${result.metadata.source} (score: ${result.score})`);
       console.log(`   ${result.content.substring(0, 100)}...`);
     });
-    
+
   } catch (error) {
     console.error('Test failed:', error.message);
   }
