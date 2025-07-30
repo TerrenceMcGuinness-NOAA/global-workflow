@@ -80,6 +80,21 @@ List available workflow jobs and scripts.
 ### get_knowledge_stats
 Get statistics about the loaded knowledge base.
 
+### get_documentation_references
+Get reference URLs for external documentation and resources.
+
+**Parameters:**
+- `category` (enum): "all", "internal", "external", "ufs", "rocoto", "gsi", "hpc_systems", "noaa_tools", "standards" (default: "all")
+- `format` (enum): "detailed", "urls_only", "structured" (default: "detailed")
+
+**Example:**
+```json
+{
+  "category": "ufs",
+  "format": "detailed"
+}
+```
+
 ## Architecture
 
 ### Simple RAG Implementation
@@ -104,16 +119,17 @@ The full RAG server includes vector-based semantic search:
 
 ```
 mcp_server_node/
-├── package.json                 # Dependencies and configuration
-├── simple-processor.js          # Basic document processor
-├── simple-rag-server.js         # Simple RAG MCP server
-├── document-ingester.js         # Advanced document processor (WIP)
-├── mcp-server-rag.js           # Full RAG MCP server (WIP)
-├── test-rag.js                 # Test script
-└── simple-knowledge-base/       # Generated knowledge base
-    ├── chunks.json              # Document chunks
-    ├── documents.json           # Document metadata
-    └── summary.json             # Knowledge base statistics
+├── package.json                     # Dependencies and configuration
+├── documentation-references.json    # Reference URLs for external docs
+├── simple-processor.js              # Basic document processor
+├── simple-rag-server.js             # Simple RAG MCP server
+├── document-ingester.js             # Advanced document processor (WIP)
+├── mcp-server-rag.js               # Full RAG MCP server (WIP)
+├── test-rag.js                     # Test script
+└── simple-knowledge-base/           # Generated knowledge base
+    ├── chunks.json                  # Document chunks
+    ├── documents.json               # Document metadata
+    └── summary.json                 # Knowledge base statistics
 ```
 
 ## Configuration
@@ -130,6 +146,50 @@ this.config = {
   maxFiles: 50  // For testing; remove for full processing
 };
 ```
+
+### Documentation References Configuration
+
+Reference URLs for external documentation are stored in `documentation-references.json`:
+
+```json
+{
+  "documentation_references": {
+    "internal": {
+      "global_workflow": {
+        "base_url": "https://github.com/TerrenceMcGuinness-NOAA/global-workflow",
+        "docs_path": "/docs/source",
+        "wiki_url": "https://github.com/TerrenceMcGuinness-NOAA/global-workflow/wiki"
+      }
+    },
+    "external": {
+      "ufs": {
+        "documentation": "https://ufs-weather-model.readthedocs.io/",
+        "github": "https://github.com/ufs-community/ufs-weather-model",
+        "user_guide": "https://ufs-weather-model.readthedocs.io/en/latest/"
+      },
+      "rocoto": {
+        "documentation": "https://christopherwharrop-noaa.github.io/rocoto/",
+        "github": "https://github.com/christopherwharrop-NOAA/rocoto"
+      }
+    }
+  }
+}
+```
+
+**Categories Available:**
+- **internal**: Global Workflow project documentation
+- **external.ufs**: UFS Weather Model documentation
+- **external.rocoto**: Rocoto workflow manager documentation
+- **external.gsi**: GSI data assimilation system documentation
+- **external.hpc_systems**: NOAA HPC system documentation (Hera, Orion, Hercules, WCOSS2)
+- **external.noaa_tools**: NOAA libraries and tools (NCEPLIBS, UPP, wgrib2)
+- **standards_and_policies**: NOAA coding standards and operational procedures
+
+**Managing References:**
+- Edit `documentation-references.json` to add/update URLs
+- Use the `get_documentation_references` tool to retrieve URLs programmatically
+- URLs are validated periodically (configurable in metadata section)
+- Priority scoring available for search ranking
 
 ### Vector Database Configuration (Advanced)
 

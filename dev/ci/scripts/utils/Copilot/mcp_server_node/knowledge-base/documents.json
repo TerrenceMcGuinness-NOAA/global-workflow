@@ -1,0 +1,156 @@
+[
+  {
+    "path": "/home/tmcguinness/GITHUB/COPILOT/global-workflow_forked/dev/ci/scripts/utils/Copilot/mcp_server_node/MCP_SERVER_node-js_README.md",
+    "relativePath": "MCP_SERVER_node-js_README.md",
+    "extension": ".md",
+    "name": "MCP_SERVER_node-js_README.md",
+    "type": "documentation"
+  },
+  {
+    "path": "/home/tmcguinness/GITHUB/COPILOT/global-workflow_forked/dev/ci/scripts/utils/Copilot/mcp_server_node/RAG_ENHANCEMENT_PLAN.md",
+    "relativePath": "RAG_ENHANCEMENT_PLAN.md",
+    "extension": ".md",
+    "name": "RAG_ENHANCEMENT_PLAN.md",
+    "type": "documentation"
+  },
+  {
+    "path": "/home/tmcguinness/GITHUB/COPILOT/global-workflow_forked/dev/ci/scripts/utils/Copilot/mcp_server_node/README_RAG.md",
+    "relativePath": "README_RAG.md",
+    "extension": ".md",
+    "name": "README_RAG.md",
+    "type": "documentation"
+  },
+  {
+    "path": "/home/tmcguinness/GITHUB/COPILOT/global-workflow_forked/dev/ci/scripts/utils/Copilot/mcp_server_node/RUN/MCP_SERVER_node-js_README.md",
+    "relativePath": "RUN/MCP_SERVER_node-js_README.md",
+    "extension": ".md",
+    "name": "MCP_SERVER_node-js_README.md",
+    "type": "documentation"
+  },
+  {
+    "path": "/home/tmcguinness/GITHUB/COPILOT/global-workflow_forked/dev/ci/scripts/utils/Copilot/mcp_server_node/RUN/package-lock.json",
+    "relativePath": "RUN/package-lock.json",
+    "extension": ".json",
+    "name": "package-lock.json",
+    "type": "configuration"
+  },
+  {
+    "path": "/home/tmcguinness/GITHUB/COPILOT/global-workflow_forked/dev/ci/scripts/utils/Copilot/mcp_server_node/RUN/package.json",
+    "relativePath": "RUN/package.json",
+    "extension": ".json",
+    "name": "package.json",
+    "type": "configuration"
+  },
+  {
+    "path": "/home/tmcguinness/GITHUB/COPILOT/global-workflow_forked/dev/ci/scripts/utils/Copilot/mcp_server_node/RUN/start-mcp-server-node.sh",
+    "relativePath": "RUN/start-mcp-server-node.sh",
+    "extension": ".sh",
+    "name": "start-mcp-server-node.sh",
+    "type": "script"
+  },
+  {
+    "path": "/home/tmcguinness/GITHUB/COPILOT/global-workflow_forked/dev/ci/scripts/utils/Copilot/mcp_server_node/RUN/test-copilot-integration.py",
+    "relativePath": "RUN/test-copilot-integration.py",
+    "extension": ".py",
+    "name": "test-copilot-integration.py",
+    "type": "script"
+  },
+  {
+    "path": "/home/tmcguinness/GITHUB/COPILOT/global-workflow_forked/dev/ci/scripts/utils/Copilot/mcp_server_node/docs/MCP_RAG_Enhancement_Proposal.md",
+    "relativePath": "docs/MCP_RAG_Enhancement_Proposal.md",
+    "extension": ".md",
+    "name": "MCP_RAG_Enhancement_Proposal.md",
+    "type": "documentation"
+  },
+  {
+    "path": "/home/tmcguinness/GITHUB/COPILOT/global-workflow_forked/dev/ci/scripts/utils/Copilot/mcp_server_node/docs/generate_proposal_pdf.sh",
+    "relativePath": "docs/generate_proposal_pdf.sh",
+    "extension": ".sh",
+    "name": "generate_proposal_pdf.sh",
+    "type": "script"
+  },
+  {
+    "path": "/home/tmcguinness/GITHUB/COPILOT/global-workflow_forked/dev/ci/scripts/utils/Copilot/mcp_server_node/documentation-references.json",
+    "relativePath": "documentation-references.json",
+    "extension": ".json",
+    "name": "documentation-references.json",
+    "type": "configuration"
+  },
+  {
+    "path": "/home/tmcguinness/GITHUB/COPILOT/global-workflow_forked/dev/ci/scripts/utils/Copilot/mcp_server_node/install_MCP_node.sh",
+    "relativePath": "install_MCP_node.sh",
+    "extension": ".sh",
+    "name": "install_MCP_node.sh",
+    "type": "script"
+  },
+  {
+    "path": "/home/tmcguinness/GITHUB/COPILOT/global-workflow_forked/dev/ci/scripts/utils/Copilot/mcp_server_node/package-lock.json",
+    "relativePath": "package-lock.json",
+    "extension": ".json",
+    "name": "package-lock.json",
+    "type": "configuration"
+  },
+  {
+    "path": "/home/tmcguinness/GITHUB/COPILOT/global-workflow_forked/dev/ci/scripts/utils/Copilot/mcp_server_node/package-rag.json",
+    "relativePath": "package-rag.json",
+    "extension": ".json",
+    "name": "package-rag.json",
+    "type": "configuration"
+  },
+  {
+    "path": "/home/tmcguinness/GITHUB/COPILOT/global-workflow_forked/dev/ci/scripts/utils/Copilot/mcp_server_node/package.json",
+    "relativePath": "package.json",
+    "extension": ".json",
+    "name": "package.json",
+    "type": "configuration"
+  },
+  {
+    "path": "/home/tmcguinness/GITHUB/COPILOT/global-workflow_forked/dev/ci/scripts/utils/Copilot/mcp_server_node/setup-rag.sh",
+    "relativePath": "setup-rag.sh",
+    "extension": ".sh",
+    "name": "setup-rag.sh",
+    "type": "script"
+  },
+  {
+    "path": "/home/tmcguinness/GITHUB/COPILOT/global-workflow_forked/dev/ci/scripts/utils/Copilot/mcp_server_node/simple-knowledge-base/chunks.json",
+    "relativePath": "simple-knowledge-base/chunks.json",
+    "extension": ".json",
+    "name": "chunks.json",
+    "type": "configuration"
+  },
+  {
+    "path": "/home/tmcguinness/GITHUB/COPILOT/global-workflow_forked/dev/ci/scripts/utils/Copilot/mcp_server_node/simple-knowledge-base/documents.json",
+    "relativePath": "simple-knowledge-base/documents.json",
+    "extension": ".json",
+    "name": "documents.json",
+    "type": "configuration"
+  },
+  {
+    "path": "/home/tmcguinness/GITHUB/COPILOT/global-workflow_forked/dev/ci/scripts/utils/Copilot/mcp_server_node/simple-knowledge-base/summary.json",
+    "relativePath": "simple-knowledge-base/summary.json",
+    "extension": ".json",
+    "name": "summary.json",
+    "type": "configuration"
+  },
+  {
+    "path": "/home/tmcguinness/GITHUB/COPILOT/global-workflow_forked/dev/ci/scripts/utils/Copilot/mcp_server_node/start-mcp-server-node.sh",
+    "relativePath": "start-mcp-server-node.sh",
+    "extension": ".sh",
+    "name": "start-mcp-server-node.sh",
+    "type": "script"
+  },
+  {
+    "path": "/home/tmcguinness/GITHUB/COPILOT/global-workflow_forked/dev/ci/scripts/utils/Copilot/mcp_server_node/test-copilot-integration.py",
+    "relativePath": "test-copilot-integration.py",
+    "extension": ".py",
+    "name": "test-copilot-integration.py",
+    "type": "script"
+  },
+  {
+    "path": "/home/tmcguinness/GITHUB/COPILOT/global-workflow_forked/dev/ci/scripts/utils/Copilot/mcp_server_node/url-validation-results.json",
+    "relativePath": "url-validation-results.json",
+    "extension": ".json",
+    "name": "url-validation-results.json",
+    "type": "configuration"
+  }
+]

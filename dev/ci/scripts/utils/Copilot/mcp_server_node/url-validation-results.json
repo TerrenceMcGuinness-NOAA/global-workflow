@@ -1,0 +1,249 @@
+{
+  "results": {
+    "valid": [
+      {
+        "url": "https://github.com/TerrenceMcGuinness-NOAA/global-workflow",
+        "category": "internal",
+        "key": "base_url",
+        "valid": true,
+        "status": 200,
+        "error": null
+      },
+      {
+        "url": "https://github.com/TerrenceMcGuinness-NOAA/global-workflow/wiki",
+        "category": "internal",
+        "key": "wiki_url",
+        "valid": true,
+        "status": 200,
+        "error": null
+      },
+      {
+        "url": "https://ufs-weather-model.readthedocs.io/",
+        "category": "external",
+        "key": "documentation",
+        "valid": true,
+        "status": 200,
+        "error": null
+      },
+      {
+        "url": "https://github.com/ufs-community/ufs-weather-model",
+        "category": "external",
+        "key": "github",
+        "valid": true,
+        "status": 200,
+        "error": null
+      },
+      {
+        "url": "https://ufs-weather-model.readthedocs.io/en/latest/",
+        "category": "external",
+        "key": "user_guide",
+        "valid": true,
+        "status": 200,
+        "error": null
+      },
+      {
+        "url": "https://github.com/christopherwharrop-NOAA/rocoto",
+        "category": "external",
+        "key": "github",
+        "valid": true,
+        "status": 200,
+        "error": null
+      },
+      {
+        "url": "https://github.com/NOAA-EMC/GSI",
+        "category": "external",
+        "key": "github",
+        "valid": true,
+        "status": 200,
+        "error": null
+      },
+      {
+        "url": "https://rdhpcs-common-docs.rdhpcs.noaa.gov/wiki/index.php/Welcome_to_RDHPCS_Common_Documentation_Wiki",
+        "category": "external",
+        "key": "main_site",
+        "valid": true,
+        "status": 200,
+        "error": null
+      },
+      {
+        "url": "https://github.com/NOAA-EMC/NCEPLIBS",
+        "category": "external",
+        "key": "github",
+        "valid": true,
+        "status": 200,
+        "error": null
+      },
+      {
+        "url": "https://noaa-emc.github.io/NCEPLIBS/",
+        "category": "external",
+        "key": "documentation",
+        "valid": true,
+        "status": 200,
+        "error": null
+      },
+      {
+        "url": "https://github.com/NOAA-EMC/UPP",
+        "category": "external",
+        "key": "github",
+        "valid": true,
+        "status": 200,
+        "error": null
+      },
+      {
+        "url": "https://upp.readthedocs.io/",
+        "category": "external",
+        "key": "documentation",
+        "valid": true,
+        "status": 200,
+        "error": null
+      },
+      {
+        "url": "https://www.cpc.ncep.noaa.gov/products/wesley/wgrib2/",
+        "category": "external",
+        "key": "documentation",
+        "valid": true,
+        "status": 200,
+        "error": null
+      },
+      {
+        "url": "https://nws-hpc-standards.readthedocs.io/en/latest/index.html#",
+        "category": "standards_and_policies",
+        "key": "ee2_standards",
+        "valid": true,
+        "status": 200,
+        "error": null
+      },
+      {
+        "url": "https://www.weather.gov/directives/",
+        "category": "standards_and_policies",
+        "key": "operational_procedures",
+        "valid": true,
+        "status": 200,
+        "error": null
+      },
+      {
+        "url": "https://www.weather.gov/directives/sym/pd01000007curr.pdf",
+        "category": "standards_and_policies",
+        "key": "technical_procedures",
+        "valid": true,
+        "status": 200,
+        "error": null
+      },
+      {
+        "url": "https://github.com/NOAA-EMC/global-workflow/wiki/Git-Workflow",
+        "category": "standards_and_policies",
+        "key": "git_workflow",
+        "valid": true,
+        "status": 200,
+        "error": null
+      },
+      {
+        "url": "https://github.com/NOAA-EMC/global-workflow/wiki/Code-Review-Guidelines",
+        "category": "standards_and_policies",
+        "key": "code_review_process",
+        "valid": true,
+        "status": 200,
+        "error": null
+      },
+      {
+        "url": "https://github.com/NOAA-EMC/global-workflow/wiki/Testing-Standards",
+        "category": "standards_and_policies",
+        "key": "testing_standards",
+        "valid": true,
+        "status": 200,
+        "error": null
+      },
+      {
+        "url": "https://peps.python.org/pep-0008/",
+        "category": "standards_and_policies",
+        "key": "pep8_style",
+        "valid": true,
+        "status": 200,
+        "error": null
+      },
+      {
+        "url": "https://peps.python.org/pep-0257/",
+        "category": "standards_and_policies",
+        "key": "pep257_docstrings",
+        "valid": true,
+        "status": 200,
+        "error": null
+      },
+      {
+        "url": "https://numpydoc.readthedocs.io/en/latest/format.html",
+        "category": "standards_and_policies",
+        "key": "numpy_docstring",
+        "valid": true,
+        "status": 200,
+        "error": null
+      },
+      {
+        "url": "https://pylint.readthedocs.io/en/latest/",
+        "category": "standards_and_policies",
+        "key": "pylint_standards",
+        "valid": true,
+        "status": 200,
+        "error": null
+      },
+      {
+        "url": "https://google.github.io/styleguide/shellguide.html",
+        "category": "standards_and_policies",
+        "key": "bash_style_guide",
+        "valid": true,
+        "status": 200,
+        "error": null
+      },
+      {
+        "url": "https://www.shellcheck.net/wiki/",
+        "category": "standards_and_policies",
+        "key": "shellcheck",
+        "valid": true,
+        "status": 200,
+        "error": null
+      },
+      {
+        "url": "https://cmake.org/cmake/help/latest/guide/tutorial/",
+        "category": "standards_and_policies",
+        "key": "cmake_guidelines",
+        "valid": true,
+        "status": 200,
+        "error": null
+      },
+      {
+        "url": "https://cliutils.gitlab.io/modern-cmake/",
+        "category": "standards_and_policies",
+        "key": "modern_cmake",
+        "valid": true,
+        "status": 200,
+        "error": null
+      },
+      {
+        "url": "https://pabloariasal.github.io/2018/02/19/its-time-to-do-cmake-right/",
+        "category": "standards_and_policies",
+        "key": "best_practices",
+        "valid": true,
+        "status": 200,
+        "error": null
+      },
+      {
+        "url": "https://www.fortran90.org/src/best-practices.html",
+        "category": "standards_and_policies",
+        "key": "style_guide",
+        "valid": true,
+        "status": 200,
+        "error": null
+      },
+      {
+        "url": "https://github.com/fortran-lang/stdlib/blob/master/STYLE_GUIDE.md",
+        "category": "standards_and_policies",
+        "key": "coding_standards",
+        "valid": true,
+        "status": 200,
+        "error": null
+      }
+    ],
+    "invalid": [],
+    "questionable": []
+  },
+  "timestamp": "2025-07-30T20:39:15.397Z"
+}

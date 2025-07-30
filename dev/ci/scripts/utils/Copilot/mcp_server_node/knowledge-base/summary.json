@@ -1,0 +1,51 @@
+{
+  "ingestion_date": "2025-07-30T20:45:46.926Z",
+  "total_documents": 22,
+  "total_chunks": 362,
+  "type_distribution": {
+    "documentation": 29,
+    "configuration": 289,
+    "script": 44
+  },
+  "component_distribution": {
+    "general": 362
+  },
+  "system_distribution": {
+    "hera": 18,
+    "orion": 15,
+    "hercules": 13,
+    "wcoss2": 11,
+    "gaeac5": 4,
+    "gaeac6": 8
+  },
+  "config": {
+    "supportedExtensions": [
+      ".md",
+      ".txt",
+      ".py",
+      ".sh",
+      ".yml",
+      ".yaml",
+      ".json",
+      ".xml",
+      ".cmake",
+      ".rst"
+    ],
+    "excludePatterns": [
+      "node_modules",
+      ".git",
+      "__pycache__",
+      ".vscode",
+      "build",
+      "dist",
+      ".pytest_cache",
+      ".coverage",
+      "venv",
+      ".venv",
+      "env"
+    ],
+    "chunkSize": 1500,
+    "chunkOverlap": 200,
+    "outputDir": "./knowledge-base"
+  }
+}

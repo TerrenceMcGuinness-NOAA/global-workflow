@@ -15,12 +15,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `simple-processor.js`: Document ingestion pipeline for knowledge base creation
   - `mcp-server-rag.js`: Advanced vector-based RAG server (framework ready)
   - `document-ingester.js`: Full-featured document processor with ChromaDB integration
-  
+
 ### MCP Tools Implemented
 1. **search_documentation**: Keyword-based search across workflow documentation
 2. **explain_component**: Context-aware component explanations with examples
 3. **list_workflow_jobs**: Categorized listing of workflow components
 4. **get_knowledge_stats**: Knowledge base statistics and metadata
+5. **get_documentation_references**: Access to external documentation URLs and references
+
+### Documentation Reference System
+- **documentation-references.json**: Centralized configuration for external documentation URLs
+- **Categories**: Internal (Global Workflow), External (UFS, Rocoto, GSI, HPC systems, NOAA tools), Standards (Python, Shell, CMake, Fortran)
+- **Environmental Equivalence (EE2)**: High-priority section for Environmental Equivalence standards integration
+- **URL Management**: Structured storage with automated validation and cleanup
+- **URL Validation**: Created automated validation system removing 29 invalid URLs from original 58 references
+- **Quality Assurance**: All 30 remaining URLs verified as accessible and current
+- **Flexible Access**: Multiple output formats (detailed, URLs only, structured JSON)
+- **Comprehensive Coverage**: Validated reference URLs across NOAA ecosystem and coding standards
+- **Vector Embedding Ready**: EE2 standards prioritized for first vector embedding generation
+- **PR Review Integration**: EE2 standards marked for integration into PR review process
 
 ### Technical Features
 - **Document Processing**: Supports 10+ file types (.md, .py, .sh, .yml, .json, etc.)
@@ -48,7 +61,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Next Phase (Planned)
 - Vector embedding generation with sentence-transformers
-- ChromaDB semantic search integration  
+- ChromaDB semantic search integration
 - Full repository ingestion (remove 50-file limit)
 - Advanced context-aware explanations
 - Code similarity search tools
@@ -80,6 +93,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Created test framework for RAG server validation
 
 ### Enhanced
+- **2025-07-30**: EE2 Vector Embedding Implementation Ready
+  - Created comprehensive local embedding setup (no Hugging Face account required)
+  - Added `setup_local_embeddings.py` for automated environment setup
+  - Added `ee2_embedding_generator.py` for EE2 documentation processing
+  - Added `embedding-options-analysis.js` for technology comparison
+  - Added `EE2_EMBEDDING_SETUP.md` with complete implementation guide
+  - Recommended approach: Local sentence-transformers with all-MiniLM-L6-v2 model (22MB)
+  - NOAA security compliant: All processing local, no external API dependencies
+  - Phase 1 ready: Immediate start with local tools, Phase 2: Production quality models
+  - Integration ready: Vector embeddings prepared for RAG system and PR review process
 - **2025-01-27**: Enhanced README visual design and presentation
   - Improved color scheme using NOAA brand colors (navy #003366, blue #0066cc)
   - Added professional badge styling with consistent iconography

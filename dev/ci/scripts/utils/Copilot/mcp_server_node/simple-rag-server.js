@@ -35,7 +35,7 @@ class SimpleRAGMCPServer {
     this.knowledgeBase = null;
     this.chunks = [];
     this.documents = [];
-    
+
     this.setupTools();
     this.setupHandlers();
     this.loadKnowledgeBase();
@@ -44,16 +44,25 @@ class SimpleRAGMCPServer {
   async loadKnowledgeBase() {
     try {
       const knowledgeDir = path.join(__dirname, 'simple-knowledge-base');
-      
+
       const chunksData = await fs.readFile(path.join(knowledgeDir, 'chunks.json'), 'utf-8');
       this.chunks = JSON.parse(chunksData);
-      
+
       const docsData = await fs.readFile(path.join(knowledgeDir, 'documents.json'), 'utf-8');
       this.documents = JSON.parse(docsData);
-      
+
       const summaryData = await fs.readFile(path.join(knowledgeDir, 'summary.json'), 'utf-8');
       this.knowledgeBase = JSON.parse(summaryData);
-      
+
+      // Load documentation references
+      try {
+        const referencesData = await fs.readFile(path.join(__dirname, 'documentation-references.json'), 'utf-8');
+        this.documentationReferences = JSON.parse(referencesData);
+      } catch (error) {
+        console.error('⚠ Documentation references not found:', error.message);
+        this.documentationReferences = null;
+      }
+
       console.error(`✓ Knowledge base loaded: ${this.chunks.length} chunks from ${this.documents.length} documents`);
     } catch (error) {
       console.error('⚠ Knowledge base not found, some features may not work:', error.message);
@@ -122,6 +131,27 @@ class SimpleRAGMCPServer {
           type: "object",
           properties: {}
         }
+      },
+      {
+        name: "get_documentation_references",
+        description: "Get reference URLs for external documentation and resources",
+        inputSchema: {
+          type: "object",
+          properties: {
+            category: {
+              type: "string",
+              enum: ["all", "internal", "external", "ufs", "rocoto", "gsi", "hpc_systems", "noaa_tools", "standards"],
+              default: "all",
+              description: "Category of documentation references to retrieve"
+            },
+            format: {
+              type: "string",
+              enum: ["detailed", "urls_only", "structured"],
+              default: "detailed",
+              description: "Format of the response"
+            }
+          }
+        }
       }
     ];
   }
@@ -144,6 +174,8 @@ class SimpleRAGMCPServer {
             return await this.listWorkflowJobs(args.filter_type);
           case "get_knowledge_stats":
             return await this.getKnowledgeStats();
+          case "get_documentation_references":
+            return await this.getDocumentationReferences(args.category, args.format);
           default:
             throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`);
         }
@@ -165,23 +197,23 @@ class SimpleRAGMCPServer {
 
     const queryLower = query.toLowerCase();
     const results = [];
-    
+
     for (const chunk of this.chunks) {
       const contentLower = chunk.content.toLowerCase();
       let score = 0;
-      
+
       // Simple keyword matching with better scoring
       const queryWords = queryLower.split(/\\s+/).filter(word => word.length > 2);
       for (const word of queryWords) {
         const matches = (contentLower.match(new RegExp(word, 'g')) || []).length;
         score += matches;
-        
+
         // Bonus for title/header matches
         if (chunk.metadata.source.toLowerCase().includes(word)) {
           score += 2;
         }
       }
-      
+
       if (score > 0) {
         results.push({
           ...chunk,
@@ -189,7 +221,7 @@ class SimpleRAGMCPServer {
         });
       }
     }
-    
+
     const sortedResults = results
       .sort((a, b) => b.score - a.score)
       .slice(0, maxResults);
@@ -229,9 +261,9 @@ class SimpleRAGMCPServer {
 
     // Search for component-related content
     const componentResults = this.searchForComponent(component);
-    
+
     let explanation = `# ${component} - Component Explanation\\n\\n`;
-    
+
     if (componentResults.length === 0) {
       explanation += `No specific information found for "${component}".\\n\\n`;
       explanation += `This could mean:\\n`;
@@ -241,7 +273,7 @@ class SimpleRAGMCPServer {
       explanation += `Try searching for related terms or check the workflow job listings.`;
     } else {
       explanation += `Based on the available documentation:\\n\\n`;
-      
+
       // Group by type
       const byType = {};
       componentResults.forEach(result => {
@@ -249,10 +281,10 @@ class SimpleRAGMCPServer {
         if (!byType[type]) byType[type] = [];
         byType[type].push(result);
       });
-      
+
       Object.keys(byType).forEach(type => {
         explanation += `### ${type.charAt(0).toUpperCase() + type.slice(1)} Information\\n\\n`;
-        
+
         byType[type].slice(0, 2).forEach(result => {
           explanation += `**From:** ${result.metadata.source}\\n\\n`;
           if (includeExamples) {
@@ -272,17 +304,17 @@ class SimpleRAGMCPServer {
   searchForComponent(component) {
     const componentLower = component.toLowerCase();
     const results = [];
-    
+
     for (const chunk of this.chunks) {
       let score = 0;
       const contentLower = chunk.content.toLowerCase();
       const sourceLower = chunk.metadata.source.toLowerCase();
-      
+
       // Exact component name match
       if (contentLower.includes(componentLower) || sourceLower.includes(componentLower)) {
         score += 3;
       }
-      
+
       // Partial matches
       const componentWords = componentLower.split(/[-_\\s]/);
       for (const word of componentWords) {
@@ -291,12 +323,12 @@ class SimpleRAGMCPServer {
           if (sourceLower.includes(word)) score += 1;
         }
       }
-      
+
       if (score > 0) {
         results.push({ ...chunk, score });
       }
     }
-    
+
     return results.sort((a, b) => b.score - a.score).slice(0, 10);
   }
 
@@ -364,12 +396,12 @@ class SimpleRAGMCPServer {
     stats += `**Created:** ${this.knowledgeBase.createdAt}\\n`;
     stats += `**Total Documents:** ${this.knowledgeBase.totalDocuments}\\n`;
     stats += `**Total Chunks:** ${this.knowledgeBase.totalChunks}\\n\\n`;
-    
+
     stats += `## Document Types\\n\\n`;
     Object.keys(typeStats).forEach(type => {
       stats += `- **${type}:** ${typeStats[type]}\\n`;
     });
-    
+
     stats += `\\n## Configuration\\n\\n`;
     stats += `- **Chunk Size:** ${this.knowledgeBase.config.chunkSize}\\n`;
     stats += `- **Max Files Processed:** ${this.knowledgeBase.config.maxFiles}\\n`;
@@ -378,6 +410,127 @@ class SimpleRAGMCPServer {
     return {
       content: [{ type: "text", text: stats }]
     };
+  }
+
+  getDocumentationReferences(category = "all", format = "detailed") {
+    if (!this.documentationReferences) {
+      return {
+        content: [{
+          type: "text",
+          text: "Documentation references not loaded. Please ensure documentation-references.json exists."
+        }]
+      };
+    }
+
+    const refs = this.documentationReferences.documentation_references;
+    let filteredRefs = {};
+
+    // Filter by category
+    switch (category) {
+      case "all":
+        filteredRefs = refs;
+        break;
+      case "internal":
+        filteredRefs = { internal: refs.internal };
+        break;
+      case "external":
+        filteredRefs = { external: refs.external };
+        break;
+      case "ufs":
+        filteredRefs = { ufs: refs.external?.ufs };
+        break;
+      case "rocoto":
+        filteredRefs = { rocoto: refs.external?.rocoto };
+        break;
+      case "gsi":
+        filteredRefs = { gsi: refs.external?.gsi };
+        break;
+      case "hpc_systems":
+        filteredRefs = { hpc_systems: refs.external?.hpc_systems };
+        break;
+      case "noaa_tools":
+        filteredRefs = { noaa_tools: refs.external?.noaa_tools };
+        break;
+      case "standards":
+        filteredRefs = { standards_and_policies: refs.standards_and_policies };
+        break;
+      default:
+        filteredRefs = refs;
+    }
+
+    // Format response
+    let response = `# Documentation References (${category})\\n\\n`;
+
+    if (format === "urls_only") {
+      response += this.formatUrlsOnly(filteredRefs);
+    } else if (format === "structured") {
+      response += this.formatStructured(filteredRefs);
+    } else {
+      response += this.formatDetailed(filteredRefs);
+    }
+
+    // Add metadata
+    const metadata = this.documentationReferences.reference_metadata;
+    response += `\\n---\\n`;
+    response += `**Last Updated:** ${metadata.last_updated}\\n`;
+    response += `**Version:** ${metadata.version}\\n`;
+    response += `**Update Frequency:** ${metadata.update_frequency}\\n`;
+
+    return {
+      content: [{ type: "text", text: response }]
+    };
+  }
+
+  formatDetailed(refs) {
+    let output = "";
+
+    Object.keys(refs).forEach(section => {
+      output += `## ${section.charAt(0).toUpperCase() + section.slice(1).replace(/_/g, ' ')}\\n\\n`;
+
+      if (typeof refs[section] === 'object') {
+        Object.keys(refs[section]).forEach(subsection => {
+          output += `### ${subsection.charAt(0).toUpperCase() + subsection.slice(1).replace(/_/g, ' ')}\\n\\n`;
+
+          const item = refs[section][subsection];
+          if (typeof item === 'object') {
+            Object.keys(item).forEach(key => {
+              if (typeof item[key] === 'string' && item[key].startsWith('http')) {
+                output += `- **${key.replace(/_/g, ' ')}:** [${item[key]}](${item[key]})\\n`;
+              }
+            });
+          }
+          output += `\\n`;
+        });
+      }
+    });
+
+    return output;
+  }
+
+  formatUrlsOnly(refs) {
+    let output = "";
+    const urls = this.extractAllUrls(refs);
+
+    urls.forEach(url => {
+      output += `- ${url}\\n`;
+    });
+
+    return output;
+  }
+
+  formatStructured(refs) {
+    return `\`\`\`json\\n${JSON.stringify(refs, null, 2)}\\n\`\`\`\\n`;
+  }
+
+  extractAllUrls(obj, urls = []) {
+    Object.values(obj).forEach(value => {
+      if (typeof value === 'string' && value.startsWith('http')) {
+        urls.push(value);
+      } else if (typeof value === 'object' && value !== null) {
+        this.extractAllUrls(value, urls);
+      }
+    });
+    return urls;
   }
 
   async run() {
