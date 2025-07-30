@@ -195,7 +195,9 @@ Configuration Files (parm/ directory):
  */
 async function listJobScripts() {
   try {
-    const jobsDir = path.join(__dirname, 'jobs');
+    // Navigate to the global-workflow root directory from our current location
+    const globalWorkflowRoot = path.resolve(__dirname, '../../../../../..');
+    const jobsDir = path.join(globalWorkflowRoot, 'jobs');
     const files = await fs.readdir(jobsDir);
     const jobScripts = files
       .filter(file => file.startsWith('J') && !file.includes('.'))
