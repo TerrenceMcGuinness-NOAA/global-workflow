@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **2025-01-30**: RAG-Enhanced MCP Server Implementation
+  - Created comprehensive RAG (Retrieval-Augmented Generation) framework for MCP server
+  - Added 5 new RAG-enhanced MCP tools:
+    - `search_documentation`: Semantic search across workflow documentation
+    - `explain_with_context`: Enhanced explanations using RAG context
+    - `find_similar_code`: Vector similarity search for code patterns
+    - `get_operational_guidance`: Procedure-specific operational help
+    - `analyze_workflow_dependencies`: Intelligent dependency analysis
+  - Implemented document ingestion pipeline (`document-ingester.js`)
+  - Added support for multiple vector databases (ChromaDB, Pinecone, FAISS)
+  - Created automated setup script (`setup-rag.sh`) with full environment configuration
+  - Added comprehensive package dependencies for RAG functionality
+  - Implemented metadata extraction for workflow components, phases, and systems
+  - Created test framework for RAG server validation
+
 ### Enhanced
 - **2025-01-27**: Enhanced README visual design and presentation
   - Improved color scheme using NOAA brand colors (navy #003366, blue #0066cc)

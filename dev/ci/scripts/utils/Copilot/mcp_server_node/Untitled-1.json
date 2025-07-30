@@ -1,0 +1,7 @@
+// Add to your .vscode/settings.json
+"mcp.servers": {
+  "global-workflow-rag": {
+    "command": "node",
+    "args": ["${workspaceFolder}/dev/ci/scripts/utils/Copilot/mcp_server_node/mcp-server-rag.js"]
+  }
+}
