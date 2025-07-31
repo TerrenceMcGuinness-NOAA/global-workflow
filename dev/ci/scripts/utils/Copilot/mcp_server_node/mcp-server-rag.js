@@ -124,8 +124,7 @@ class RAGEnhancedMCPServer {
           properties: {
             component: {
               type: "string",
-              description: "Component name (e.g., rocoto, gsi, ufs)",
-              required: true
+              description: "Component name (e.g., rocoto, gsi, ufs)"
             }
           },
           required: ["component"]
