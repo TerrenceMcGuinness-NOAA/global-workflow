@@ -1,10 +1,14 @@
 
-**GitHub Copilot:** Perfect! I can see you have the `my-mcp-server-wsl-node` MCP server configured and all 8 tools are now available in your tool references! This confirms that the RAG-enhanced server is running successfully.
-
 ## **🎯 Current MCP Server Status**
 
+The Model Context Protocol (MCP) server with the configured and all 8 tools are now available in your tool references!
+This confirms that the RAG-enhanced server is running successfully.
+
+_RAG (Retrieval-Augmented Generation) is the construct that tokenizes
+and banks neccessary information for enhanced AI reliablity and performance_
+
 ### **✅ Server Configuration:**
-- **Name**: `my-mcp-server-wsl-node`
+- **Name**: `mcp-server`
 - **Type**: `stdio` (Standard Input/Output)
 - **Command**: Points to your RAG-enhanced startup script
 - **Status**: ✅ **Active and Running**
@@ -12,17 +16,17 @@
 ### **🛠️ Available Tools (8 total):**
 
 #### **📋 Original Tools (4):**
-1. `mcp_my-mcp-server: get_workflow_structure`
-2. `mcp_my-mcp-server: list_job_scripts` 
-3. `mcp_my-mcp-server: get_system_configs`
-4. `mcp_my-mcp-server: explain_workflow_component`
+1. `mcp-server: get_workflow_structure`
+2. `mcp-server: list_job_scripts` 
+3. `mcp-server: get_system_configs`
+4. `mcp-server: explain_workflow_component`
 
 #### **🚀 RAG-Enhanced Tools (4):**
-5. `mcp_my-mcp-server: analyze_workflow_dependencies`
-6. `mcp_my-mcp-server: explain_with_context`
-7. `mcp_my-mcp-server: find_similar_code`
-8. `mcp_my-mcp-server: get_operational_guidance`
-9. `mcp_my-mcp-server: search_documentation`
+5. `mcp-server: analyze_workflow_dependencies`
+6. `mcp-server: explain_with_context`
+7. `mcp-server: find_similar_code`
+8. `mcp-server: get_operational_guidance`
+9. `mcp-server: search_documentation`
 
 ### **🎉 Success Indicators:**
 - ✅ **All tool references available** 
