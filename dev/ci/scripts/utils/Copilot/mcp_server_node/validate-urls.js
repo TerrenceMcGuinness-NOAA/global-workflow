@@ -43,6 +43,8 @@ async function checkUrl(url, timeout = 10000) {
 }
 
 async function validateAllUrls() {
+  const verbose = process.argv.includes('--verbose') || process.argv.includes('-v');
+  
   console.log('🔍 === URL Validation Check ===\n');
 
   try {
@@ -51,13 +53,19 @@ async function validateAllUrls() {
 
     const urls = [];
 
-    // Extract all URLs
-    function extractUrls(obj, category = '') {
+    // Extract all URLs with better naming
+    function extractUrls(obj, category = '', parentKey = '') {
       Object.entries(obj).forEach(([key, value]) => {
         if (typeof value === 'string' && value.startsWith('http')) {
-          urls.push({ url: value, category, key });
+          const displayName = parentKey ? `${parentKey} - ${key}` : key;
+          urls.push({ 
+            url: value, 
+            category: category || 'root', 
+            key,
+            displayName: displayName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+          });
         } else if (typeof value === 'object' && value !== null) {
-          extractUrls(value, category || key);
+          extractUrls(value, category || key, key);
         }
       });
     }
@@ -75,18 +83,17 @@ async function validateAllUrls() {
     // Test each URL
     for (let i = 0; i < urls.length; i++) {
       const urlInfo = urls[i];
-      process.stdout.write(`Testing ${i + 1}/${urls.length}: ${urlInfo.url.substring(0, 50)}... `);
-
+      
       const result = await checkUrl(urlInfo.url);
 
       if (result.valid) {
-        console.log('✅ VALID');
+        console.log(`${i + 1}/${urls.length}: ✅ VALID - ${urlInfo.displayName} - ${urlInfo.url}`);
         results.valid.push({ ...urlInfo, ...result });
       } else if (result.error && result.error.includes('abort')) {
-        console.log('⏱️ TIMEOUT');
+        console.log(`${i + 1}/${urls.length}: ⏱️ TIMEOUT - ${urlInfo.displayName} - ${urlInfo.url}`);
         results.questionable.push({ ...urlInfo, ...result, reason: 'timeout' });
       } else {
-        console.log(`❌ INVALID (${result.status || result.error})`);
+        console.log(`${i + 1}/${urls.length}: ❌ INVALID (${result.status || result.error}) - ${urlInfo.displayName} - ${urlInfo.url}`);
         results.invalid.push({ ...urlInfo, ...result });
       }
 
@@ -94,27 +101,49 @@ async function validateAllUrls() {
       await new Promise(resolve => setTimeout(resolve, 100));
     }
 
-    // Report results
+    // Report results summary
     console.log('\n📊 === VALIDATION RESULTS ===');
     console.log(`✅ Valid URLs: ${results.valid.length}`);
     console.log(`❌ Invalid URLs: ${results.invalid.length}`);
     console.log(`⏱️ Timeout/Questionable: ${results.questionable.length}`);
 
-    if (results.invalid.length > 0) {
-      console.log('\n❌ INVALID URLs:');
-      results.invalid.forEach(item => {
-        console.log(`   • ${item.url}`);
-        console.log(`     Category: ${item.category}, Key: ${item.key}`);
-        console.log(`     Error: ${item.error || `HTTP ${item.status}`}`);
-      });
-    }
+    // Show detailed results only if verbose flag is used
+    if (verbose) {
+      // Show VALID URLs first with full details
+      if (results.valid.length > 0) {
+        console.log('\n✅ === VALID URLs (Detailed) ===');
+        results.valid.forEach((item, index) => {
+          console.log(`${index + 1}. ✅ ${item.displayName}`);
+          console.log(`   🔗 ${item.url}`);
+          console.log(`   📁 Category: ${item.category}`);
+          console.log(`   📊 Status: HTTP ${item.status}`);
+          console.log('');
+        });
+      }
 
-    if (results.questionable.length > 0) {
-      console.log('\n⏱️ QUESTIONABLE URLs (may need manual check):');
-      results.questionable.forEach(item => {
-        console.log(`   • ${item.url}`);
-        console.log(`     Reason: ${item.reason}`);
-      });
+      if (results.invalid.length > 0) {
+        console.log('\n❌ === INVALID URLs (Detailed) ===');
+        results.invalid.forEach((item, index) => {
+          console.log(`${index + 1}. ❌ ${item.displayName}`);
+          console.log(`   🔗 ${item.url}`);
+          console.log(`   📁 Category: ${item.category}`);
+          console.log(`   ⚠️  Error: ${item.error || `HTTP ${item.status}`}`);
+          console.log('');
+        });
+      }
+
+      if (results.questionable.length > 0) {
+        console.log('\n⏱️ === QUESTIONABLE URLs (Detailed - manual check needed) ===');
+        results.questionable.forEach((item, index) => {
+          console.log(`${index + 1}. ⏱️ ${item.displayName}`);
+          console.log(`   🔗 ${item.url}`);
+          console.log(`   📁 Category: ${item.category}`);
+          console.log(`   ⚠️  Reason: ${item.reason}`);
+          console.log('');
+        });
+      }
+    } else {
+      console.log('\n💡 Use --verbose or -v flag for detailed URL information');
     }
 
     // Save results
