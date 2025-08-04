@@ -171,6 +171,11 @@ Reference URLs for external documentation are stored in `documentation-reference
         "documentation": "https://christopherwharrop-noaa.github.io/rocoto/",
         "github": "https://github.com/christopherwharrop-NOAA/rocoto"
       }
+    },
+    "standards_and_policies": {
+      "environmental_equivalence": {
+        "ee2_standards": "https://nws-hpc-standards.readthedocs.io/en/latest/index.html",
+      }
     }
   }
 }
@@ -183,7 +188,7 @@ Reference URLs for external documentation are stored in `documentation-reference
 - **external.gsi**: GSI data assimilation system documentation
 - **external.hpc_systems**: NOAA HPC system documentation (Hera, Orion, Hercules, WCOSS2)
 - **external.noaa_tools**: NOAA libraries and tools (NCEPLIBS, UPP, wgrib2)
-- **standards_and_policies**: NOAA coding standards and operational procedures
+- **standards_and_policies**: NOAA coding standards and operational procedures including EE2 compliance report
 
 **Managing References:**
 - Edit `documentation-references.json` to add/update URLs
