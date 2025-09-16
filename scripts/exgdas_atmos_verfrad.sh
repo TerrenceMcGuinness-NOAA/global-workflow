@@ -20,10 +20,17 @@
 # Do not exit on errors so that restricted data can be protected
 set +eu
 
+info_msg "Starting GDAS radiance verification monitoring"
+info_msg "Processing radiance data for ${PDY}${cyc}"
+
 if [[ ! -s ${radstat} || ! -s ${biascr} ]]; then
    export err=1
-   err_exit "Required data files ${radstat} and/or ${biascr} are missing!!"
+   error_exit "Required data files ${radstat} and/or ${biascr} are missing"
 fi
+
+info_msg "Input files validated successfully"
+info_msg "radstat: ${radstat}"
+info_msg "biascr: ${biascr}"
 
 #------------------------------------------------------------------
 #  Copy data files file to local data directory.
@@ -131,7 +138,7 @@ rc_angle=$?
 
 # Allow all scripts to run.  Call err_exit at the end, after files are restricted.
 if [[ ${rc_angle} -ne 0 ]]; then
-   echo "FATAL ERROR: radmon_verf_angle.sh failed!"
+   error_exit "radmon_verf_angle.sh failed with return code ${rc_angle}"
 fi
 
 "${USHgfs}/radmon_verf_bcoef.sh" && true
@@ -139,23 +146,23 @@ rc_bcoef=$?
 "${USHgfs}/rstprod.sh"
 
 if [[ ${rc_bcoef} -ne 0 ]]; then
-   echo "FATAL ERROR: radmon_verf_bcoef.sh failed!"
+   error_exit "radmon_verf_bcoef.sh failed with return code ${rc_bcoef}"
 fi
 
 "${USHgfs}/radmon_verf_bcor.sh" && true
 rc_bcor=$?
 "${USHgfs}/rstprod.sh"
 
-if [[ ${rc_bcoef} -ne 0 ]]; then
-   echo "FATAL ERROR: radmon_verf_bcor.sh failed!"
+if [[ ${rc_bcor} -ne 0 ]]; then
+   error_exit "radmon_verf_bcor.sh failed with return code ${rc_bcor}"
 fi
 
 "${USHgfs}/radmon_verf_time.sh" && true
 rc_time=$?
 "${USHgfs}/rstprod.sh"
 
-if [[ ${rc_bcoef} -ne 0 ]]; then
-   echo "FATAL ERROR: radmon_verf_time.sh failed!"
+if [[ ${rc_time} -ne 0 ]]; then
+   error_exit "radmon_verf_time.sh failed with return code ${rc_time}"
 fi
 
 #####################################################################
@@ -164,7 +171,9 @@ fi
 export err=$((rc_angle + rc_bcoef + rc_bcor + rc_time))
 
 if [[ ${err} -ne 0 ]]; then
-   err_exit "One or more radiance monitor subtasks failed!"
+   error_exit "One or more radiance monitor subtasks failed! Total errors: ${err}"
 fi
+
+info_msg "All radiance monitor subtasks completed successfully"
 
 exit 0
