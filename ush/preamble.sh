@@ -174,7 +174,94 @@ function err_exit() {
 trap "postamble ${_calling_script} ${start_time} \$?" EXIT
 # shellcheck disable=
 
+# Load environment defaults for EE2 compliance
+if [[ -f "${HOMEgfs}/ush/env_defaults.sh" ]]; then
+    source "${HOMEgfs}/ush/env_defaults.sh"
+fi
+
+# Load environment validation functions for EE2 compliance
+if [[ -f "${HOMEgfs}/ush/validate_environment.sh" ]]; then
+    source "${HOMEgfs}/ush/validate_environment.sh"
+fi
+
 source "${HOMEgfs}/ush/bash_utils.sh"
+
+# Standardized error handling functions for EE2 compliance
+error_exit() {
+    local msg="$1"
+    local code="${2:-1}"
+    local timestamp
+    timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    echo "FATAL ERROR [${timestamp}]: ${msg}" >&2
+    export err=${code}
+    err_exit "${msg}"
+}
+
+warning_msg() {
+    local msg="$1"
+    local timestamp
+    timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    echo "WARNING [${timestamp}]: ${msg}" >&2
+}
+
+info_msg() {
+    local msg="$1"
+    local timestamp
+    timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    echo "INFO [${timestamp}]: ${msg}"
+}
+
+# Enhanced error checking with context
+err_chk_with_context() {
+    local context="$1"
+    if [[ ${err} -ne 0 ]]; then
+        error_exit "${context}: Command failed with exit code ${err}"
+    fi
+}
+
+# Enhanced compath.py integration function
+setup_data_paths() {
+    local component="${1:-atmos}"
+    
+    # Use compath.py for standardized path construction if available
+    if [[ -x "${HOMEgfs}/ush/compath.py" ]]; then
+        local comin_result
+        local comout_result
+        comin_result=$(python3 "${HOMEgfs}/ush/compath.py" "${NET}" "${RUN}" "${PDY}" "${cyc}" --component="${component}")
+        comout_result=$(python3 "${HOMEgfs}/ush/compath.py" "${NET}" "${RUN}" "${PDY}" "${cyc}" --component="${component}" --output)
+        export COMIN="${comin_result}"
+        export COMOUT="${comout_result}"
+    else
+        # Fallback to manual construction
+        export COMIN="${ROTDIR}/${RUN}.${PDY}/${cyc}/${component}"
+        export COMOUT="${ROTDIR}/${RUN}.${PDY}/${cyc}/${component}"
+    fi
+    
+    # Create output directories
+    mkdir -p "${COMOUT}"
+}
+
+# Standardized module loading function
+load_required_modules() {
+    local machine_id="${MACHINE_ID:-$(detect_machine.sh)}"
+    
+    # Clear existing modules
+    module purge
+    
+    # Load standard environment
+    module use "${HOMEgfs}/modulefiles"
+    
+    if [[ -f "${HOMEgfs}/modulefiles/module_gwsetup.${machine_id}" ]]; then
+        module load "module_gwsetup.${machine_id}"
+    else
+        warning_msg "Module file not found for machine: ${machine_id}"
+        return 1
+    fi
+    
+    # Log loaded modules for debugging
+    info_msg "Loaded modules:"
+    { module list 2>&1 | head -10; } || true
+}
 
 # Turn on our settings
 export SHELLOPTS
@@ -182,5 +269,11 @@ declare -xf set_strict
 declare -xf set_trace
 declare -xf postamble
 declare -xf err_exit
+declare -xf error_exit
+declare -xf warning_msg
+declare -xf info_msg
+declare -xf err_chk_with_context
+declare -xf setup_data_paths
+declare -xf load_required_modules
 set_strict
 set_trace
