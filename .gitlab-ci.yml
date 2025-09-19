@@ -27,6 +27,7 @@ stages:
   - setup_tests
   - run_tests
   - finalize
+  - debug
 
 variables:
   CI_DEBUG_TRACE: "false"    # Enable debug tracing for CI jobs
@@ -234,3 +235,65 @@ include:
       else
         echo "Job status: ${CI_JOB_STATUS}, no failure cleanup needed"
       fi
+
+# GitHub Integration Debug Job - runs for triggered pipelines
+debug_github_integration:
+  extends: .base_config
+  stage: debug
+  script:
+    - |
+      echo "======================================================================="
+      echo "GitHub Integration Debug Job - Triggered Pipeline Analysis"
+      echo "======================================================================="
+      
+      # Run the debug script
+      chmod +x "${GW_HOMEgfs}/dev/ci/scripts/debug_github_integration.sh"
+      "${GW_HOMEgfs}/dev/ci/scripts/debug_github_integration.sh"
+      
+      # Test GitHub status update specifically
+      if [[ "${CI_PIPELINE_SOURCE}" == "trigger" && "${PR_NUMBER:-0}" != "0" && -n "${CI_JOB_TOKEN}" ]]; then
+        echo ""
+        echo "=== Live GitHub Status Update Test ==="
+        echo "Attempting to set 'pending' status on GitHub PR #${PR_NUMBER}..."
+        
+        status_response=$(curl -s -w "%{http_code}" -o /tmp/github_status_test.json \
+          -X POST \
+          -H "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "state": "pending",
+            "description": "GitLab GitHub Integration Test",
+            "context": "ci/gitlab/integration-test",
+            "target_url": "'"${CI_PIPELINE_URL}"'"
+          }' \
+          "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/statuses/${CI_COMMIT_SHA}")
+        
+        echo "Status API Response: HTTP ${status_response}"
+        if [[ -f /tmp/github_status_test.json ]]; then
+          echo "Response body:"
+          cat /tmp/github_status_test.json
+        fi
+        
+        if [[ "${status_response}" == "201" ]] || [[ "${status_response}" == "200" ]]; then
+          echo ""
+          echo "✅ SUCCESS: GitHub status update worked!"
+          echo "Check GitHub PR #${PR_NUMBER} for 'ci/gitlab/integration-test' status"
+        else
+          echo ""
+          echo "❌ FAILED: GitHub status update did not work"
+          echo "This indicates a configuration issue with GitLab's GitHub integration"
+        fi
+      else
+        echo ""
+        echo "=== GitHub Status Update Test Skipped ==="
+        echo "Reason: Not a triggered pipeline with valid PR context"
+        echo "  Pipeline source: ${CI_PIPELINE_SOURCE}"
+        echo "  PR number: ${PR_NUMBER:-0}"
+        echo "  CI_JOB_TOKEN available: $([[ -n "${CI_JOB_TOKEN}" ]] && echo 'YES' || echo 'NO')"
+      fi
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "trigger" && $PR_NUMBER != "0"
+      when: manual
+      allow_failure: true
+  tags:
+    - gaeac6  # Use a default machine for testing

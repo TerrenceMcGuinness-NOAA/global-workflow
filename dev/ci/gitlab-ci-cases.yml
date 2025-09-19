@@ -19,6 +19,38 @@
   stage: setup_tests
   script:
     - |
+      # Debug GitHub Integration Status for Triggered Pipeline
+      echo "=== GitHub Integration Debug Information ==="
+      echo "CI_COMMIT_SHA: ${CI_COMMIT_SHA}"
+      echo "CI_COMMIT_SHORT_SHA: ${CI_COMMIT_SHORT_SHA}"
+      echo "CI_PIPELINE_SOURCE: ${CI_PIPELINE_SOURCE}"
+      echo "CI_PROJECT_PATH: ${CI_PROJECT_PATH:-'NOT SET'}"
+      echo "GITHUB_COMMIT_SHA: ${GITHUB_COMMIT_SHA:-'NOT SET'}"
+      echo "PR_NUMBER: ${PR_NUMBER:-'NOT SET'}"
+      echo "GW_REPO_URL: ${GW_REPO_URL:-'NOT SET'}"
+      echo "CI_API_V4_URL: ${CI_API_V4_URL:-'NOT SET'}"
+      echo "CI_PROJECT_ID: ${CI_PROJECT_ID:-'NOT SET'}"
+      echo "==============================================="
+      
+      # Check if this is a GitHub-triggered pipeline with proper variables
+      if [[ "${CI_PIPELINE_SOURCE}" == "trigger" ]]; then
+        echo "✓ Pipeline triggered via GitHub (CI_PIPELINE_SOURCE=trigger)"
+        if [[ -n "${GITHUB_COMMIT_SHA}" && "${GITHUB_COMMIT_SHA}" == "${CI_COMMIT_SHA}" ]]; then
+          echo "✓ GitHub commit SHA properly set and matches CI_COMMIT_SHA"
+        else
+          echo "⚠ GitHub commit SHA mismatch or not set"
+          echo "  GITHUB_COMMIT_SHA: ${GITHUB_COMMIT_SHA:-'NOT SET'}"
+          echo "  CI_COMMIT_SHA: ${CI_COMMIT_SHA}"
+        fi
+        if [[ "${PR_NUMBER:-0}" != "0" ]]; then
+          echo "✓ PR context detected: PR #${PR_NUMBER}"
+        else
+          echo "⚠ No PR context (PR_NUMBER=0 or not set)"
+        fi
+      else
+        echo "⚠ Pipeline not triggered via GitHub (CI_PIPELINE_SOURCE=${CI_PIPELINE_SOURCE})"
+      fi
+      
       export RUNTESTS="${RUNTESTS_DIR}"
       "${GW_HOMEgfs}/dev/ci/scripts/utils/ci_utils.sh" create_experiment "${GW_HOMEgfs}/dev/ci/cases/pr/${caseName}.yaml" "${CI_COMMIT_SHORT_SHA}-${CI_PIPELINE_ID}"
       exit $?
@@ -41,6 +73,53 @@
 
   script:
     - |
+      # Debug GitHub Integration for Success
+      echo "=== GitHub Integration Success Debug ==="
+      echo "Machine: ${machine}"
+      echo "CI_COMMIT_SHA: ${CI_COMMIT_SHA}"
+      echo "GITHUB_COMMIT_SHA: ${GITHUB_COMMIT_SHA:-'NOT SET'}"
+      echo "PR_NUMBER: ${PR_NUMBER:-0}"
+      echo "CI_PROJECT_PATH: ${CI_PROJECT_PATH}"
+      echo "CI_PIPELINE_ID: ${CI_PIPELINE_ID}"
+      echo "CI_JOB_TOKEN available: $([[ -n "${CI_JOB_TOKEN}" ]] && echo 'YES' || echo 'NO')"
+      echo "==========================================="
+      
+      # For GitHub-triggered pipelines, we need to use GitLab's commit status API
+      # This requires the GitHub repository to be configured in GitLab's integration
+      if [[ "${CI_PIPELINE_SOURCE}" == "trigger" && "${PR_NUMBER:-0}" != "0" && -n "${CI_JOB_TOKEN}" ]]; then
+        echo "Attempting to update GitHub status via GitLab Commit Status API..."
+        
+        # Test if the commit status API works
+        status_response=$(curl -s -w "%{http_code}" -o /tmp/status_response.json \
+          -X POST \
+          -H "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "state": "success",
+            "description": "CI Pipeline passed on '"${machine}"'",
+            "context": "ci/gitlab/'"${machine}"'/cases",
+            "target_url": "'"${CI_PIPELINE_URL}"'"
+          }' \
+          "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/statuses/${CI_COMMIT_SHA}" || echo "000")
+        
+        echo "GitLab API Status Response: HTTP ${status_response}"
+        if [[ -f /tmp/status_response.json ]]; then
+          echo "Response Body:" 
+          cat /tmp/status_response.json
+        fi
+        
+        if [[ "${status_response}" == "201" ]] || [[ "${status_response}" == "200" ]]; then
+          echo "✓ Successfully updated GitHub status via GitLab API"
+        else
+          echo "✗ Failed to update GitHub status via GitLab API (HTTP ${status_response})"
+        fi
+      else
+        echo "Skipping GitLab API status update - requirements not met:"
+        echo "  Pipeline source: ${CI_PIPELINE_SOURCE} (need: trigger)"
+        echo "  PR number: ${PR_NUMBER:-0} (need: >0)"
+        echo "  CI_JOB_TOKEN: $([[ -n "${CI_JOB_TOKEN}" ]] && echo 'available' || echo 'not available')"
+      fi
+      
       Machine="${machine^}"
       if [[ "${GFS_CI_RUN_TYPE}" == "nightly" && "${CI_PIPELINE_SOURCE}" == "schedule" ]]; then
         echo "This is a scheduled nightly pipeline, creating date-based directories and symlinks"
@@ -78,15 +157,50 @@
   stage: finalize
   script:
     - |
+      # Debug GitHub Integration for Failure
+      echo "=== GitHub Integration Failure Debug ==="
+      echo "Machine: ${machine}"
+      echo "CI_COMMIT_SHA: ${CI_COMMIT_SHA}"
+      echo "GITHUB_COMMIT_SHA: ${GITHUB_COMMIT_SHA:-'NOT SET'}"
+      echo "PR_NUMBER: ${PR_NUMBER:-0}"
+      echo "CI_PROJECT_PATH: ${CI_PROJECT_PATH}"
+      echo "CI_PIPELINE_ID: ${CI_PIPELINE_ID}"
+      echo "CI_JOB_TOKEN available: $([[ -n "${CI_JOB_TOKEN}" ]] && echo 'YES' || echo 'NO')"
+      echo "=========================================="
+      
+      # For GitHub-triggered pipelines, attempt to update status via GitLab API
+      if [[ "${CI_PIPELINE_SOURCE}" == "trigger" && "${PR_NUMBER:-0}" != "0" && -n "${CI_JOB_TOKEN}" ]]; then
+        echo "Attempting to update GitHub failure status via GitLab API..."
+        
+        status_response=$(curl -s -w "%{http_code}" -o /tmp/status_response.json \
+          -X POST \
+          -H "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "state": "failed",
+            "description": "CI Pipeline failed on '"${machine}"'",
+            "context": "ci/gitlab/'"${machine}"'/cases",
+            "target_url": "'"${CI_PIPELINE_URL}"'"
+          }' \
+          "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/statuses/${CI_COMMIT_SHA}" || echo "000")
+        
+        echo "GitLab API Status Response: HTTP ${status_response}"
+        if [[ -f /tmp/status_response.json ]]; then
+          echo "Response Body:" 
+          cat /tmp/status_response.json
+        fi
+        
+        if [[ "${status_response}" == "201" ]] || [[ "${status_response}" == "200" ]]; then
+          echo "✓ Successfully updated GitHub failure status via GitLab API"
+        else
+          echo "❌ Failed to update GitHub failure status via GitLab API (HTTP ${status_response})"
+        fi
+      else
+        echo "Skipping GitLab API status update - requirements not met:"
+        echo "  Pipeline source: ${CI_PIPELINE_SOURCE} (need: trigger)"
+        echo "  PR number: ${PR_NUMBER:-0} (need: >0)"
+        echo "  CI_JOB_TOKEN: $([[ -n "${CI_JOB_TOKEN}" ]] && echo 'available' || echo 'not available')"
+      fi
+      
       Machine="${machine^}"
       if [[ "${GFS_CI_RUN_TYPE}" == "pr_cases" && "${PR_NUMBER}" != 0 ]]; then
-        echo "Updating GitHub labels for failure for Case runs with PR number ${PR_NUMBER}"
-        "${GH}" pr edit "${PR_NUMBER}" --repo "${GW_REPO_URL}" \
-          --add-label "CI-${Machine}-Failed" --remove-label "CI-${Machine}-Running" || true
-      elif [[ "${GFS_CI_RUN_TYPE}" == "nightly" && "${CI_PIPELINE_SOURCE}" == "schedule" ]]; then
-        echo "Updating develop branch badge for ${Machine} to indicate nightly Failed with GIST ID ${badge_GIST_ID}"
-        badge_img_file="${TMPDIR:-/tmp}/$(uuidgen)/${machine}_pipeline_badge.svg"
-        mkdir -p "$(dirname "${badge_img_file}")"
-        curl -sSL "https://img.shields.io/badge/${machine}_nightly-failed-red?style=flat-round&logo=gitlab" -o "${badge_img_file}"
-        ${GH} gist edit "${badge_GIST_ID}" --add "${badge_img_file}"
-      fi

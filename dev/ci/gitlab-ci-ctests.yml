@@ -29,6 +29,16 @@
     - .failure_cleanup_template
   stage: setup_tests
   script: |
+    # Debug GitHub Integration for CTESTs
+    echo "=== CTests GitHub Integration Debug Information ==="
+    echo "CI_COMMIT_SHA: ${CI_COMMIT_SHA}"
+    echo "GITHUB_COMMIT_SHA: ${GITHUB_COMMIT_SHA:-'NOT SET'}"
+    echo "PR_NUMBER: ${PR_NUMBER:-0}"
+    echo "CI_PIPELINE_SOURCE: ${CI_PIPELINE_SOURCE}"
+    echo "CI_PROJECT_PATH: ${CI_PROJECT_PATH}"
+    echo "GitHub Integration Expected: $([[ \"${CI_PIPELINE_SOURCE}\" == \"trigger\" && \"${PR_NUMBER:-0}\" != \"0\" ]] && echo 'YES' || echo 'NO')"
+    echo "=================================================="
+    
     echo "Setting up for ctests pipeline building in ${GW_HOMEgfs} on ${machine}"
     source "${GW_HOMEgfs}/dev/ush/gw_setup.sh"
     source "${GW_HOMEgfs}/dev/ci/platforms/config.${machine}"
