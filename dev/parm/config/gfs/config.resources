@@ -1314,8 +1314,17 @@ case ${step} in
     node_denominator=2
     tasks_per_node=$(( node_numerator*max_tasks_per_node/node_denominator ))
 
-    threads_per_task_cycle=${threads_per_task}
-    tasks_per_node_cycle=$(( max_tasks_per_node / threads_per_task_cycle ))
+    # Reserve proportional memory for regridding (regridStates.x)
+    # to prevent co-tenant jobs from consuming memory on shared nodes.
+    # Note: is_exclusive=True would fully prevent shared-node CPU contention
+    # (e.g., srun "More processors requested than permitted") but wastes
+    # ~50% of node cores. The memory reservation below addresses memory
+    # pressure; if CPU-slot srun failures persist on shared nodes,
+    # is_exclusive=True may be needed as a fallback.
+    memory="96GB"
+
+    export threads_per_task_cycle=${threads_per_task}
+    export tasks_per_node_cycle=$(( max_tasks_per_node / threads_per_task_cycle ))
     ;;
 
   "epos")
