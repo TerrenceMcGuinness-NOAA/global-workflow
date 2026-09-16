@@ -1,0 +1,36 @@
+{
+	"servers": {
+		// ACTIVE - MS Dev Tunnel (works from anywhere)
+		"eib-mcp-gateway-ms-devtunnel": {
+			"type": "http",
+			"url": "https://dktt6wzd-18888.use.devtunnels.ms/mcp",
+			"headers": {
+				"Authorization": "Bearer eib-mcp-gateway-token-2025"
+			}
+		},
+		// NOT USABLE FROM VS CODE - PW /sessions/ reverse proxy only accepts browser OAuth
+		// cookies (set during web login at noaa.parallel.works). Tested and confirmed that
+		// none of the following work against the /sessions/ proxy path:
+		//   - 30-day user API key (Bearer or ?apikey= param) — .vscode/pw_api_key_30d.txt
+		//   - 24-hour JWT token — .vscode/pw_api_token_24h.txt
+		//   - X-Api-Key header
+		// Both token files ARE useful for REST API calls via:
+		//   /ncrc/home2/Terry.McGuinness/pw/pw api GET /api/sessions
+		// "eib-mcp-gateway-pw": {
+		// 	"type": "http",
+		// 	"url": "https://noaa.parallel.works/sessions/Terry.McGuinness/oca-rocky9-mcp/mcp",
+		// 	"headers": {
+		// 		"Authorization": "Bearer eib-mcp-gateway-token-2025"
+		// 	}
+		// },
+		// ACTIVE - pw forward SSH tunnel (fallback)
+		// Start: .vscode/start_mcp_tunnel.sh
+		"eib-mcp-gateway-local": {
+			"type": "http",
+			"url": "http://localhost:18888/mcp",
+			"headers": {
+				"Authorization": "Bearer eib-mcp-gateway-token-2025"
+			}
+		}
+	}
+}
