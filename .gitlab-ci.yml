@@ -174,6 +174,37 @@ include:
         git config "branch.${_br}.pushRemote" origin
         unset _br
         git submodule update --init --recursive -j 8
+        # ── Commit-hash validation (mirror-lag race detection) ──────
+        # GITHUB_COMMIT_SHA is the PR HEAD SHA at trigger time, passed
+        # by trigger-gitlab-pipelines.yml.  If the GitLab mirror hasn't
+        # synced that commit yet, gh pr checkout lands on a stale ref.
+        # Detect and fail fast rather than testing wrong code.
+        if [[ -n "${GITHUB_COMMIT_SHA:-}" ]]; then
+          _actual_sha=$(git rev-parse HEAD)
+          if [[ "${_actual_sha}" == "${GITHUB_COMMIT_SHA}" ]]; then
+            echo "Commit hash verified: ${_actual_sha} matches expected PR HEAD"
+          else
+            echo "[ERROR] Commit hash mismatch detected — mirror-lag race condition" >&2
+            echo "[ERROR] Expected (GitHub PR HEAD): ${GITHUB_COMMIT_SHA}" >&2
+            echo "[ERROR] Actual   (checked out):    ${_actual_sha}" >&2
+            echo "[ERROR]" >&2
+            echo "[ERROR] The GitLab mirror has not yet synced the latest commit from GitHub." >&2
+            echo "[ERROR] This means the pipeline would build/test stale code." >&2
+            echo "[ERROR]" >&2
+            echo "[ERROR] Action: wait 2-5 minutes for the mirror to sync, then re-trigger" >&2
+            echo "[ERROR]         the pipeline from GitHub Actions." >&2
+            _comment_body="**CI Mirror Sync Failure** on ${machine^} (pipeline ID: ${CI_PIPELINE_ID})"
+            _comment_body="${_comment_body}"$'\n\n'"GitLab mirror has not synced the latest commit from GitHub — pipeline aborted to prevent testing stale code."
+            _comment_body="${_comment_body}"$'\n\n'"Expected (GitHub PR HEAD): \`${GITHUB_COMMIT_SHA}\`"
+            _comment_body="${_comment_body}"$'\n'"Actual   (checked out):    \`${_actual_sha}\`"
+            _comment_body="${_comment_body}"$'\n\n'"Wait 2-5 minutes for the mirror to sync, then re-trigger the pipeline from GitHub Actions."
+            _comment_body="${_comment_body}"$'\n\n'"_This failure was detected automatically by global-workflow's CI/CD Pipeline_"
+            "${GH}" pr comment "${PR_NUMBER}" --repo "${GW_REPO_URL}" --body "${_comment_body}" || true
+            unset _comment_body
+            exit 1
+          fi
+          unset _actual_sha
+        fi
       fi
 
       dev/ci/scripts/utils/ci_utils.sh build
