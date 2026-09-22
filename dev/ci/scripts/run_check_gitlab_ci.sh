@@ -54,8 +54,8 @@ report_failure_to_github() {
     local gist_message_section=""
 
     echo "================================================================================"
-    echo "FAILURE DETECTED: Found error log files in ${RUNTESTS}/EXPDIR/${pslot}"
-    echo "Error log file: ${error_log_file}"
+    echo "FAILURE DETECTED in ${RUNTESTS}/EXPDIR/${pslot}"
+    echo "Error log manifest: ${error_log_file}"
     echo "================================================================================"
 
     # Create processed logs directory to prevent reprocessing
@@ -63,7 +63,11 @@ report_failure_to_github() {
     local processed_dir="${RUNTESTS}/EXPDIR/${pslot}/error_logs/${DATE}" || true
     mkdir -p "${processed_dir}"
 
-    if [[ -f "${error_log_file}" && -s "${error_log_file}" ]]; then
+    if [[ ! -f "${error_log_file}" || ! -s "${error_log_file}" ]]; then
+        # Reachable for STALLED/UNKNOWN, which end the run with no failed task.
+        echo "No task error logs for case: ${caseName}, pslot: ${pslot} (state ${ROCOTO_STATE:-unknown})"
+        gist_message_section="No task error logs — experiment ended in state \`${ROCOTO_STATE:-unknown}\` with no FAIL/DEAD tasks."
+    else
         echo "Processing log reports to GitHub for failure with case: ${caseName}, pslot: ${pslot}"
         local error_logs_for_gist=""
         local error_logs_markdown=""
@@ -191,12 +195,20 @@ while true; do
         {
             echo "Experiment ${pslot} Terminated with state ${ROCOTO_STATE}: ${FAIL} tasks failed, ${DEAD} dead at $(date)" || true
         } | tee -a "${run_check_logfile}"
-        error_logs=$(rocotostat -d "${db}" -w "${xml}" | grep -E 'FAIL|DEAD' | awk '{print "-c", $1, "-t", $2}' | xargs rocotocheck -d "${db}" -w "${xml}" | grep join | awk '{print $2}') || true
+        failed_tasks=$(rocotostat -d "${db}" -w "${xml}" | grep -E 'FAIL|DEAD' | awk '{print "-c", $1, "-t", $2}') || true
+        error_logs=""
+        if [[ -n "${failed_tasks}" ]]; then
+            error_logs=$(echo "${failed_tasks}" | xargs -r rocotocheck -d "${db}" -w "${xml}" | grep join | awk '{print $2}') || true
+        else
+            # STALLED/UNKNOWN reach here with no failed task; rocotocheck requires a cycle.
+            echo "No FAIL/DEAD tasks in state ${ROCOTO_STATE}; skipping error log collection"
+        fi
         {
             echo "Error logs:"
             echo "${error_logs}"
         } | tee -a "${run_check_logfile}"
-        rm -f "${RUNTESTS}/EXPDIR/${pslot}/${pslot}_error.logs"
+        rm -f "${RUNTESTS}/EXPDIR/${pslot}/${pslot}_error.logs" \
+              "${RUNTESTS}/EXPDIR/${pslot}/${pslot}_fullpath_error.logs"
         for log in ${error_logs}; do
             echo "RUNTESTS${log#*RUNTESTS}" >> "${RUNTESTS}/EXPDIR/${pslot}/${pslot}_error.logs"
             echo "${log}" >> "${RUNTESTS}/EXPDIR/${pslot}/${pslot}_fullpath_error.logs"

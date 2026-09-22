@@ -413,6 +413,8 @@ if __name__ == '__main__':
                                                ROCOTO_RETRY_SLEEP_DURATION,
                                                ProcessError,
                                                thread_logging_enabled=args.thread_logging)
+        # Seed the recovered case: the re-poll can clear a transient stall.
+        rocoto_state = 'RUNNING'
         if is_stalled(rocoto_status):
             error_return = EXIT_CODE_STALLED
             rocoto_state = 'STALLED'

@@ -27,6 +27,8 @@ def parse_args():
     args = parser.parse_args()
     if bool(args.gist) == bool(args.repo):  # Exactly one of the two is required
         parser.error("Exactly one of --gist and --repo is required")
+    if not args.file:
+        parser.error("--file requires at least one path")
     return args
 
 
