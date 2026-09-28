@@ -1,0 +1,15 @@
+# Kiro dashboard test extras (runtime dependencies included by reference).
+#
+# Install (a system-wide `pip install` without --user is not permitted):
+#     <interpreter> -m pip install --user -r tools/kiro-dashboard/requirements-dev.txt
+#
+# `<interpreter>` is the interpreter resolved by the launcher:
+#     "$(tools/kiro-dashboard/kiro-dashboard.sh --print-python)"
+#
+# Lower bounds only; satisfied on the AWS host (pytest 8.4.2, hypothesis
+# 6.152.2) and on the Parallel Works host.
+
+-r requirements.txt
+
+pytest>=8.0
+hypothesis>=6.100

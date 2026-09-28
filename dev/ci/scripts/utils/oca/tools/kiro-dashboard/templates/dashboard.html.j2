@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <script>{{ plotly_js | safe }}</script>
+    <style>
+        :root {
+            --bg: #12161c;
+            --panel: #1b212b;
+            --panel-alt: #232b37;
+            --text: #e6e9ef;
+            --muted: #9aa4b2;
+            --accent: #4c9aff;
+            --border: #2c3542;
+            --green: #2ca02c;
+            --yellow: #ffb000;
+            --red: #d62728;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                         Helvetica, Arial, sans-serif;
+            line-height: 1.4;
+        }
+        header, section, footer { padding: 1.25rem 1.5rem; }
+        h1 { font-size: 1.6rem; margin: 0 0 0.25rem; }
+        h2 { font-size: 1.2rem; margin: 0 0 1rem; border-bottom: 1px solid var(--border);
+             padding-bottom: 0.4rem; }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.75rem;
+        }
+        .metric {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.9rem 1rem;
+        }
+        .metric .label { color: var(--muted); font-size: 0.8rem;
+                         text-transform: uppercase; letter-spacing: 0.03em; }
+        .metric .value { font-size: 1.35rem; font-weight: 600; margin-top: 0.2rem; }
+        .notice { color: var(--yellow); font-size: 0.8rem; margin-left: 0.3rem; }
+        .notice-banner {
+            background: var(--panel-alt);
+            border-left: 4px solid var(--yellow);
+            padding: 0.75rem 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+            color: var(--muted);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--panel);
+            border-radius: 8px;
+            overflow: hidden;
+            font-size: 0.9rem;
+        }
+        th, td { padding: 0.55rem 0.7rem; text-align: left;
+                 border-bottom: 1px solid var(--border); }
+        th { background: var(--panel-alt); color: var(--muted);
+             text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.03em; }
+        tbody tr:hover { background: var(--panel-alt); }
+        td.cap-green { color: var(--green); font-weight: 600; }
+        td.cap-yellow { color: var(--yellow); font-weight: 600; }
+        td.cap-red { color: var(--red); font-weight: 600; }
+        .chart {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 1.25rem;
+            padding: 0.5rem;
+            min-height: 360px;
+        }
+        footer { color: var(--muted); font-size: 0.8rem;
+                 border-top: 1px solid var(--border); }
+        a { color: var(--accent); }
+    </style>
+</head>
+<body>
+    <!-- Executive Summary Panel -->
+    <header id="executive-summary">
+        <h1>{{ title }}</h1>
+        {% if summary.date_range_start and summary.date_range_end %}
+        <div class="muted">{{ summary.date_range_start }} &ndash; {{ summary.date_range_end }}</div>
+        {% endif %}
+        {% if not has_user_data %}
+        <div class="notice-banner">No user report data has been synced. Run with
+            <code>--sync</code> to fetch the latest telemetry.</div>
+        {% endif %}
+        <div class="summary-grid">
+            <div class="metric"><div class="label">Users</div>
+                <div class="value">{{ summary.total_users | format_number }}</div></div>
+            <div class="metric"><div class="label">Messages</div>
+                <div class="value">{{ summary.total_messages | format_number }}</div></div>
+            <div class="metric"><div class="label">Credits</div>
+                <div class="value">{{ summary.total_credits | format_float }}</div></div>
+            <div class="metric"><div class="label">Active Days</div>
+                <div class="value">{{ summary.active_days | format_number }}</div></div>
+            <div class="metric"><div class="label">Projected Monthly Credits</div>
+                <div class="value">{{ summary.projected_monthly_credits | format_float }}
+                {% if summary.limited_data %}<span class="notice">(limited data)</span>{% endif %}
+                </div></div>
+            <div class="metric"><div class="label">Overage Cap</div>
+                <div class="value">{{ summary.overage_cap | format_float }}</div></div>
+            <div class="metric"><div class="label">Overage Used</div>
+                <div class="value">{{ summary.total_overage_used | format_float }}</div></div>
+            {% for client_type, message_count in summary.messages_by_client_type %}
+            <div class="metric"><div class="label">Kiro-billed Messages ({{ client_type }})</div>
+                <div class="value">{{ message_count | format_number }}</div></div>
+            {% endfor %}
+            <div class="metric"><div class="label">BYOK Users</div>
+                <div class="value">{{ summary.byok_users | format_number }}</div></div>
+            <div class="metric"><div class="label">BYOK Successful Calls</div>
+                <div class="value">{{ summary.byok_successful_calls | format_number }}</div></div>
+            <div class="metric"><div class="label">BYOK Input Tokens</div>
+                <div class="value">{{ summary.byok_input_tokens | format_number }}</div></div>
+            <div class="metric"><div class="label">BYOK Output Tokens</div>
+                <div class="value">{{ summary.byok_output_tokens | format_number }}</div></div>
+        </div>
+    </header>
+
+    <!-- Per-User Summary Table -->
+    <section id="user-table">
+        <h2>Per-User Summary</h2>
+        {% if user_rows %}
+        <table>
+            <thead>
+                <tr>
+                    <th>User Email</th><th>Tier</th><th>Client Types</th>
+                    <th>Days Active</th>
+                    <th>Conversations</th><th>Messages</th><th>Credits</th>
+                    <th>Capacity %</th><th>Avg Credits/Msg</th><th>Last Active</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in user_rows %}
+                <tr>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.tier }}</td>
+                    <td>{{ user.client_types }}</td>
+                    <td>{{ user.days_active | format_number }}</td>
+                    <td>{{ user.total_conversations | format_number }}</td>
+                    <td>{{ user.total_messages | format_number }}</td>
+                    <td>{{ user.total_credits | format_float }}</td>
+                    <td class="{{ capacity_class(user.capacity_pct) }}">
+                        {{ user.capacity_pct | format_float }}%</td>
+                    <td>{{ user.avg_credits_per_message | format_float }}</td>
+                    <td>{{ user.last_active }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="notice-banner">No per-user data available.</div>
+        {% endif %}
+    </section>
+
+    <!-- Charts Section: User Reports -->
+    <section id="charts-user">
+        <h2>Usage Trends</h2>
+        {% if has_user_data %}
+        <div class="chart" id="chart-daily-credits"></div>
+        <div class="chart" id="chart-daily-messages"></div>
+        <div class="chart" id="chart-capacity"></div>
+        <div class="chart" id="chart-tier-distribution"></div>
+        <div class="chart" id="chart-cost-efficiency"></div>
+        {% if chart_monthly_projection %}
+        <div class="chart" id="chart-monthly-projection"></div>
+        {% else %}
+        <div class="notice-banner">Insufficient data for monthly projection
+            (need &ge;2 days).</div>
+        {% endif %}
+        {% if chart_weekend_weekday %}
+        <div class="chart" id="chart-weekend-weekday"></div>
+        {% else %}
+        <div class="notice-banner">Weekend/weekday comparison unavailable: the
+            synced range does not contain both weekday and weekend days.</div>
+        {% endif %}
+        {% else %}
+        <div class="notice-banner">No user charts to display.</div>
+        {% endif %}
+    </section>
+
+    <!-- Charts Section: Event Activity -->
+    <section id="charts-events">
+        <h2>Event Activity</h2>
+        {% if has_event_data %}
+        <div class="chart" id="chart-hourly-heatmap"></div>
+        <div class="chart" id="chart-model-distribution"></div>
+        {% else %}
+        <div class="notice-banner">Event data has not been synced. Run with
+            <code>--sync</code> to fetch event logs.</div>
+        {% endif %}
+    </section>
+
+    <!-- BYOK (bring-your-own-key) Bedrock usage, from CloudTrail -->
+    <section id="byok">
+        <h2>BYOK (bring-your-own-key) Bedrock usage</h2>
+        <p class="explain">
+            BYOK calls are billed to the AWS account as Bedrock on-demand usage and
+            consume zero Kiro credits. The source is CloudTrail management events,
+            which have 90-day retention and are delivered up to 15 minutes late.
+            BYOK calls and Kiro-billed messages are different units and are not
+            joinable per request, so the two sources are shown side by side.
+            {% if byok_meta.partition_count %}
+            Fetch window {{ byok_meta.window_start }} to {{ byok_meta.window_end }};
+            last fetched {{ byok_meta.latest_fetched_at }} UTC.
+            {% endif %}
+        </p>
+        {% if byok_meta.fetch_failure %}
+        <div class="notice-banner">The CloudTrail fetch failed this run
+            ({{ byok_meta.fetch_failure }}); showing cached data, last completed
+            {{ byok_meta.latest_complete_fetched_at or "never" }} UTC.</div>
+        {% endif %}
+        {% if not byok_meta.partition_count %}
+        <div class="notice-banner">BYOK data has not been fetched. Run with
+            <code>--cloudtrail</code> to fetch it.</div>
+        {% elif not has_byok_data %}
+        <div class="notice-banner">The cached CloudTrail partitions contain zero
+            BYOK calls.</div>
+        {% endif %}
+        {% if has_byok_data %}
+        <h3>BYOK failed calls: {{ byok.failed_calls | format_number }}
+            {%- for code, count in byok.error_breakdown %} | {{ code }}: {{ count }}{% endfor %}</h3>
+        {% if byok.calls_without_tokens %}
+        <div class="notice-banner">{{ byok.calls_without_tokens | format_number }}
+            BYOK call(s) lack token data and are excluded from the token sums.</div>
+        {% endif %}
+        <table>
+            <thead>
+                <tr>
+                    <th rowspan="2">User Email</th>
+                    <th colspan="2">Kiro-billed</th>
+                    <th colspan="7">BYOK</th>
+                </tr>
+                <tr>
+                    <th>Messages</th><th>Credits</th>
+                    <th>Successful Calls</th><th>Failed Calls</th>
+                    <th>Input Tokens</th><th>Output Tokens</th>
+                    <th>Models</th><th>Client Families</th><th>Last Seen (UTC)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in byok_user_rows %}
+                <tr>
+                    <td>{{ row.email }}</td>
+                    <td>{{ row.kiro_messages | format_number }}</td>
+                    <td>{{ row.kiro_credits | format_float }}</td>
+                    <td>{{ row.byok_successful_calls | format_number }}</td>
+                    <td>{{ row.byok_failed_calls | format_number }}</td>
+                    <td>{{ row.byok_input_tokens | format_number }}</td>
+                    <td>{{ row.byok_output_tokens | format_number }}</td>
+                    <td>{{ row.byok_models }}</td>
+                    <td>{{ row.byok_client_families }}</td>
+                    <td>{{ row.byok_last_seen }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% if chart_byok_daily_calls %}
+        <div class="chart" id="chart-byok-daily-calls"></div>
+        {% endif %}
+        {% if chart_byok_daily_tokens %}
+        <div class="chart" id="chart-byok-daily-tokens"></div>
+        {% endif %}
+        {% if chart_byok_model_split %}
+        <div class="chart" id="chart-byok-model-split"></div>
+        {% endif %}
+        {% endif %}
+        {% if chart_kiro_model_split %}
+        <div class="chart" id="chart-kiro-model-split"></div>
+        {% else %}
+        <div class="notice-banner">The user reports contain no per-model message
+            columns, so the Kiro-billed model split is omitted.</div>
+        {% endif %}
+    </section>
+
+    <!-- Chart Rendering Scripts -->
+    <script>
+        function drawChart(divId, figJson) {
+            if (!figJson) { return; }
+            var fig = (typeof figJson === "string") ? JSON.parse(figJson) : figJson;
+            Plotly.newPlot(divId, fig.data, fig.layout, { responsive: true });
+        }
+        {% if has_user_data %}
+        drawChart('chart-daily-credits', {{ chart_daily_credits | safe }});
+        drawChart('chart-daily-messages', {{ chart_daily_messages | safe }});
+        drawChart('chart-capacity', {{ chart_capacity | safe }});
+        drawChart('chart-tier-distribution', {{ chart_tier_dist | safe }});
+        drawChart('chart-cost-efficiency', {{ chart_cost_eff | safe }});
+        {% if chart_monthly_projection %}
+        drawChart('chart-monthly-projection', {{ chart_monthly_projection | safe }});
+        {% endif %}
+        {% if chart_weekend_weekday %}
+        drawChart('chart-weekend-weekday', {{ chart_weekend_weekday | safe }});
+        {% endif %}
+        {% endif %}
+        {% if has_event_data %}
+        drawChart('chart-hourly-heatmap', {{ chart_hourly_heatmap | safe }});
+        drawChart('chart-model-distribution', {{ chart_model_dist | safe }});
+        {% endif %}
+        {% if chart_byok_daily_calls %}
+        drawChart('chart-byok-daily-calls', {{ chart_byok_daily_calls | safe }});
+        {% endif %}
+        {% if chart_byok_daily_tokens %}
+        drawChart('chart-byok-daily-tokens', {{ chart_byok_daily_tokens | safe }});
+        {% endif %}
+        {% if chart_byok_model_split %}
+        drawChart('chart-byok-model-split', {{ chart_byok_model_split | safe }});
+        {% endif %}
+        {% if chart_kiro_model_split %}
+        drawChart('chart-kiro-model-split', {{ chart_kiro_model_split | safe }});
+        {% endif %}
+    </script>
+
+    <footer>
+        <p>Generated: {{ generation_timestamp }} UTC &middot; Kiro IDE Usage Dashboard v1.0</p>
+    </footer>
+</body>
+</html>

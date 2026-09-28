@@ -1,0 +1,26 @@
+# Kiro dashboard runtime dependencies.
+#
+# Install (a system-wide `pip install` without --user is not permitted):
+#     <interpreter> -m pip install --user -r tools/kiro-dashboard/requirements.txt
+#
+# `<interpreter>` is the interpreter resolved by the launcher:
+#     "$(tools/kiro-dashboard/kiro-dashboard.sh --print-python)"
+# On the AWS host that is python3.12; on the Parallel Works host it is python3
+# (Spack python/3.11.14). Python 3.10 is the floor: the modules use PEP 604
+# `X | None` annotations.
+#
+# Lower bounds only. No upper bounds, so the versions installed on the AWS host
+# (boto3 1.42.70, pandas 3.0.1, numpy 2.4.2, plotly 6.6.0, Jinja2 3.1.6) and on
+# the Parallel Works host both satisfy this file.
+
+# S3 telemetry download (sync.py) and CloudTrail LookupEvents (cloudtrail_sync.py)
+boto3>=1.34
+
+# CSV / Event_Log / CloudTrail dataframes (parser.py, event_parser.py,
+# analytics_parser.py, cloudtrail_parser.py, render.py)
+pandas>=2.0
+numpy>=1.24
+
+# Static HTML dashboard rendering (render.py)
+plotly>=5.18
+Jinja2>=3.1

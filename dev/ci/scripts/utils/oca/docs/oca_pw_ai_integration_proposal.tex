@@ -1,0 +1,1019 @@
+% =============================================================================
+% OCA--PW AI Integration Proposal
+% A Framework for Unified AI-Assisted Development on NOAA RDHPCS
+% =============================================================================
+\documentclass[11pt,letterpaper,twoside]{article}
+
+% --- Page geometry ---
+\usepackage[
+  top=1in, bottom=1in, left=1in, right=1in,
+  headheight=14pt
+]{geometry}
+
+% --- Fonts and encoding ---
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{textcomp}
+
+% --- Color ---
+\usepackage[dvipsnames,svgnames,table]{xcolor}
+\definecolor{noaablue}{HTML}{003087}
+\definecolor{noaadarkblue}{HTML}{1e293b}
+\definecolor{pwpurple}{HTML}{7c3aed}
+\definecolor{anthropicorange}{HTML}{d97706}
+\definecolor{ocaslate}{HTML}{64748b}
+\definecolor{lightbg}{HTML}{f8fafc}
+\definecolor{codebg}{HTML}{f1f5f9}
+\definecolor{notebg}{HTML}{eff6ff}
+\definecolor{importbg}{HTML}{fef2f2}
+\definecolor{riskgreen}{HTML}{dcfce7}
+\definecolor{riskyellow}{HTML}{fef9c3}
+\definecolor{riskred}{HTML}{fee2e2}
+
+% --- Headers and footers ---
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE,RO]{\thepage}
+\fancyhead[RE]{\textit{OCA--PW AI Integration Proposal}}
+\fancyhead[LO]{\textit{OMD Code Assist / NOAA-EMC}}
+\renewcommand{\headrulewidth}{0.4pt}
+\fancypagestyle{plain}{%
+  \fancyhf{}%
+  \fancyfoot[C]{\thepage}%
+  \renewcommand{\headrulewidth}{0pt}%
+}
+
+% --- Section formatting ---
+\usepackage{titlesec}
+\titleformat{\section}
+  {\normalfont\Large\bfseries\color{noaablue}}{\thesection}{1em}{}
+\titleformat{\subsection}
+  {\normalfont\large\bfseries\color{noaadarkblue}}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}
+  {\normalfont\normalsize\bfseries\color{noaadarkblue}}{\thesubsubsection}{1em}{}
+
+% --- Tables ---
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{colortbl}
+\usepackage{array}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+
+% --- Lists ---
+\usepackage{enumitem}
+\setlist{topsep=2pt,itemsep=1pt,parsep=0pt}
+
+% --- Code listings ---
+\usepackage{listings}
+\lstset{
+  basicstyle=\ttfamily\footnotesize,
+  backgroundcolor=\color{codebg},
+  frame=single,
+  framerule=0.4pt,
+  rulecolor=\color{gray!40},
+  breaklines=true,
+  breakatwhitespace=false,
+  showstringspaces=false,
+  columns=fullflexible,
+  keepspaces=true,
+  xleftmargin=4pt,
+  xrightmargin=4pt,
+  aboveskip=8pt,
+  belowskip=8pt,
+}
+\lstdefinestyle{bash}{
+  language=bash,
+  keywordstyle=\color{noaablue}\bfseries,
+  stringstyle=\color{DarkGreen},
+  commentstyle=\color{gray}\itshape,
+  literate={--}{{-{}-}}2,
+}
+\lstdefinestyle{json}{
+  language={},
+  keywordstyle=\color{noaablue}\bfseries,
+  stringstyle=\color{DarkGreen},
+  morekeywords={mcpServers,type,url,headers,Authorization,github,copilot,advanced,baseUrl},
+  morecomment=[l]{//},
+  morestring=[b]",
+}
+\lstdefinestyle{yaml}{
+  language={},
+  keywordstyle=\color{noaablue}\bfseries,
+  stringstyle=\color{DarkGreen},
+  commentstyle=\color{gray},
+  morecomment=[l]{\#},
+  morestring=[b]",
+  morestring=[b]',
+}
+\lstdefinestyle{diagram}{
+  language={},
+  keywordstyle={},
+  stringstyle={},
+  basicstyle=\ttfamily\scriptsize,
+  backgroundcolor=\color{lightbg},
+}
+
+% --- Floats ---
+\usepackage{float}
+
+% --- Simple note environment using only quote (no extra deps) ---
+\newenvironment{notebox}%
+  {\begin{quote}\color{noaadarkblue}\small\noindent\textbf{\color{noaablue}Note.}\hspace{0.4em}}%
+  {\end{quote}}
+
+% --- Hyperlinks (must be near-last) ---
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=noaablue,
+  urlcolor=pwpurple,
+  citecolor=noaablue,
+  pdfauthor={Terry McGuinness / OMD Code Assist Team},
+  pdftitle={OCA-PW AI Integration Proposal},
+  pdfsubject={Framework for Unified AI-Assisted Development on NOAA RDHPCS},
+  bookmarksnumbered=true,
+}
+
+% --- Document metadata ---
+\title{%
+  \vspace{-0.5in}
+  {\color{noaablue}\rule{\linewidth}{2pt}}\\[12pt]
+  {\Huge\bfseries\color{noaadarkblue} OCA\,--\,PW AI\\[4pt] Integration Proposal}\\[10pt]
+  {\Large\color{ocaslate} A Framework for Unified AI-Assisted\\[2pt] Development on NOAA RDHPCS}\\[12pt]
+  {\color{noaablue}\rule{\linewidth}{2pt}}
+}
+\author{%
+  Terry McGuinness\\[2pt]
+  {\normalsize OMD Code Assist Team}\\[2pt]
+  {\normalsize NOAA / NWS / NCEP / EMC}\\[2pt]
+  {\small\texttt{https://github.com/NOAA-EMC/global-workflow}}
+}
+\date{August 28, 2026 \quad\textbullet\quad Document Version 1.0}
+
+% =============================================================================
+\begin{document}
+\maketitle
+\thispagestyle{plain}
+
+\begin{abstract}
+\noindent
+The Operations and Maintenance Division (OMD) Code Assist system (OCA)
+provides Model Context Protocol (MCP) based AI tooling for NOAA's Global
+Forecast System (GFS) development on the Global Workflow codebase. This
+proposal presents an architecture for integrating OCA's MCP-RAG server with
+Parallel Works (PW) ACTIVATE's AI gateway, \texttt{pw code} terminal agent,
+and self-hosted inference via vLLM. The result is a governed, budget-tracked,
+air-gap-compatible AI development platform that operates entirely within
+NOAA's RDHPCS environment while leveraging commercial LLM providers
+(Anthropic, OpenAI) or locally served open models through a single unified
+gateway.
+
+\vspace{6pt}
+\noindent\textbf{Keywords:} MCP, RAG, vLLM, NOAA, HPC, Global Workflow,
+Parallel Works, AI Gateway, Code Assist
+\end{abstract}
+
+\begin{notebox}
+This document is the LaTeX-rendered PDF of
+\texttt{oca\_pw\_ai\_integration\_proposal.md}, the Markdown source
+shipped alongside for portability on HPC head nodes where TeX toolchains
+are not available. Section numbering, citation conventions, and figure
+references follow academic paper formatting.
+\end{notebox}
+
+\tableofcontents
+\newpage
+
+% =============================================================================
+\section{Introduction}
+\label{sec:intro}
+% =============================================================================
+
+\subsection{Motivation}
+
+NOAA's Global Workflow is a production weather forecasting framework
+supporting the Global Forecast System (GFS), Global Ensemble Forecast System
+(GEFS), Seasonal Forecast System (SFS), and Global Climate Analysis Forecast
+System (GCAFS). The codebase spans approximately 89 job scripts, 83 execution
+scripts, 78 utility modules, and extensive Fortran/C/Python source across
+dozens of submodules. Development occurs on federally managed RDHPCS
+platforms (Gaea C6, Hera, Hercules, WCOSS2) where internet access is
+restricted, software installation requires coordination, and GPU resources
+are shared.
+
+AI-assisted development tools---GitHub Copilot, Claude Code, Cursor---have
+demonstrated significant productivity gains in open-source and commercial
+software engineering. However, deploying these tools on RDHPCS systems
+presents three fundamental challenges:
+
+\begin{enumerate}
+\item \textbf{Network isolation.} HPC login and compute nodes cannot reach
+  commercial API endpoints directly. Tunneled connections are required.
+\item \textbf{Governance.} Federal systems require auditable access controls,
+  usage tracking, and budget management for any cloud-consumed service.
+\item \textbf{Domain specificity.} General-purpose LLMs lack knowledge of
+  NOAA's operational conventions, Rocoto workflow patterns, wxflow
+  integration points, UFS model architecture, and EE2 compliance
+  requirements.
+\end{enumerate}
+
+The OCA MCP-RAG system addresses challenge~(3). This proposal extends that
+foundation to address challenges~(1) and~(2) by integrating with Parallel
+Works' ACTIVATE AI platform.
+
+\subsection{Scope}
+
+This document covers:
+\begin{itemize}
+\item Background on the OCA MCP-RAG system (Section~\ref{sec:background})
+\item Parallel Works ACTIVATE AI platform capabilities
+  (Section~\ref{sec:pwactivate})
+\item Integration architecture: MCP + PW AI gateway + vLLM
+  (Section~\ref{sec:integration})
+\item Connectivity patterns for RDHPCS environments
+  (Section~\ref{sec:connectivity})
+\item LLM provider options and billing models
+  (Section~\ref{sec:providers})
+\item Implementation roadmap (Section~\ref{sec:roadmap})
+\end{itemize}
+
+% =============================================================================
+\section{Background: The OCA MCP-RAG System}
+\label{sec:background}
+% =============================================================================
+
+\subsection{System Overview}
+
+The OMD Code Assist (OCA) system is a Model Context Protocol server with
+Retrieval-Augmented Generation (RAG) capabilities, purpose-built for the
+Global Workflow codebase. The system has been under active development since
+July 2024, progressing through multiple phases from initial RAG prototyping
+to a production-grade MCP server (v3.0.0) with 39~tools across
+8~functional modules.
+
+The MCP server is designated \texttt{eib-mcp-gateway} and runs on a Parallel
+Works managed AWS Rocky~9 compute session
+(\texttt{emcmcpawsrocky9copyfour}), accessible to VS~Code on RDHPCS systems
+via tunneled HTTP connections.
+
+\subsection{Architecture}
+
+\begin{lstlisting}[style=diagram]
++-------------------------------------------------------------+
+|  VS Code (Remote-SSH to gaea62)                             |
+|  |-- GitHub Copilot Chat                                    |
+|  |   |-- MCP Client (eib-mcp-gateway)                       |
+|  |       |-- MS Dev Tunnel (primary)                        |
+|  |       |   https://dktt6wzd-18888.use.devtunnels.ms/mcp   |
+|  |       +-- PW SSH Tunnel (fallback)                       |
+|  |           http://localhost:18888/mcp                     |
+|  +-- .github/instructions/mcp.instructions.md               |
+|       (conditional: loads when MCP server is connected)     |
++-----------------------+-------------------------------------+
+                        | MCP Protocol (JSON-RPC over HTTP)
+                        v
++-------------------------------------------------------------+
+|  EIB MCP Gateway (AWS Rocky 9 - PW Session)                 |
+|  |-- UnifiedMCPServer.js (Node.js, v3.0.0)                  |
+|  |   Port 18888, Bearer token auth                          |
+|  |-- ChromaDB (port 8080)                                   |
+|  |   Vector store: 768-dim, all-mpnet-base-v2               |
+|  |   148 ingested documents, code structure embeddings      |
+|  +-- Neo4j 5.15.0 (ports 7474/7687)                         |
+|       Graph DB: code call chains, dependency trees,         |
+|       CMake build system, workflow task relationships       |
++-------------------------------------------------------------+
+\end{lstlisting}
+
+\subsection{Tool Inventory}
+
+The MCP server exposes 39~tools organized into 8~modules
+(Table~\ref{tab:tool-inventory}).
+
+\begin{table}[H]
+\centering
+\small
+\caption{OCA MCP tool inventory across eight functional modules.}
+\label{tab:tool-inventory}
+\begin{tabularx}{\textwidth}{L{2.8cm} L{6.8cm} X}
+\toprule
+\textbf{Module} & \textbf{Tools} & \textbf{Purpose} \\
+\midrule
+Workflow Information (6)
+& \texttt{get\_server\_info}, \texttt{get\_workflow\_structure},
+  \texttt{list\_job\_scripts}, \texttt{get\_job\_details},
+  \texttt{explain\_workflow\_component}, \texttt{get\_system\_configs}
+& Navigate Global Workflow structure \\
+\addlinespace
+Code Analysis (7)
+& \texttt{get\_code\_context}, \texttt{find\_callers\_callees},
+  \texttt{find\_dependencies}, \texttt{find\_similar\_code},
+  \texttt{extract\_code\_for\_analysis},
+  \texttt{analyze\_code\_structure}, \texttt{find\_related\_files}
+& Deep code understanding \\
+\addlinespace
+Semantic Search (4)
+& \texttt{search\_documentation}, \texttt{search\_architecture},
+  \texttt{search\_ee2\_standards}, \texttt{find\_env\_dependencies}
+& RAG-powered knowledge retrieval \\
+\addlinespace
+EE2 Compliance (5)
+& \texttt{analyze\_ee2\_compliance}, \texttt{scan\_repository\_compliance},
+  \texttt{validate\_sdd\_compliance},
+  \texttt{generate\_compliance\_report}, \texttt{search\_ee2\_standards}
+& NOAA standards checking \\
+\addlinespace
+Operational (6)
+& \texttt{trace\_execution\_path}, \texttt{trace\_data\_flow},
+  \texttt{trace\_full\_execution\_chain},
+  \texttt{analyze\_workflow\_dependencies},
+  \texttt{get\_operational\_guidance}, \texttt{explain\_with\_context}
+& Production system analysis \\
+\addlinespace
+GraphRAG (5)
+& \texttt{describe\_component}, \texttt{get\_quality\_metrics},
+  \texttt{get\_health\_trend}, \texttt{get\_change\_impact},
+  \texttt{check\_knowledge\_integrity}
+& Graph-powered analysis \\
+\addlinespace
+GitHub Integration (3)
+& \texttt{search\_issues}, \texttt{get\_pull\_requests},
+  \texttt{extract\_ci\_error\_signal}
+& Repository operations \\
+\addlinespace
+Utility (3)
+& \texttt{mcp\_health\_check}, \texttt{list\_ingested\_urls},
+  \texttt{get\_ingested\_urls\_array}
+& System management \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{RAG Knowledge Base}
+
+The knowledge base is organized in three tiers:
+\begin{itemize}
+\item \textbf{Tier~1 (Authoritative):} Production source code, official NOAA
+  documentation, EE2/SDLC standards.
+\item \textbf{Tier~2 (Supplementary):} Architecture decisions, design
+  documents, historical context.
+\item \textbf{Tier~3 (Reference):} External UFS documentation, community
+  resources.
+\end{itemize}
+
+The Phase~2 ingestion pipeline processed 148~documents covering UFS
+documentation, RT/CI framework guides, Rocoto workflow management, wxflow
+library internals, GDAS/GSI data assimilation, wave model integration,
+aerosol modeling, and build system architecture.
+
+\subsection{Development History}
+
+\begin{table}[H]
+\centering
+\small
+\caption{OCA MCP-RAG development milestones.}
+\label{tab:history}
+\begin{tabularx}{\textwidth}{L{2.6cm} X}
+\toprule
+\textbf{Date} & \textbf{Milestone} \\
+\midrule
+Jul 2024 & Initial RAG server prototype \\
+Aug 2024 & GitHub MCP integration \\
+Sep 2024 & Neo4j graph database for code structure \\
+Oct 2024 & Python/Shell code ingestion pipeline \\
+Nov 2024 & CMake build system ingestion \\
+Dec 2024 & Embedding model upgrade (all-mpnet-base-v2) \\
+Jan 2025 & Phase~2: Unified documentation ingestion (148 docs) \\
+Mar 2025 & EE2 compliance reporting tools \\
+Jun 2025 & MCP instructions file merged to \texttt{develop} branch \\
+Aug 2025 & Unified MCP Server v3.0.0 \\
+2026 & PW AI gateway integration exploration (this proposal) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% =============================================================================
+\section{Parallel Works ACTIVATE AI Platform}
+\label{sec:pwactivate}
+% =============================================================================
+
+\subsection{Platform Overview}
+
+Parallel Works ACTIVATE is a hybrid, multi-cloud HPC platform deployed at
+NOAA for managing compute resources, sessions, and workflows across RDHPCS
+systems. The PW~CLI (\texttt{pw}, v7.94.0, Go binary from
+\texttt{github.com/parallelworks/core}) is installed on Gaea~C6 at
+\texttt{/ncrc/home2/Terry.McGuinness/pw/pw}.
+
+ACTIVATE's AI subsystem, introduced as a governed AI gateway, provides:
+\begin{itemize}
+\item Centralized model access via an OpenAI-compatible API endpoint
+\item Token-level usage metering against named budget allocations
+\item Multi-provider support (Azure OpenAI, Anthropic, OpenAI, Grok, Groq,
+  Together, Fireworks, Mistral, DeepSeek, custom OpenAI-compatible, AWS
+  Bedrock, Azure~AI~Foundry)
+\item Session tunnel providers for air-gapped model serving
+\item Tool-calling emulation for endpoints without native tool support
+\end{itemize}
+
+\subsection{\texttt{pw code}: Terminal AI Coding Agent}
+
+\texttt{pw code} is Parallel Works' built-in AI coding agent---a
+terminal-based tool comparable to Claude Code or OpenAI Codex CLI. Key
+capabilities are summarized in Table~\ref{tab:pwcode}.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Key capabilities of the \texttt{pw code} terminal agent.}
+\label{tab:pwcode}
+\begin{tabularx}{\textwidth}{L{3.2cm} X}
+\toprule
+\textbf{Feature} & \textbf{Description} \\
+\midrule
+Full-screen TUI & Bubble Tea framework with markdown rendering, syntax highlighting, diff views \\
+Tool-calling agent & ReadFile, WriteFile, EditFile, Bash, GrepSearch, GlobSearch, WebFetch, Task \\
+MCP integration & Native MCP client via \texttt{pw code mcp add} (same config format as Claude Code) \\
+Daemon architecture & Background daemon hosts sessions; TUI detaches/reattaches \\
+Remote attach & \texttt{pw code attach <resource>} steers agents on remote HPC nodes \\
+Session persistence & Saved under \texttt{\~{}/.local/state/pw/code-sessions}, resumable \\
+Subagents & Parallel child agents for concurrent work \\
+Custom agents & \texttt{.agents/} directory with YAML frontmatter + markdown specialization \\
+Skills / Hooks & Reusable procedures and lifecycle event handlers \\
+Plan mode & Review-before-execute workflow \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{AI Gateway Architecture}
+
+Every request---whether from PW Chat, \texttt{pw code}, or an external tool
+authenticated with an AI key---is proxied through the ACTIVATE AI gateway:
+
+\begin{lstlisting}[style=diagram]
++---------------------------+
+|  Clients                  |
+|  |-- pw code (terminal)   |
+|  |-- PW Chat (web)        |
+|  |-- VS Code + Copilot    | <-- BYOK via AI key
+|  |-- Cursor               |
+|  +-- Any OpenAI client    |
++-----------+---------------+
+            | OpenAI-compatible API
+            | https://<domain>/api/openai/v1
+            | Auth: AI Key (bound to allocation)
+            v
++---------------------------+
+|  ACTIVATE AI Gateway      |
+|  |-- Access control       |
+|  |-- Token metering       |
+|  |-- Budget enforcement   |
+|  |-- Tool-call emulation  |
+|  +-- Usage dashboards     |
++-----------+---------------+
+            |
+   +--------+--------+
+   v        v        v
++------+ +------+ +----------+
+|Azure | |Anthr.| | vLLM     |
+|OpenAI| |API   | | (self-   |
+|      | |      | |  hosted) |
++------+ +------+ +----------+
+\end{lstlisting}
+
+\subsection{Tool-Calling Emulation}
+
+For self-hosted models (vLLM, Ollama, TGI) that lack native tool-calling
+APIs, the ACTIVATE gateway provides transparent emulation:
+\begin{enumerate}
+\item Tool schemas are injected into the prompt with a per-request nonce.
+\item The model responds with a JSON envelope
+  (\texttt{protocol: parallelworks.tool-call.v1}).
+\item The gateway validates framing values, repairs common format
+  variations, and converts to standard OpenAI \texttt{tool\_calls}.
+\item Near-miss envelopes get one corrective retry before failing.
+\item Tool results are fenced as untrusted data with nonce markers.
+\end{enumerate}
+
+This means \texttt{pw code} can use all its built-in tools \textbf{and}
+connected MCP server tools even when backed by an open-weights model served
+by vLLM.
+
+\subsection{Connectivity: Sessions, Tunnels, and Endpoints}
+
+PW provides multiple connectivity mechanisms relevant to MCP integration
+(Table~\ref{tab:connectivity}).
+
+\begin{table}[H]
+\centering
+\small
+\caption{PW connectivity mechanisms relevant to MCP integration.}
+\label{tab:connectivity}
+\begin{tabularx}{\textwidth}{L{2.6cm} L{5.6cm} X}
+\toprule
+\textbf{Mechanism} & \textbf{Command} & \textbf{Use Case} \\
+\midrule
+Session connect & \texttt{pw sessions connect <name> -{}-port <port>} & SSH tunnel to a PW session (current MCP path) \\
+Port forward & \texttt{pw forward -L <p>:localhost:<p> <res>} & Auto-reconnecting SSH tunnel \\
+Endpoint (HTTP) & \texttt{pw endpoints http -{}-openai <port>} & Expose local server as platform AI model \\
+VS Code remote & \texttt{pw vscode <resource> [path]} & Open VS Code via Remote-SSH \\
+Code attach & \texttt{pw code attach <resource>} & Steer terminal agent on remote node \\
+SOCKS proxy & \texttt{pw forward -D <port> <resource>} & Full network proxy via remote \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% =============================================================================
+\section{Integration Architecture}
+\label{sec:integration}
+% =============================================================================
+
+\subsection{Target Architecture}
+
+The proposed architecture unifies OCA's domain-specific MCP tools with PW's
+governed AI gateway and optional self-hosted inference:
+
+\begin{lstlisting}[style=diagram]
++---------------------------------------------------------------------+
+|  Developer Workstation                                              |
+|                                                                     |
+|  +--- VS Code (Remote-SSH to gaea62) ----------------------------+  |
+|  |  GitHub Copilot (BYOK -> PW AI Key)                           |  |
+|  |  +-- Model: org:provider/claude-sonnet-4                      |  |
+|  |      +-- Metered via PW allocation                            |  |
+|  |  MCP Client (eib-mcp-gateway -> localhost:18888)              |  |
+|  |  +-- 39 OCA tools for Global Workflow                         |  |
+|  +---------------------------------------------------------------+  |
+|                                                                     |
+|  +--- pw code (terminal agent on gaea62) ------------------------+  |
+|  |  Model: org:anthropic/claude-sonnet-4                         |  |
+|  |  Allocation: NOAA-GW-DEV                                      |  |
+|  |  MCP: eib-mcp-gateway (http://localhost:18888/mcp)            |  |
+|  |  Skills: .agents/agents/global-workflow-expert.md             |  |
+|  |  Hooks: .agents/hooks/ (lint, test on file write)             |  |
+|  +---------------------------------------------------------------+  |
++-----------+------------------------+--------------------------------+
+            |                        |
+   PW AI Gateway                PW Session Tunnel
+   (metered API)                (SSH port forward)
+            |                        |
+            v                        v
++-------------------+  +--------------------------------------------+
+|  LLM Provider     |  |  EIB MCP Gateway (AWS Rocky 9)             |
+|  +- Anthropic --+ |  |  |-- UnifiedMCPServer.js (39 tools)        |
+|  | Claude Sonnet| |  |  |-- ChromaDB (semantic search)            |
+|  +--------------+ |  |  +-- Neo4j (graph analysis)                |
+|  +- vLLM -------+ |  +--------------------------------------------+
+|  | Llama 3 70B  | |
+|  | (GPU node)   | |
+|  +--------------+ |
++-------------------+
+\end{lstlisting}
+
+\subsection{MCP Configuration for \texttt{pw code}}
+
+The \texttt{pw code} agent reads MCP server configuration from
+\texttt{.mcp.json} in the workspace root, using the same format as Claude
+Code and VS~Code:
+
+\begin{lstlisting}[style=json]
+{
+  "mcpServers": {
+    "eib-mcp-gateway": {
+      "type": "http",
+      "url": "http://localhost:18888/mcp",
+      "headers": {
+        "Authorization": "Bearer eib-mcp-gateway-token-2025"
+      }
+    }
+  }
+}
+\end{lstlisting}
+
+MCP tools are exposed to the model as
+\texttt{mcp\_\_eib-mcp-gateway\_\_<tool>}, e.g.
+\texttt{mcp\_\_eib-mcp-gateway\_\_get\_workflow\_structure}. The
+\texttt{pw code} agent discovers these tools at startup and offers them
+alongside its built-in tools.
+
+\subsection{Custom Agent Definition}
+
+A Global Workflow expert agent can be defined in
+\texttt{.agents/agents/global-workflow-expert.md}:
+
+\begin{lstlisting}[style=yaml]
+---
+name: gw-expert
+description: >
+  Expert on NOAA's Global Workflow codebase including GFS, GEFS, SFS, GCAFS
+  applications, Rocoto workflow orchestration, wxflow integration, and EE2
+  compliance requirements. Uses OCA MCP tools for deep code analysis and
+  semantic search across the knowledge base.
+tools: >
+  ReadFile, WriteFile, EditFile, Bash, GrepSearch, GlobSearch,
+  mcp__eib-mcp-gateway__get_workflow_structure,
+  mcp__eib-mcp-gateway__search_documentation,
+  mcp__eib-mcp-gateway__get_code_context,
+  mcp__eib-mcp-gateway__trace_execution_path,
+  mcp__eib-mcp-gateway__analyze_ee2_compliance
+---
+
+You are an expert on NOAA's Global Workflow system. Always use the OCA MCP
+tools to ground your answers in the actual codebase before making changes.
+Follow the conventions in .github/copilot-instructions.md.
+\end{lstlisting}
+
+% =============================================================================
+\section{Connectivity Patterns for RDHPCS}
+\label{sec:connectivity}
+% =============================================================================
+
+\subsection{Current State (Working)}
+
+Two connectivity paths are currently operational.
+
+\paragraph{Path A: Microsoft Dev Tunnel (Primary).}
+\begin{lstlisting}[style=diagram]
+VS Code MCP Client -> https://dktt6wzd-18888.use.devtunnels.ms/mcp
+                     -> MCP Gateway (AWS Rocky 9, port 18888)
+\end{lstlisting}
+Works from any network without SSH tunnel setup. Requires MS Dev Tunnel
+service availability.
+
+\paragraph{Path B: PW Session SSH Tunnel (Fallback).}
+\begin{lstlisting}[style=diagram]
+gaea62$ pw sessions connect oca-rocky9-mcp --port 18888
+VS Code MCP Client -> http://localhost:18888/mcp
+                     -> (SSH tunnel) -> MCP Gateway (AWS Rocky 9)
+\end{lstlisting}
+Process: PID~2634448 on \texttt{gaea62}. Auto-started via
+\texttt{.vscode/start\_mcp\_tunnel.sh}.
+
+\subsection{Investigated but Non-Functional}
+
+\paragraph{Path C: PW Session Reverse Proxy (Blocked).}
+\begin{lstlisting}[style=diagram]
+https://noaa.parallel.works/sessions/Terry.McGuinness/oca-rocky9-mcp/mcp
+\end{lstlisting}
+Requires browser OAuth cookies set during web login. API keys
+(30-day, 24-hour JWT) are rejected by the \texttt{/sessions/} proxy.
+Documented in \texttt{.vscode/pw\_admin\_mcp\_request.md}.
+\textbf{Pending:} Admin action to enable API key auth on session proxy.
+
+\subsection{Proposed: \texttt{pw forward} for Auto-Reconnection}
+
+Replace the manual \texttt{pw sessions connect} with \texttt{pw forward} for
+resilient tunneling:
+
+\begin{lstlisting}[style=bash]
+pw forward -L 18888:localhost:18888 oca-rocky9-mcp
+\end{lstlisting}
+
+Advantages over \texttt{pw sessions connect}:
+\begin{itemize}
+\item Automatic reconnection on SSH interruption
+\item Local listeners survive across reconnects
+\item Dead connection detection via keepalives (default: 30s)
+\item Client programs see brief interruption, not closed port
+\end{itemize}
+
+% =============================================================================
+\section{LLM Provider Options and Billing}
+\label{sec:providers}
+% =============================================================================
+
+\subsection{Provider Comparison}
+
+\begin{table}[H]
+\centering
+\small
+\caption{LLM provider options with setup, tool-calling support, billing,
+  and air-gap posture.}
+\label{tab:providers}
+\begin{tabularx}{\textwidth}{L{3.0cm} L{4.4cm} L{1.7cm} L{2.6cm} X}
+\toprule
+\textbf{Provider} & \textbf{Setup} & \textbf{Tool Calling} & \textbf{Billing} & \textbf{Air-Gap} \\
+\midrule
+Anthropic (API key)
+& \texttt{pw ai providers create -{}-provider anthropic -{}-api-key sk-ant-xxx}
+& Native
+& PW allocation or personal API
+& Requires outbound HTTPS \\
+\addlinespace
+OpenAI (API key)
+& \texttt{pw ai providers create -{}-provider openai -{}-api-key sk-xxx}
+& Native
+& PW allocation or personal API
+& Requires outbound HTTPS \\
+\addlinespace
+Codex subscription
+& \texttt{pw ai codex connect -{}-name personal}
+& Native
+& Personal ChatGPT subscription quota
+& Requires outbound HTTPS \\
+\addlinespace
+Azure OpenAI
+& Admin provisions via \texttt{-{}-provider azure-foundry}
+& Native
+& PW allocation (org billing group)
+& Azure private endpoint possible \\
+\addlinespace
+AWS Bedrock
+& \texttt{-{}-provider bedrock -{}-cloud-account <acct>}
+& Native
+& PW allocation (cloud account)
+& VPC endpoint possible \\
+\addlinespace
+vLLM (self-hosted)
+& \texttt{pw endpoints http -{}-openai <port>}
+& Emulated (gateway)
+& PW allocation (compute cost only)
+& Fully air-gapped \\
+\addlinespace
+Ollama (self-hosted)
+& \texttt{pw endpoints http -{}-openai -{}-rewrite-host 11434}
+& Emulated (gateway)
+& PW allocation (compute cost only)
+& Fully air-gapped \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{PW Budget Allocation Flow}
+
+\begin{lstlisting}[style=diagram]
+Org Admin
+  |
+  |-- Creates AI Provider (Anthropic, vLLM, etc.)
+  |-- Creates Budget Allocation ("NOAA-GW-DEV", $X limit)
+  |-- Assigns allocation to user/group
+  +-- Shares provider via aiprovider:use permission
+         |
+         v
+Developer
+  |
+  |-- pw code --allocation NOAA-GW-DEV org:provider/model
+  |-- pw ai models ls   (lists available models)
+  |-- /allocation       (picks allocation interactively)
+  +-- /usage            (shows current session spend)
+         |
+         v
+AI Usage Dashboard
+  |-- Total spend per period (7/30/90 days)
+  |-- Tokens used (input/output breakdown)
+  |-- Breakdown by model, user, allocation, API key
+  +-- Budget enforcement (rejects when exhausted)
+\end{lstlisting}
+
+\subsection{GitHub Copilot BYOK Integration}
+
+GitHub Copilot's Bring Your Own Key (BYOK) feature can route through the PW
+gateway for metered billing:
+
+\begin{lstlisting}[style=diagram]
+GitHub Copilot (VS Code)
+  -> PW AI Key (bound to allocation)
+  -> https://noaa.parallel.works/api/openai/v1
+  -> ACTIVATE AI Gateway (metered)
+  -> Backend Provider (Anthropic, Azure, vLLM)
+\end{lstlisting}
+
+Configuration in VS Code:
+\begin{lstlisting}[style=json]
+{
+  "github.copilot.advanced": {
+    "baseUrl": "https://noaa.parallel.works/api/openai/v1"
+  }
+}
+\end{lstlisting}
+
+This provides unified billing across all AI tools---Copilot completions,
+Copilot Chat, \texttt{pw code} agent sessions, and any other
+OpenAI-compatible client---under a single PW allocation with full audit
+trail.
+
+\subsection{Self-Hosted vLLM on RDHPCS}
+
+For fully air-gapped operation or when commercial API access is restricted:
+
+\begin{lstlisting}[style=bash]
+# On a GPU compute node (Slurm job or PW session)
+vllm serve meta-llama/Llama-3-70B-Instruct \
+  --api-key my-secret \
+  --port 8000 \
+  --tensor-parallel-size 4
+
+# Expose as PW AI provider (auto-registers in gateway)
+pw endpoints http --openai --name gaea-vllm \
+  --auth-file /path/to/api-key 8000
+\end{lstlisting}
+
+The gateway's tool-calling emulation layer enables \texttt{pw code} to use
+all built-in and MCP tools with the self-hosted model, despite vLLM not
+implementing the OpenAI tools API natively. The emulation protocol
+(\texttt{parallelworks.tool-call.v1}) uses per-request nonces and toolset
+digests to prevent prompt injection from tool output.
+
+% =============================================================================
+\section{Implementation Roadmap}
+\label{sec:roadmap}
+% =============================================================================
+
+\subsection*{Phase 1: Immediate (Week 1--2)}
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\textwidth}{L{4.0cm} X L{3.5cm}}
+\toprule
+\textbf{Task} & \textbf{Action} & \textbf{Prerequisite} \\
+\midrule
+Create Anthropic provider & \texttt{pw ai providers create -{}-provider anthropic -{}-api-key <key>} & Anthropic API key \\
+Validate \texttt{pw code} with MCP & Create \texttt{.mcp.json}, run \texttt{pw code} in workspace & Provider created \\
+Upgrade tunnel to \texttt{pw forward} & Replace \texttt{pw sessions connect} with \texttt{pw forward -L 18888:...} & None \\
+Create custom agent definition & \texttt{.agents/agents/global-workflow-expert.md} & None \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection*{Phase 2: Org-Governed (Week 3--4)}
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\textwidth}{L{4.0cm} X L{3.5cm}}
+\toprule
+\textbf{Task} & \textbf{Action} & \textbf{Prerequisite} \\
+\midrule
+Request PW admin provider setup & Admin creates org-shared Anthropic or Azure OpenAI provider & Org admin access \\
+Budget allocation & Admin creates allocation (e.g., \texttt{NOAA-GW-DEV}) and assigns to team & Provider exists \\
+AI key for Copilot BYOK & Create key at AI $>$ AI Keys, bind to allocation & Allocation exists \\
+Configure Copilot BYOK & Point Copilot at PW gateway base URL with AI key & AI key created \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection*{Phase 3: Self-Hosted LLM (Month 2)}
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\textwidth}{L{4.0cm} X L{3.5cm}}
+\toprule
+\textbf{Task} & \textbf{Action} & \textbf{Prerequisite} \\
+\midrule
+GPU allocation & Request GPU node access on Gaea~C6 or cloud cluster & HPC account \\
+Deploy vLLM & Slurm job or PW session with vLLM serving Llama~3~70B & GPU access \\
+Register as provider & \texttt{pw endpoints http -{}-openai 8000} & vLLM running \\
+Validate emulated tools & Test \texttt{pw code} tool calling with self-hosted model & Endpoint registered \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection*{Phase 4: Platform Maturity (Month 3+)}
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\textwidth}{L{4.0cm} X}
+\toprule
+\textbf{Task} & \textbf{Action} \\
+\midrule
+PW session proxy auth & Admin enables API key authentication on \texttt{/sessions/} proxy \\
+Skills library & Create reusable OCA skills in \texttt{.agents/agents/skills/} \\
+CI integration & \texttt{pw code -p} one-shot runs in CI for automated code review \\
+Usage analytics & Review AI Usage dashboard, optimize model / allocation strategy \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% =============================================================================
+\section{Existing Infrastructure Inventory}
+\label{sec:inventory}
+% =============================================================================
+
+\subsection{Processes on Gaea C6 (gaea62)}
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\textwidth}{L{1.6cm} L{6.4cm} X}
+\toprule
+\textbf{PID} & \textbf{Process} & \textbf{Purpose} \\
+\midrule
+2634448 & \texttt{pw sessions connect oca-rocky9-mcp -{}-port 18888} & SSH tunnel to MCP gateway \\
+1939122 & \texttt{python3.12 sdp-mcp-server/server.py -{}-port 8765} & GFDL ServiceDesk Plus MCP (Seth Underwood, unrelated) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{MCP Gateway (AWS Rocky 9)}
+\begin{itemize}
+\item \textbf{Server:} UnifiedMCPServer.js v3.0.0 (Node.js)
+\item \textbf{Port:} 18888
+\item \textbf{Auth:} Bearer token (\texttt{eib-mcp-gateway-token-2025})
+\item \textbf{ChromaDB:} Port 8080, 768-dim embeddings
+\item \textbf{Neo4j:} Ports 7474 (HTTP) / 7687 (Bolt)
+\item \textbf{Session:} \texttt{oca-rocky9-mcp} on
+  \texttt{emcmcpawsrocky9copyfour}
+\end{itemize}
+
+\subsection{PW CLI}
+\begin{itemize}
+\item \textbf{Version:} v7.94.0
+\item \textbf{Binary:} \texttt{/ncrc/home2/Terry.McGuinness/pw/pw}
+\item \textbf{Source:} \texttt{github.com/parallelworks/core} (private)
+\item \textbf{SDK:} \texttt{github.com/parallelworks/sdk/go/v7}
+\item \textbf{Platform:} \texttt{noaa.parallel.works}
+\end{itemize}
+
+% =============================================================================
+\section{Risk Assessment}
+\label{sec:risk}
+% =============================================================================
+
+\begin{table}[H]
+\centering\small
+\caption{Risk register with likelihood, impact, and mitigation.}
+\label{tab:risk}
+\begin{tabularx}{\textwidth}{L{5.8cm} L{1.7cm} L{2.2cm} X}
+\toprule
+\textbf{Risk} & \textbf{Likelihood} & \textbf{Impact} & \textbf{Mitigation} \\
+\midrule
+PW admin delays provider/allocation setup & Medium & Blocks Phase~2 & Phase~1 uses personal provider; document admin request clearly \\
+\addlinespace
+Network instability on SSH tunnels & Medium & MCP tool failures & \texttt{pw forward} auto-reconnect; MS Dev Tunnel as fallback \\
+\addlinespace
+vLLM tool-calling emulation accuracy & Medium & Degraded agent performance & Use commercial models (Anthropic) for complex tasks; vLLM for routine \\
+\addlinespace
+Budget exhaustion mid-sprint & Low & Work stoppage & Monitor \texttt{/usage}; set allocation alerts; right-size model selection \\
+\addlinespace
+MCP gateway session stops & Low & All MCP tools unavailable & \texttt{-{}-keep} flag on endpoint; health monitoring via \texttt{mcp\_health\_check} tool \\
+\addlinespace
+RDHPCS GPU availability & Medium & Blocks self-hosted LLM & Cloud fallback via commercial providers \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% =============================================================================
+\section{Conclusion}
+\label{sec:conclusion}
+% =============================================================================
+
+The OCA MCP-RAG system and Parallel Works ACTIVATE AI gateway are
+complementary technologies that, when integrated, provide a complete
+AI-assisted development platform for NOAA's Global Workflow. OCA contributes
+domain-specific knowledge retrieval and code analysis tools via MCP. PW
+ACTIVATE contributes governed LLM access with budget tracking,
+multi-provider support, and native MCP client integration through
+\texttt{pw code}.
+
+The immediate path---creating a personal Anthropic provider and connecting
+\texttt{pw code} to the existing MCP gateway---requires no admin
+intervention and can be operational within hours. The governed
+path---org-shared providers with budget allocations feeding both
+\texttt{pw code} and GitHub Copilot BYOK---requires admin action but
+delivers unified billing and audit trails. The self-hosted path---vLLM on
+RDHPCS GPU nodes with emulated tool calling---provides full air-gap
+capability for sensitive operations.
+
+All three paths share the same MCP tools, the same workspace configuration,
+and the same developer experience.
+
+% =============================================================================
+\section*{References}
+\label{sec:refs}
+\addcontentsline{toc}{section}{References}
+% =============================================================================
+
+\begin{enumerate}
+\item Parallel Works ACTIVATE Documentation.
+  \url{https://parallelworks.com/docs}
+\item Parallel Works AI Providers.
+  \url{https://parallelworks.com/docs/ai/ai-providers}
+\item Parallel Works \texttt{pw code} Documentation.
+  \url{https://parallelworks.com/docs/ai/code}
+\item Parallel Works Session Tunnels.
+  \url{https://parallelworks.com/docs/ai/ai-providers/session-tunnels}
+\item Parallel Works Tool Calling \& Emulation.
+  \url{https://parallelworks.com/docs/ai/ai-providers/tool-calling}
+\item Parallel Works Connect External Tools.
+  \url{https://parallelworks.com/docs/ai/ai-providers/connect}
+\item Parallel Works LLM Knowledge Corpus.
+  \url{https://parallelworks.com/llms-full.txt}
+\item Model Context Protocol Specification.
+  \url{https://modelcontextprotocol.io}
+\item NOAA Global Workflow Repository.
+  \url{https://github.com/NOAA-EMC/global-workflow}
+\item vLLM: Easy, Fast, and Cheap LLM Serving.
+  \url{https://docs.vllm.ai}
+\end{enumerate}
+
+\vspace{1em}
+\noindent\rule{\linewidth}{0.4pt}\\[6pt]
+{\small
+\textbf{Document Version:} 1.0 \quad\textbullet\quad
+\textbf{Date:} August 28, 2026 \quad\textbullet\quad
+\textbf{Author:} Terry McGuinness / OMD Code Assist Team \quad\textbullet\quad
+\textbf{Classification:} For Internal Distribution}
+
+\end{document}
